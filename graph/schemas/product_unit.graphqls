@@ -1,0 +1,33 @@
+# type ProductUnit {
+#   id: Int!
+#   name: String!
+#   abbreviation: String!
+#   decimalPlaces: Int!
+#   isActive: Boolean!
+#   priority: Int!
+# }
+
+# input NewProductUnit {
+#   name: String!
+#   abbreviation: String!
+#   decimalPlaces: Int!
+#   isActive: Boolean!
+#   priority: Int!
+# }
+
+# type AllProductUnit {
+#   id: Int!
+#   name: String!
+#   abbreviation: String!
+#   decimalPlaces: Int!
+# }
+# type ProductUnit{
+#   id: Int!
+# }
+
+# extend type Mutation {
+
+# }
+
+# extend type Query {
+# }

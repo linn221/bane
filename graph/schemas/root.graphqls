@@ -1,0 +1,13 @@
+directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  helloworld: String!
+}
+type Mutation {
+  helloworld: String!
+}

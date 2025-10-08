@@ -1,0 +1,4 @@
+.env
+bane
+*.test
+gorm.log
