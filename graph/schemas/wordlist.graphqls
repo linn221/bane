@@ -1,4 +1,27 @@
+scalar WordType
+type Word {
+  id: Int!
+  word: String!
+  wordType: WordType! # Fuzz | Attack
+  description: String
+  # tags: [Tag]
+  # notes: [Note]
+}
+
+type WordList {
+    id: Int!
+    name: String!
+    description: String
+}
+
+input NewWordList {
+    id: Int!
+    name: String!
+    description: String
+}
+
 # type ProductUnit {
+
 #   id: Int!
 #   name: String!
 #   abbreviation: String!
