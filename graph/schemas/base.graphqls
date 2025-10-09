@@ -1,0 +1,31 @@
+type Note {
+    value: String!
+    createdAt: MyTime!
+    updatedAt: MyTime!
+}
+input NewNote {
+    value: String!
+}
+
+type Tag {
+    id: UInt!
+    name: String!
+    description: String
+}
+
+input NewTag {
+    name: String!
+    description: String
+}
+
+
+extend type Mutation {
+    createTag(input: NewTag!): Tag!
+    updateTag(id: UInt!, input: NewTag!): Tag!
+    deleteTag(id: UInt!): Tag!
+}
+
+extend type Query {
+    getTag(id: UInt!): Tag!
+    listTag: [Tag]
+}

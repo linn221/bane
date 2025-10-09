@@ -1,0 +1,44 @@
+scalar ProgramType
+
+type Program {
+  id: UInt!
+  name: String!
+  description: String
+  domain: String!
+  url: String!
+  # technologies: [Tag]
+  # tags: [Tag]
+  # notes: [Note]
+}
+
+input NewProgram {
+  name: String!
+  description: String
+  domain: String!
+  url: String!
+  # technologies: [Tag]
+  # tags: [Tag]
+  # notes: [Note]
+}
+
+type AllProgram {
+  id: UInt!
+  name: String!
+  description: String
+  domain: String!
+  url: String!
+}
+
+extend type Mutation {
+  createProgram(input: NewProgram): Program!
+  updateProgram(id: UInt, input: NewProgram): Program!
+  deleteProgram(id: UInt): Program!
+}
+
+extend type Query {
+  getProgram(id: UInt): WordList!
+  listProgram(
+    search: String
+    # tags
+  ): [AllProgram]!
+}

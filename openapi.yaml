@@ -1,0 +1,1136 @@
+openapi: 3.0.3
+info:
+  title: Bug Hunting Record & Analysis API
+  version: 1.0.0
+  description: >
+    API for recording HTTP requests, managing notes, attachments, programs, and endpoints,
+    and analyzing them for bug hunting.
+    Errors are always returned as `text/plain` with a string message.
+    Authentication is handled by starting a session with `/start_session`.
+
+servers:
+  - url: http://localhost:8081
+
+# === Authentication ===
+paths:
+  /start_session:
+    get:
+      summary: Start a new session
+      description: >
+        Authenticate using a secret and receive an HttpOnly, SameSite=Strict cookie.
+      parameters:
+        - name: secret
+          in: query
+          description: Secret key for authentication
+          required: true
+          schema:
+            type: string
+            example: "super_secret_key"
+      responses:
+        "200":
+          description: Session started successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "session started"
+        "401":
+          description: Invalid secret
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "invalid secret"
+
+# === Notes Endpoints ===
+  /notes:
+    post:
+      summary: Create a note
+      description: Creates a note linked to a program, endpoint, or request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference_type, reference_id, value] # reference_type and reference_id are hidden and will comes from the associated Endpoint, Program or Request
+              properties:
+                reference_type:
+                  type: string
+                  enum: [programs, endpoints, requests, vulns]
+                  description: Type of resource the note is associated with
+                  example: "programs"
+                reference_id:
+                  type: integer
+                  description: ID of the referenced resource
+                  example: 123
+                value:
+                  type: string
+                  description: Content of the note
+                  example: "Found a vulnerability in login endpoint"
+                tag_ids:
+                  type: array
+                  items: { type: integer }
+                  description: Array of tag IDs to associate with the note
+      responses:
+        "201":
+          description: Note created successfully (returns the note ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 101
+        "400":
+          description: Invalid input
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "invalid request body"
+
+    get:
+      summary: List notes
+      description: Retrieve a list of notes, optionally filtered by type or search string
+      parameters:
+        - name: reference_type
+          in: query
+          description: Filter notes by reference type
+          schema:
+            type: string
+            enum: [endpoints, requests, programs, vulns]
+            example: "endpoints"
+        - name: reference_id
+          in: query
+          description: Filter notes by reference ID
+          schema:
+            type: integer
+            example: 123
+        - name: search
+          in: query
+          description: Filter notes by search string in value
+          schema:
+            type: string
+            example: "login"
+      responses:
+        "200":
+          description: Array of notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/note"
+
+  /notes/{id}:
+    get:
+      summary: Get a note
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Note details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/note_detail"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    delete:
+      summary: Delete a note
+      description: Deletes a note by ID
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "204":
+          description: Note deleted successfully
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    patch:
+      summary: Update note value
+      description: Updates only the `value` of a note
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+        - name: value
+          in: query
+          description: New value for the note
+          required: true
+          schema:
+            type: string
+            example: "Updated note value"
+      responses:
+        "201":
+          $ref: "#/components/responses/updated"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+# === Attachments ===
+  /attachments:
+    post:
+      summary: Upload an attachment
+      description: Upload a file linked to a program, endpoint, or request
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [reference_type, reference_id, file] # reference_type and reference_id are hidden and will comes from the associated Endpoint, Program or Request
+              properties:
+                reference_type:
+                  type: string
+                  enum: [programs, endpoints, requests, vulns]
+                  description: Type of resource the attachment is associated with
+                  example: "endpoints"
+                reference_id:
+                  type: integer
+                  description: ID of the referenced resource
+                  example: 123
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+      responses:
+        "201":
+          description: Attachment created successfully (returns the attachment ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 555
+        "400":
+          description: Invalid input
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "invalid file"
+
+    delete:
+      summary: Delete an attachment
+      description: Deletes an attachment by ID
+      parameters:
+        - $ref: "#/components/parameters/id_query"
+      responses:
+        "204":
+          description: Attachment deleted successfully
+        "404":
+          $ref: "#/components/responses/not_found"
+
+# === Images ===
+  /images:
+    post:
+      summary: Upload images
+      description: Upload multiple image files linked to a program, endpoint, or request
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [reference_type, reference_id, files]
+              properties:
+                reference_type:
+                  type: string
+                  enum: [programs, endpoints, requests, vulns]
+                  description: Type of resource the images are associated with
+                  example: "endpoints"
+                reference_id:
+                  type: integer
+                  description: ID of the referenced resource
+                  example: 123
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Image files to upload (multiple files supported)
+      responses:
+        "201":
+          description: Images created successfully (returns array of image objects)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/image"
+        "400":
+          description: Invalid input
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "invalid file"
+
+    delete:
+      summary: Delete an image
+      description: Deletes an image by ID
+      parameters:
+        - $ref: "#/components/parameters/id_query"
+      responses:
+        "204":
+          description: Image deleted successfully
+        "404":
+          $ref: "#/components/responses/not_found"
+
+  /images/{id}:
+    get:
+      summary: Get image details
+      description: Get image metadata by ID
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Image details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/image"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+# === Vulnerabilities ===
+  /vulns:
+    post:
+      summary: Create a vulnerability
+      description: Create a new vulnerability record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/vuln_input"
+      responses:
+        "201":
+          description: Vulnerability created successfully (returns vulnerability ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 1
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+
+    get:
+      summary: List vulnerabilities
+      description: List all vulnerabilities with optional filtering
+      parameters:
+        - name: parent_id
+          in: query
+          description: Filter by parent vulnerability ID
+          required: false
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Array of vulnerabilities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/vuln_list"
+
+  /vulns/{id}:
+    get:
+      summary: Get vulnerability details
+      description: Get vulnerability details by ID
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Vulnerability details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/vuln_detail"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    put:
+      summary: Update a vulnerability
+      description: Update an existing vulnerability
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/vuln_input"
+      responses:
+        "200":
+          $ref: "#/components/responses/updated"
+        "400":
+          $ref: "#/components/responses/bad_request"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    delete:
+      summary: Delete a vulnerability
+      description: Delete a vulnerability by ID
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "204":
+          description: Vulnerability deleted successfully
+        "404":
+          $ref: "#/components/responses/not_found"
+        "400":
+          $ref: "#/components/responses/bad_request"
+
+  /vulns/slug/{slug}:
+    get:
+      summary: Get vulnerability by slug
+      description: Get vulnerability details by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Vulnerability slug
+          schema:
+            type: string
+            example: "sql-injection-vulnerability"
+      responses:
+        "200":
+          description: Vulnerability details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/vuln_detail"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+# === Programs ===
+  /programs:
+    post:
+      summary: Create a program
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/program_input"
+      responses:
+        "201":
+          description: Program created successfully (returns program ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 1
+
+    get:
+      summary: List programs
+      responses:
+        "200":
+          description: Array of programs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/program_list"
+
+  /programs/{id}:
+    get:
+      summary: Get program details
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Program details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/program_detail"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    put:
+      summary: Update a program
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/program_input"
+      responses:
+        "200":
+          $ref: "#/components/responses/updated"
+
+    delete:
+      summary: Delete a program
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "204":
+          description: Program deleted successfully
+
+# === Endpoints ===
+  /endpoints:
+    post:
+      summary: Create an endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/endpoint_input"
+      responses:
+        "201":
+          description: Endpoint created successfully (returns endpoint ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 10
+
+    get:
+      summary: List endpoints
+      responses:
+        "200":
+          description: Array of endpoints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/endpoint_list"
+
+  /endpoints/{id}:
+    get:
+      summary: Get endpoint details
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Endpoint details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/endpoint_detail"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    put:
+      summary: Update an endpoint
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/endpoint_input"
+      responses:
+        "200":
+          $ref: "#/components/responses/updated"
+
+    delete:
+      summary: Delete an endpoint
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "204":
+          description: Endpoint deleted successfully
+
+# === Requests ===
+  /requests:
+    get:
+      summary: List requests
+      description: Retrieve HTTP requests with advanced filtering
+      parameters:
+        - name: program_id
+          in: query
+          schema: { type: integer }
+          description: Filter by program ID
+        - name: endpoint_id
+          in: query
+          schema: { type: integer }
+          description: Filter by endpoint ID
+        - name: job_id
+          in: query
+          schema: { type: integer }
+          description: Filter by job ID
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Search in request/response body and headers using LIKE operation
+        - name: raw_sql
+          in: query
+          schema: { type: string }
+          description: Custom SQL filter
+        - name: order_by1
+          in: query
+          schema:
+            type: string
+            enum: [method, content_type, size, latency, url, sequence_number]
+            description: Primary field to sort by (highest priority)
+        - name: asc1
+          in: query
+          schema:
+            type: boolean
+            description: Ascending or descending order for primary sort
+        - name: order_by2
+          in: query
+          schema:
+            type: string
+            enum: [method, content_type, size, latency, url, sequence_number]
+            description: Secondary field to sort by
+        - name: asc2
+          in: query
+          schema:
+            type: boolean
+            description: Ascending or descending order for secondary sort
+        - name: order_by3
+          in: query
+          schema:
+            type: string
+            enum: [method, content_type, size, latency, url, sequence_number]
+            description: Tertiary field to sort by
+        - name: asc3
+          in: query
+          schema:
+            type: boolean
+            description: Ascending or descending order for tertiary sort
+        - name: order_by4
+          in: query
+          schema:
+            type: string
+            enum: [method, content_type, size, latency, url, sequence_number]
+            description: Quaternary field to sort by
+        - name: asc4
+          in: query
+          schema:
+            type: boolean
+            description: Ascending or descending order for quaternary sort
+      responses:
+        "200":
+          description: Array of requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/request_list"
+
+  /requests/{id}:
+    get:
+      summary: Get request details
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/request_detail"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+# === Import HAR ===
+  /import_har:
+    post:
+      summary: Import HAR file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, program_id]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: HAR file to import
+                program_id:
+                  type: integer
+                  description: ID of the program to associate the import with
+                  example: 1
+                ignored_headers:
+                  type: string
+                  description: Headers to ignore during processing (JSON string)
+                  example: "[\"User-Agent\", \"Accept-Encoding\"]"
+      responses:
+        "201":
+          description: Import job created (returns job ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 77
+
+# === Import Burp XML ===
+  /import_burp_xml:
+    post:
+      summary: Import Burp Suite XML file
+      description: Imports a Burp Suite XML file containing base64 encoded request and response data
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, program_id]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Burp Suite XML file to import
+                program_id:
+                  type: integer
+                  description: ID of the program to associate the import with
+                  example: 1
+                ignored_headers:
+                  type: string
+                  description: Headers to ignore during processing (JSON string)
+                  example: "[\"User-Agent\", \"Accept-Encoding\"]"
+      responses:
+        "201":
+          description: Import job created (returns job ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 78
+        "400":
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "file is required"
+
+# === Jobs ===
+  /jobs:
+    get:
+      summary: List jobs
+      responses:
+        "200":
+          description: Array of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/job"
+
+# === Tags ===
+  /tags:
+    post:
+      summary: Create a tag
+      description: Create a new tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag_input"
+      responses:
+        "201":
+          $ref: "#/components/responses/created_with_id"
+        "400":
+          $ref: "#/components/responses/bad_request"
+
+    get:
+      summary: List tags
+      description: List all tags
+      responses:
+        "200":
+          description: Array of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/tag"
+
+  /tags/{id}:
+    get:
+      summary: Get tag details
+      description: Get tag details by ID
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      responses:
+        "200":
+          description: Tag details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tag"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+    put:
+      summary: Update a tag
+      description: Update an existing tag
+      parameters:
+        - $ref: "#/components/parameters/id_path"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag_input"
+      responses:
+        "200":
+          $ref: "#/components/responses/updated"
+        "400":
+          $ref: "#/components/responses/bad_request"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+  /apply-tags/{tagId}/{referenceType}/{referenceId}:
+    post:
+      summary: Apply tag to resource
+      description: Apply a tag to a specific resource
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          description: Tag ID
+          schema:
+            type: integer
+        - name: referenceType
+          in: path
+          required: true
+          description: Reference type
+          schema:
+            type: string
+            enum: [programs, endpoints, requests, vulns, notes]
+        - name: referenceId
+          in: path
+          required: true
+          description: Reference ID
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/updated"
+        "400":
+          $ref: "#/components/responses/bad_request"
+        "404":
+          $ref: "#/components/responses/not_found"
+
+# === Components ===
+components:
+  parameters:
+    id_path:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+      description: Resource ID
+      example: 1
+    
+    id_query:
+      name: id
+      in: query
+      required: true
+      schema: { type: integer }
+      description: Resource ID
+      example: 1
+
+  responses:
+    not_found:
+      description: Resource not found
+      content:
+        text/plain:
+          schema: { type: string, example: "resource not found" }
+    
+    bad_request:
+      description: Invalid input
+      content:
+        text/plain:
+          schema: { type: string, example: "invalid request" }
+    
+    created_with_id:
+      description: Resource created successfully (returns ID as plain text)
+      content:
+        text/plain:
+          schema: { type: integer, example: 1 }
+    
+    updated:
+      description: Resource updated successfully
+
+  schemas:
+    note:
+      type: object
+      properties:
+        id: { type: integer }
+        reference_type: { type: string }
+        reference_id: { type: integer }
+        value: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    note_listing:
+      type: object
+      description: Minimal note info used in embedded lists
+      properties:
+        id: { type: integer }
+        value: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    note_detail:
+      type: object
+      properties:
+        id: { type: integer }
+        reference_type: { type: string }
+        reference_id: { type: integer }
+        value: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    attachment:
+      type: object
+      properties:
+        id: { type: integer }
+        filename: { type: string }
+        original_filename: { type: string }
+        url: { type: string }
+
+    image:
+      type: object
+      properties:
+        id: { type: integer }
+        filename: { type: string }
+        original_filename: { type: string }
+        url: { type: string }
+
+    vuln_input:
+      type: object
+      required: [title, body]
+      properties:
+        title: { type: string, example: "SQL Injection Vulnerability" }
+        body: { type: string, example: "This vulnerability allows attackers to inject malicious SQL queries..." }
+        parent_id: { type: integer, nullable: true, example: 1 }
+        tag_ids:
+          type: array
+          items: { type: integer }
+
+    vuln_list:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        slug: { type: string }
+        parent_id: { type: integer, nullable: true }
+        parent_name: { type: string, nullable: true }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    vuln_detail:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        body: { type: string }
+        slug: { type: string }
+        parent_id: { type: integer, nullable: true }
+        parent_vuln: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        notes: 
+          type: array
+          items:
+            $ref: "#/components/schemas/note_listing"
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/attachment"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/image"
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    program_input:
+      type: object
+      required: [name, url]
+      properties:
+        name: { type: string, example: "My Program" }
+        url: { type: string, example: "https://example.com" }
+        scope: { type: string, example: "internal" }
+        domains: { type: string, example: "example.com" }
+        note: { type: string, example: "Initial program note" }
+        tag_ids:
+          type: array
+          items: { type: integer }
+
+    program_list:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        url: { type: string }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    program_detail:
+      allOf:
+        - $ref: "#/components/schemas/program_list"
+        - type: object
+          properties:
+            scope: { type: string }
+            domains: { type: string }
+            note: { type: string }
+            notes:
+              type: array
+              items: { $ref: "#/components/schemas/note_listing" }
+            attachments:
+              type: array
+              items: { $ref: "#/components/schemas/attachment" }
+            images:
+              type: array
+              items: { $ref: "#/components/schemas/image" }
+            tags:
+              type: array
+              items: { $ref: "#/components/schemas/tag" }
+
+    endpoint_input:
+      type: object
+      required: [domain, program_id, method, uri, endpoint_type, description]
+      properties:
+        domain: { type: string }
+        program_id: { type: integer }
+        method: { type: string, example: "GET" }
+        uri: { type: string, example: "/login" }
+        endpoint_type: { type: string, enum: [web, api] }
+        description: { type: string }
+        tag_ids:
+          type: array
+          items: { type: integer }
+
+    endpoint_list:
+      type: object
+      properties:
+        id: { type: integer }
+        program_id: { type: integer }
+        program_name: { type: string }
+        domain: { type: string }
+        uri: { type: string }
+        method: { type: string }
+        endpoint_type: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        text: { type: string, description: "Concatenated text containing all endpoint information including notes and attachments" }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    endpoint_detail:
+      allOf:
+        - $ref: "#/components/schemas/endpoint_list"
+        - type: object
+          properties:
+            description: { type: string }
+            notes:
+              type: array
+              items: { $ref: "#/components/schemas/note_listing" }
+            attachments:
+              type: array
+              items: { $ref: "#/components/schemas/attachment" }
+            images:
+              type: array
+              items: { $ref: "#/components/schemas/image" }
+            tags:
+              type: array
+              items: { $ref: "#/components/schemas/tag" }
+          created_at: { type: string, format: date-time }
+          updated_at: { type: string, format: date-time }
+
+    request_list:
+      type: object
+      properties:
+        id: { type: integer }
+        program_id: { type: integer }
+        program_name: { type: string }
+        endpoint_id: { type: integer }
+        endpoint_name: { type: string }
+        job_id: { type: integer }
+        sequence_number: { type: integer }
+        url: { type: string }
+        method: { type: string }
+        domain: { type: string }
+        status_code: { type: integer }
+        content_type: { type: string }
+        size: { type: integer }
+        req_hash: { type: string }
+        response_hash: { type: string }
+        response_body_hash: { type: string }
+        text: { type: string, description: "Concatenated text containing all request information including headers, body, notes and attachments" }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/tag" }
+
+    request_detail:
+      allOf:
+        - $ref: "#/components/schemas/request_list"
+        - type: object
+          properties:
+            request_headers: { type: string }
+            request_body: {}
+            response_body: {}
+            response_headers: {}
+            req_hash: { type: string }
+            response_hash: { type: string }
+            response_body_hash: { type: string }
+            latency_ms: { type: integer }
+            notes:
+              type: array
+              items: { $ref: "#/components/schemas/note_listing" }
+            attachments:
+              type: array
+              items: { $ref: "#/components/schemas/attachment" }
+            images:
+              type: array
+              items: { $ref: "#/components/schemas/image" }
+            tags:
+              type: array
+              items: { $ref: "#/components/schemas/tag" }
+
+    job:
+      type: object
+      properties:
+        id: { type: integer }
+        job_type: { type: string, enum: [import_har, import_burp_xml] }
+        title: { type: string }
+        progress: { type: integer, minimum: 1, maximum: 100 }
+        created_at: { type: string, format: date-time }
+        description: { type: string }
+
+    tag_input:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, example: "High Priority" }
+        priority: { type: integer, example: 1, description: "Priority for ordering (defaults to 1 if not provided)" }
+
+    tag:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }

@@ -11,3 +11,5 @@ type Query {
 type Mutation {
   helloworld: String!
 }
+
+scalar UInt

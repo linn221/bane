@@ -1,56 +1,59 @@
 scalar WordType
+
 type Word {
-  id: Int!
+  id: UInt!
   word: String!
-  wordType: WordType! # Fuzz | Attack
+  wordType: WordType! # fuzz | attack
   description: String
   # tags: [Tag]
   # notes: [Note]
 }
 
+input NewWord {
+  word: String!
+  wordType: WordType! # fuzz | attack
+  description: String
+}
+
 type WordList {
-    id: Int!
+    id: UInt!
     name: String!
     description: String
+    words: [Word!]
 }
 
 input NewWordList {
-    id: Int!
     name: String!
     description: String
 }
 
-# type ProductUnit {
+type AllWordList {
+    id: UInt!
+    name: String!
+    description: String
+}
 
-#   id: Int!
-#   name: String!
-#   abbreviation: String!
-#   decimalPlaces: Int!
-#   isActive: Boolean!
-#   priority: Int!
-# }
+extend type Mutation {
+  createWord(input: NewWord): Word!
+  updateWord(id: UInt, input: NewWord): Word!
+  deleteWord(id: UInt): Word!
 
-# input NewProductUnit {
-#   name: String!
-#   abbreviation: String!
-#   decimalPlaces: Int!
-#   isActive: Boolean!
-#   priority: Int!
-# }
+  createWordList(input: NewWordList): WordList!
+  updateWordList(id: UInt, input: NewWordList): WordList!
+  deleteWordList(id: UInt): WordList!
+}
 
-# type AllProductUnit {
-#   id: Int!
-#   name: String!
-#   abbreviation: String!
-#   decimalPlaces: Int!
-# }
-# type ProductUnit{
-#   id: Int!
-# }
+extend type Query {
+  getWord(id: UInt): Word!
+  listWord(
+    wordListId: UInt
+    regex: String
+    # tags
+  ): [Word]!
 
-# extend type Mutation {
-
-# }
-
-# extend type Query {
-# }
+  getWordList(id: UInt): WordList!
+  listWordList(
+    regex: String
+    # tags
+  ): [AllWordList]!
+}

@@ -2,8 +2,58 @@
 
 package model
 
+import (
+	"github.com/linn221/bane/models"
+)
+
+type AllProgram struct {
+	ID          models.UInt `json:"id"`
+	Name        string      `json:"name"`
+	Description *string     `json:"description,omitempty"`
+	Domain      string      `json:"domain"`
+	URL         string      `json:"url"`
+}
+
+type AllWordList struct {
+	ID          models.UInt `json:"id"`
+	Name        string      `json:"name"`
+	Description *string     `json:"description,omitempty"`
+}
+
 type Mutation struct {
 }
 
+type NewProgram struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Domain      string  `json:"domain"`
+	URL         string  `json:"url"`
+}
+
+type NewWord struct {
+	Word        string          `json:"word"`
+	WordType    models.WordType `json:"wordType"`
+	Description *string         `json:"description,omitempty"`
+}
+
+type NewWordList struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+}
+
 type Query struct {
+}
+
+type Word struct {
+	ID          models.UInt     `json:"id"`
+	Word        string          `json:"word"`
+	WordType    models.WordType `json:"wordType"`
+	Description *string         `json:"description,omitempty"`
+}
+
+type WordList struct {
+	ID          models.UInt `json:"id"`
+	Name        string      `json:"name"`
+	Description *string     `json:"description,omitempty"`
+	Words       []*Word     `json:"words,omitempty"`
 }
