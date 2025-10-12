@@ -1,21 +1,38 @@
+scalar MyTime
+
+type SearchResult {
+    results: [String!]
+    count: Int
+}
+
+type Download {
+    url: String!
+}
+
 type Note {
     value: String!
+    match(regex: String): SearchResult! @goField(forceResolver: true)
     createdAt: MyTime!
     updatedAt: MyTime!
 }
+
 input NewNote {
     value: String!
 }
 
 type Tag {
     id: UInt!
+    alias: String!
     name: String!
+    match(regex: String): SearchResult! @goField(forceResolver: true)
     description: String
 }
 
 input NewTag {
     name: String!
+    alias: String
     description: String
+    priority: Int
 }
 
 
@@ -26,6 +43,6 @@ extend type Mutation {
 }
 
 extend type Query {
-    getTag(id: UInt!): Tag!
-    listTag: [Tag]
+    tag(id: UInt!): Tag!
+    tags(search: String): [Tag]
 }

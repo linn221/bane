@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
 )
@@ -28,11 +27,6 @@ func (r *mutationResolver) DeleteProgram(ctx context.Context, id *models.UInt) (
 	panic(fmt.Errorf("not implemented: DeleteProgram - deleteProgram"))
 }
 
-// ID is the resolver for the id field.
-func (r *programResolver) ID(ctx context.Context, obj *models.Program) (models.UInt, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
-}
-
 // GetProgram is the resolver for the getProgram field.
 func (r *queryResolver) GetProgram(ctx context.Context, id *models.UInt) (*model.WordList, error) {
 	panic(fmt.Errorf("not implemented: GetProgram - getProgram"))
@@ -42,8 +36,3 @@ func (r *queryResolver) GetProgram(ctx context.Context, id *models.UInt) (*model
 func (r *queryResolver) ListProgram(ctx context.Context, search *string) ([]*model.AllProgram, error) {
 	panic(fmt.Errorf("not implemented: ListProgram - listProgram"))
 }
-
-// Program returns graph.ProgramResolver implementation.
-func (r *Resolver) Program() graph.ProgramResolver { return &programResolver{r} }
-
-type programResolver struct{ *Resolver }

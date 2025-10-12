@@ -155,3 +155,7 @@ func GetEnv(key, fallback string) string {
 	}
 	return fallback
 }
+
+func SurroundPercentages(s string) string {
+	return "%" + s + "%"
+}

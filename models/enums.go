@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 type UInt uint
@@ -52,5 +53,24 @@ func (t *WordType) UnmarshalGQL(i interface{}) error {
 	default:
 		return errors.New("invalid word type")
 	}
+	return nil
+}
+
+type MyTime struct {
+	time.Time
+}
+
+// MarshalGQL implements the graphql.Marshaler interface.
+func (u MyTime) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(u.Format(time.DateOnly)))
+}
+
+// UnmarshalGQL implements the graphql.Unmarshaler interface.
+func (u *MyTime) UnmarshalGQL(v interface{}) error {
+	_, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("Uint must be a string")
+	}
+
 	return nil
 }

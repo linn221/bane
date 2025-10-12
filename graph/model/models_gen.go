@@ -20,7 +20,15 @@ type AllWordList struct {
 	Description *string     `json:"description,omitempty"`
 }
 
+type Download struct {
+	URL string `json:"url"`
+}
+
 type Mutation struct {
+}
+
+type NewNote struct {
+	Value string `json:"value"`
 }
 
 type NewProgram struct {
@@ -41,7 +49,19 @@ type NewWordList struct {
 	Description *string `json:"description,omitempty"`
 }
 
+type Note struct {
+	Value     string        `json:"value"`
+	Match     *SearchResult `json:"match"`
+	CreatedAt models.MyTime `json:"createdAt"`
+	UpdatedAt models.MyTime `json:"updatedAt"`
+}
+
 type Query struct {
+}
+
+type SearchResult struct {
+	Results []string `json:"results,omitempty"`
+	Count   *int     `json:"count,omitempty"`
 }
 
 type Word struct {
