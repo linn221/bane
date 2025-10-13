@@ -44,6 +44,7 @@ type ResolverRoot interface {
 	Note() NoteResolver
 	Query() QueryResolver
 	Tag() TagResolver
+	WordList() WordListResolver
 }
 
 type DirectiveRoot struct {
@@ -71,22 +72,22 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateProgram  func(childComplexity int, input *model.NewProgram) int
 		CreateTag      func(childComplexity int, input models.NewTag) int
-		CreateWord     func(childComplexity int, input *model.NewWord) int
-		CreateWordList func(childComplexity int, input *model.NewWordList) int
-		DeleteProgram  func(childComplexity int, id *models.UInt) int
-		DeleteTag      func(childComplexity int, id models.UInt) int
-		DeleteWord     func(childComplexity int, id *models.UInt) int
-		DeleteWordList func(childComplexity int, id *models.UInt) int
+		CreateWord     func(childComplexity int, input models.NewWord) int
+		CreateWordList func(childComplexity int, input models.NewWordList) int
+		DeleteProgram  func(childComplexity int, id *int) int
+		DeleteTag      func(childComplexity int, id int) int
+		DeleteWord     func(childComplexity int, id int) int
+		DeleteWordList func(childComplexity int, id int) int
 		Helloworld     func(childComplexity int) int
-		UpdateProgram  func(childComplexity int, id *models.UInt, input *model.NewProgram) int
-		UpdateTag      func(childComplexity int, id models.UInt, input models.NewTag) int
-		UpdateWord     func(childComplexity int, id *models.UInt, input *model.NewWord) int
-		UpdateWordList func(childComplexity int, id *models.UInt, input *model.NewWordList) int
+		UpdateProgram  func(childComplexity int, id *int, input *model.NewProgram) int
+		UpdateTag      func(childComplexity int, id int, input models.NewTag) int
+		UpdateWord     func(childComplexity int, id int, input models.NewWord) int
+		UpdateWordList func(childComplexity int, id int, input models.NewWordList) int
 	}
 
 	Note struct {
 		CreatedAt func(childComplexity int) int
-		Match     func(childComplexity int, regex *string) int
+		Match     func(childComplexity int, regex string) int
 		UpdatedAt func(childComplexity int) int
 		Value     func(childComplexity int) int
 	}
@@ -100,15 +101,15 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetProgram   func(childComplexity int, id *models.UInt) int
-		GetWord      func(childComplexity int, id *models.UInt) int
-		GetWordList  func(childComplexity int, id *models.UInt) int
+		GetProgram   func(childComplexity int, id *int) int
+		GetWordList  func(childComplexity int, id int) int
 		Helloworld   func(childComplexity int) int
 		ListProgram  func(childComplexity int, search *string) int
-		ListWord     func(childComplexity int, wordListID *models.UInt, regex *string) int
 		ListWordList func(childComplexity int, regex *string) int
-		Tag          func(childComplexity int, id models.UInt) int
+		Tag          func(childComplexity int, id int) int
 		Tags         func(childComplexity int, search *string) int
+		Word         func(childComplexity int, id int) int
+		Words        func(childComplexity int, search *string) int
 	}
 
 	SearchResult struct {
@@ -120,20 +121,20 @@ type ComplexityRoot struct {
 		Alias       func(childComplexity int) int
 		Description func(childComplexity int) int
 		Id          func(childComplexity int) int
-		Match       func(childComplexity int, regex *string) int
+		Match       func(childComplexity int, regex string) int
 		Name        func(childComplexity int) int
 	}
 
 	Word struct {
 		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
+		Id          func(childComplexity int) int
 		Word        func(childComplexity int) int
 		WordType    func(childComplexity int) int
 	}
 
 	WordList struct {
 		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
+		Id          func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Words       func(childComplexity int) int
 	}
@@ -142,34 +143,37 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Helloworld(ctx context.Context) (string, error)
 	CreateTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
-	UpdateTag(ctx context.Context, id models.UInt, input models.NewTag) (*models.Tag, error)
-	DeleteTag(ctx context.Context, id models.UInt) (*models.Tag, error)
+	UpdateTag(ctx context.Context, id int, input models.NewTag) (*models.Tag, error)
+	DeleteTag(ctx context.Context, id int) (*models.Tag, error)
 	CreateProgram(ctx context.Context, input *model.NewProgram) (*models.Program, error)
-	UpdateProgram(ctx context.Context, id *models.UInt, input *model.NewProgram) (*models.Program, error)
-	DeleteProgram(ctx context.Context, id *models.UInt) (*models.Program, error)
-	CreateWord(ctx context.Context, input *model.NewWord) (*model.Word, error)
-	UpdateWord(ctx context.Context, id *models.UInt, input *model.NewWord) (*model.Word, error)
-	DeleteWord(ctx context.Context, id *models.UInt) (*model.Word, error)
-	CreateWordList(ctx context.Context, input *model.NewWordList) (*model.WordList, error)
-	UpdateWordList(ctx context.Context, id *models.UInt, input *model.NewWordList) (*model.WordList, error)
-	DeleteWordList(ctx context.Context, id *models.UInt) (*model.WordList, error)
+	UpdateProgram(ctx context.Context, id *int, input *model.NewProgram) (*models.Program, error)
+	DeleteProgram(ctx context.Context, id *int) (*models.Program, error)
+	CreateWord(ctx context.Context, input models.NewWord) (*models.Word, error)
+	UpdateWord(ctx context.Context, id int, input models.NewWord) (*models.Word, error)
+	DeleteWord(ctx context.Context, id int) (*models.Word, error)
+	CreateWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error)
+	UpdateWordList(ctx context.Context, id int, input models.NewWordList) (*models.WordList, error)
+	DeleteWordList(ctx context.Context, id int) (*models.WordList, error)
 }
 type NoteResolver interface {
-	Match(ctx context.Context, obj *model.Note, regex *string) (*model.SearchResult, error)
+	Match(ctx context.Context, obj *model.Note, regex string) (*model.SearchResult, error)
 }
 type QueryResolver interface {
 	Helloworld(ctx context.Context) (string, error)
-	Tag(ctx context.Context, id models.UInt) (*models.Tag, error)
+	Tag(ctx context.Context, id int) (*models.Tag, error)
 	Tags(ctx context.Context, search *string) ([]*models.Tag, error)
-	GetProgram(ctx context.Context, id *models.UInt) (*model.WordList, error)
+	GetProgram(ctx context.Context, id *int) (*models.WordList, error)
 	ListProgram(ctx context.Context, search *string) ([]*model.AllProgram, error)
-	GetWord(ctx context.Context, id *models.UInt) (*model.Word, error)
-	ListWord(ctx context.Context, wordListID *models.UInt, regex *string) ([]*model.Word, error)
-	GetWordList(ctx context.Context, id *models.UInt) (*model.WordList, error)
+	Word(ctx context.Context, id int) (*models.Word, error)
+	Words(ctx context.Context, search *string) ([]*models.Word, error)
+	GetWordList(ctx context.Context, id int) (*models.WordList, error)
 	ListWordList(ctx context.Context, regex *string) ([]*model.AllWordList, error)
 }
 type TagResolver interface {
-	Match(ctx context.Context, obj *models.Tag, regex *string) (*model.SearchResult, error)
+	Match(ctx context.Context, obj *models.Tag, regex string) (*model.SearchResult, error)
+}
+type WordListResolver interface {
+	Words(ctx context.Context, obj *models.WordList) ([]*models.Word, error)
 }
 
 type executableSchema struct {
@@ -280,7 +284,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateWord(childComplexity, args["input"].(*model.NewWord)), true
+		return e.complexity.Mutation.CreateWord(childComplexity, args["input"].(models.NewWord)), true
 	case "Mutation.createWordList":
 		if e.complexity.Mutation.CreateWordList == nil {
 			break
@@ -291,7 +295,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateWordList(childComplexity, args["input"].(*model.NewWordList)), true
+		return e.complexity.Mutation.CreateWordList(childComplexity, args["input"].(models.NewWordList)), true
 	case "Mutation.deleteProgram":
 		if e.complexity.Mutation.DeleteProgram == nil {
 			break
@@ -302,7 +306,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteProgram(childComplexity, args["id"].(*models.UInt)), true
+		return e.complexity.Mutation.DeleteProgram(childComplexity, args["id"].(*int)), true
 	case "Mutation.deleteTag":
 		if e.complexity.Mutation.DeleteTag == nil {
 			break
@@ -313,7 +317,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTag(childComplexity, args["id"].(models.UInt)), true
+		return e.complexity.Mutation.DeleteTag(childComplexity, args["id"].(int)), true
 	case "Mutation.deleteWord":
 		if e.complexity.Mutation.DeleteWord == nil {
 			break
@@ -324,7 +328,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteWord(childComplexity, args["id"].(*models.UInt)), true
+		return e.complexity.Mutation.DeleteWord(childComplexity, args["id"].(int)), true
 	case "Mutation.deleteWordList":
 		if e.complexity.Mutation.DeleteWordList == nil {
 			break
@@ -335,7 +339,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteWordList(childComplexity, args["id"].(*models.UInt)), true
+		return e.complexity.Mutation.DeleteWordList(childComplexity, args["id"].(int)), true
 	case "Mutation.helloworld":
 		if e.complexity.Mutation.Helloworld == nil {
 			break
@@ -352,7 +356,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProgram(childComplexity, args["id"].(*models.UInt), args["input"].(*model.NewProgram)), true
+		return e.complexity.Mutation.UpdateProgram(childComplexity, args["id"].(*int), args["input"].(*model.NewProgram)), true
 	case "Mutation.updateTag":
 		if e.complexity.Mutation.UpdateTag == nil {
 			break
@@ -363,7 +367,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTag(childComplexity, args["id"].(models.UInt), args["input"].(models.NewTag)), true
+		return e.complexity.Mutation.UpdateTag(childComplexity, args["id"].(int), args["input"].(models.NewTag)), true
 	case "Mutation.updateWord":
 		if e.complexity.Mutation.UpdateWord == nil {
 			break
@@ -374,7 +378,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateWord(childComplexity, args["id"].(*models.UInt), args["input"].(*model.NewWord)), true
+		return e.complexity.Mutation.UpdateWord(childComplexity, args["id"].(int), args["input"].(models.NewWord)), true
 	case "Mutation.updateWordList":
 		if e.complexity.Mutation.UpdateWordList == nil {
 			break
@@ -385,7 +389,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateWordList(childComplexity, args["id"].(*models.UInt), args["input"].(*model.NewWordList)), true
+		return e.complexity.Mutation.UpdateWordList(childComplexity, args["id"].(int), args["input"].(models.NewWordList)), true
 
 	case "Note.createdAt":
 		if e.complexity.Note.CreatedAt == nil {
@@ -403,7 +407,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Note.Match(childComplexity, args["regex"].(*string)), true
+		return e.complexity.Note.Match(childComplexity, args["regex"].(string)), true
 	case "Note.updatedAt":
 		if e.complexity.Note.UpdatedAt == nil {
 			break
@@ -458,18 +462,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.GetProgram(childComplexity, args["id"].(*models.UInt)), true
-	case "Query.getWord":
-		if e.complexity.Query.GetWord == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getWord_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetWord(childComplexity, args["id"].(*models.UInt)), true
+		return e.complexity.Query.GetProgram(childComplexity, args["id"].(*int)), true
 	case "Query.getWordList":
 		if e.complexity.Query.GetWordList == nil {
 			break
@@ -480,7 +473,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.GetWordList(childComplexity, args["id"].(*models.UInt)), true
+		return e.complexity.Query.GetWordList(childComplexity, args["id"].(int)), true
 	case "Query.helloworld":
 		if e.complexity.Query.Helloworld == nil {
 			break
@@ -498,17 +491,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.ListProgram(childComplexity, args["search"].(*string)), true
-	case "Query.listWord":
-		if e.complexity.Query.ListWord == nil {
-			break
-		}
-
-		args, err := ec.field_Query_listWord_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ListWord(childComplexity, args["wordListId"].(*models.UInt), args["regex"].(*string)), true
 	case "Query.listWordList":
 		if e.complexity.Query.ListWordList == nil {
 			break
@@ -530,7 +512,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.Tag(childComplexity, args["id"].(models.UInt)), true
+		return e.complexity.Query.Tag(childComplexity, args["id"].(int)), true
 	case "Query.tags":
 		if e.complexity.Query.Tags == nil {
 			break
@@ -542,6 +524,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Tags(childComplexity, args["search"].(*string)), true
+	case "Query.word":
+		if e.complexity.Query.Word == nil {
+			break
+		}
+
+		args, err := ec.field_Query_word_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Word(childComplexity, args["id"].(int)), true
+	case "Query.words":
+		if e.complexity.Query.Words == nil {
+			break
+		}
+
+		args, err := ec.field_Query_words_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Words(childComplexity, args["search"].(*string)), true
 
 	case "SearchResult.count":
 		if e.complexity.SearchResult.Count == nil {
@@ -584,7 +588,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Tag.Match(childComplexity, args["regex"].(*string)), true
+		return e.complexity.Tag.Match(childComplexity, args["regex"].(string)), true
 	case "Tag.name":
 		if e.complexity.Tag.Name == nil {
 			break
@@ -599,11 +603,11 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Word.Description(childComplexity), true
 	case "Word.id":
-		if e.complexity.Word.ID == nil {
+		if e.complexity.Word.Id == nil {
 			break
 		}
 
-		return e.complexity.Word.ID(childComplexity), true
+		return e.complexity.Word.Id(childComplexity), true
 	case "Word.word":
 		if e.complexity.Word.Word == nil {
 			break
@@ -624,11 +628,11 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.WordList.Description(childComplexity), true
 	case "WordList.id":
-		if e.complexity.WordList.ID == nil {
+		if e.complexity.WordList.Id == nil {
 			break
 		}
 
-		return e.complexity.WordList.ID(childComplexity), true
+		return e.complexity.WordList.Id(childComplexity), true
 	case "WordList.name":
 		if e.complexity.WordList.Name == nil {
 			break
@@ -799,7 +803,7 @@ func (ec *executionContext) field_Mutation_createTag_args(ctx context.Context, r
 func (ec *executionContext) field_Mutation_createWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewWordList)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList)
 	if err != nil {
 		return nil, err
 	}
@@ -810,7 +814,7 @@ func (ec *executionContext) field_Mutation_createWordList_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_createWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewWord)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord)
 	if err != nil {
 		return nil, err
 	}
@@ -821,7 +825,7 @@ func (ec *executionContext) field_Mutation_createWord_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_deleteProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
@@ -832,7 +836,7 @@ func (ec *executionContext) field_Mutation_deleteProgram_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_deleteTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
@@ -843,7 +847,7 @@ func (ec *executionContext) field_Mutation_deleteTag_args(ctx context.Context, r
 func (ec *executionContext) field_Mutation_deleteWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
@@ -854,7 +858,7 @@ func (ec *executionContext) field_Mutation_deleteWordList_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
@@ -865,7 +869,7 @@ func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_updateProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
@@ -881,7 +885,7 @@ func (ec *executionContext) field_Mutation_updateProgram_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
@@ -897,12 +901,12 @@ func (ec *executionContext) field_Mutation_updateTag_args(ctx context.Context, r
 func (ec *executionContext) field_Mutation_updateWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewWordList)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList)
 	if err != nil {
 		return nil, err
 	}
@@ -913,12 +917,12 @@ func (ec *executionContext) field_Mutation_updateWordList_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_updateWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewWord)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord)
 	if err != nil {
 		return nil, err
 	}
@@ -929,7 +933,7 @@ func (ec *executionContext) field_Mutation_updateWord_args(ctx context.Context, 
 func (ec *executionContext) field_Note_match_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalOString2ᚖstring)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
@@ -951,7 +955,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_getProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
@@ -962,18 +966,7 @@ func (ec *executionContext) field_Query_getProgram_args(ctx context.Context, raw
 func (ec *executionContext) field_Query_getWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_getWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
@@ -1003,26 +996,10 @@ func (ec *executionContext) field_Query_listWordList_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_listWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "wordListId", ec.unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
-	if err != nil {
-		return nil, err
-	}
-	args["wordListId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["regex"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_tag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
@@ -1041,10 +1018,32 @@ func (ec *executionContext) field_Query_tags_args(ctx context.Context, rawArgs m
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_word_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_words_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "search", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["search"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Tag_match_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalOString2ᚖstring)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
@@ -1114,7 +1113,7 @@ func (ec *executionContext) _AllProgram_id(ctx context.Context, field graphql.Co
 			return obj.ID, nil
 		},
 		nil,
-		ec.marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt,
+		ec.marshalNInt2int,
 		true,
 		true,
 	)
@@ -1127,7 +1126,7 @@ func (ec *executionContext) fieldContext_AllProgram_id(_ context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1259,7 +1258,7 @@ func (ec *executionContext) _AllWordList_id(ctx context.Context, field graphql.C
 			return obj.ID, nil
 		},
 		nil,
-		ec.marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt,
+		ec.marshalNInt2int,
 		true,
 		true,
 	)
@@ -1272,7 +1271,7 @@ func (ec *executionContext) fieldContext_AllWordList_id(_ context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1455,7 +1454,7 @@ func (ec *executionContext) _Mutation_updateTag(ctx context.Context, field graph
 		ec.fieldContext_Mutation_updateTag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateTag(ctx, fc.Args["id"].(models.UInt), fc.Args["input"].(models.NewTag))
+			return ec.resolvers.Mutation().UpdateTag(ctx, fc.Args["id"].(int), fc.Args["input"].(models.NewTag))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -1508,7 +1507,7 @@ func (ec *executionContext) _Mutation_deleteTag(ctx context.Context, field graph
 		ec.fieldContext_Mutation_deleteTag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteTag(ctx, fc.Args["id"].(models.UInt))
+			return ec.resolvers.Mutation().DeleteTag(ctx, fc.Args["id"].(int))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -1614,7 +1613,7 @@ func (ec *executionContext) _Mutation_updateProgram(ctx context.Context, field g
 		ec.fieldContext_Mutation_updateProgram,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateProgram(ctx, fc.Args["id"].(*models.UInt), fc.Args["input"].(*model.NewProgram))
+			return ec.resolvers.Mutation().UpdateProgram(ctx, fc.Args["id"].(*int), fc.Args["input"].(*model.NewProgram))
 		},
 		nil,
 		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
@@ -1667,7 +1666,7 @@ func (ec *executionContext) _Mutation_deleteProgram(ctx context.Context, field g
 		ec.fieldContext_Mutation_deleteProgram,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteProgram(ctx, fc.Args["id"].(*models.UInt))
+			return ec.resolvers.Mutation().DeleteProgram(ctx, fc.Args["id"].(*int))
 		},
 		nil,
 		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
@@ -1720,10 +1719,10 @@ func (ec *executionContext) _Mutation_createWord(ctx context.Context, field grap
 		ec.fieldContext_Mutation_createWord,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateWord(ctx, fc.Args["input"].(*model.NewWord))
+			return ec.resolvers.Mutation().CreateWord(ctx, fc.Args["input"].(models.NewWord))
 		},
 		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord,
+		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
 		true,
 		true,
 	)
@@ -1771,10 +1770,10 @@ func (ec *executionContext) _Mutation_updateWord(ctx context.Context, field grap
 		ec.fieldContext_Mutation_updateWord,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateWord(ctx, fc.Args["id"].(*models.UInt), fc.Args["input"].(*model.NewWord))
+			return ec.resolvers.Mutation().UpdateWord(ctx, fc.Args["id"].(int), fc.Args["input"].(models.NewWord))
 		},
 		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord,
+		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
 		true,
 		true,
 	)
@@ -1822,10 +1821,10 @@ func (ec *executionContext) _Mutation_deleteWord(ctx context.Context, field grap
 		ec.fieldContext_Mutation_deleteWord,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteWord(ctx, fc.Args["id"].(*models.UInt))
+			return ec.resolvers.Mutation().DeleteWord(ctx, fc.Args["id"].(int))
 		},
 		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord,
+		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
 		true,
 		true,
 	)
@@ -1873,10 +1872,10 @@ func (ec *executionContext) _Mutation_createWordList(ctx context.Context, field 
 		ec.fieldContext_Mutation_createWordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateWordList(ctx, fc.Args["input"].(*model.NewWordList))
+			return ec.resolvers.Mutation().CreateWordList(ctx, fc.Args["input"].(models.NewWordList))
 		},
 		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList,
+		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
 		true,
 		true,
 	)
@@ -1924,10 +1923,10 @@ func (ec *executionContext) _Mutation_updateWordList(ctx context.Context, field 
 		ec.fieldContext_Mutation_updateWordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateWordList(ctx, fc.Args["id"].(*models.UInt), fc.Args["input"].(*model.NewWordList))
+			return ec.resolvers.Mutation().UpdateWordList(ctx, fc.Args["id"].(int), fc.Args["input"].(models.NewWordList))
 		},
 		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList,
+		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
 		true,
 		true,
 	)
@@ -1975,10 +1974,10 @@ func (ec *executionContext) _Mutation_deleteWordList(ctx context.Context, field 
 		ec.fieldContext_Mutation_deleteWordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteWordList(ctx, fc.Args["id"].(*models.UInt))
+			return ec.resolvers.Mutation().DeleteWordList(ctx, fc.Args["id"].(int))
 		},
 		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList,
+		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
 		true,
 		true,
 	)
@@ -2055,7 +2054,7 @@ func (ec *executionContext) _Note_match(ctx context.Context, field graphql.Colle
 		ec.fieldContext_Note_match,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Note().Match(ctx, obj, fc.Args["regex"].(*string))
+			return ec.resolvers.Note().Match(ctx, obj, fc.Args["regex"].(string))
 		},
 		nil,
 		ec.marshalNSearchResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐSearchResult,
@@ -2162,7 +2161,7 @@ func (ec *executionContext) _Program_id(ctx context.Context, field graphql.Colle
 			return obj.Id, nil
 		},
 		nil,
-		ec.marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt,
+		ec.marshalNInt2int,
 		true,
 		true,
 	)
@@ -2175,7 +2174,7 @@ func (ec *executionContext) fieldContext_Program_id(_ context.Context, field gra
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2334,7 +2333,7 @@ func (ec *executionContext) _Query_tag(ctx context.Context, field graphql.Collec
 		ec.fieldContext_Query_tag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Tag(ctx, fc.Args["id"].(models.UInt))
+			return ec.resolvers.Query().Tag(ctx, fc.Args["id"].(int))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -2440,10 +2439,10 @@ func (ec *executionContext) _Query_getProgram(ctx context.Context, field graphql
 		ec.fieldContext_Query_getProgram,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetProgram(ctx, fc.Args["id"].(*models.UInt))
+			return ec.resolvers.Query().GetProgram(ctx, fc.Args["id"].(*int))
 		},
 		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList,
+		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
 		true,
 		true,
 	)
@@ -2536,24 +2535,24 @@ func (ec *executionContext) fieldContext_Query_listProgram(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_word(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_getWord,
+		ec.fieldContext_Query_word,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetWord(ctx, fc.Args["id"].(*models.UInt))
+			return ec.resolvers.Query().Word(ctx, fc.Args["id"].(int))
 		},
 		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord,
+		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_getWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_word(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2580,31 +2579,31 @@ func (ec *executionContext) fieldContext_Query_getWord(ctx context.Context, fiel
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_word_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_listWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_words(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_listWord,
+		ec.fieldContext_Query_words,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().ListWord(ctx, fc.Args["wordListId"].(*models.UInt), fc.Args["regex"].(*string))
+			return ec.resolvers.Query().Words(ctx, fc.Args["search"].(*string))
 		},
 		nil,
-		ec.marshalNWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord,
+		ec.marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
 		true,
-		true,
+		false,
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_listWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_words(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2631,7 +2630,7 @@ func (ec *executionContext) fieldContext_Query_listWord(ctx context.Context, fie
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_listWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_words_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2646,10 +2645,10 @@ func (ec *executionContext) _Query_getWordList(ctx context.Context, field graphq
 		ec.fieldContext_Query_getWordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetWordList(ctx, fc.Args["id"].(*models.UInt))
+			return ec.resolvers.Query().GetWordList(ctx, fc.Args["id"].(int))
 		},
 		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList,
+		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
 		true,
 		true,
 	)
@@ -2914,7 +2913,7 @@ func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.Collected
 			return obj.Id, nil
 		},
 		nil,
-		ec.marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt,
+		ec.marshalNInt2int,
 		true,
 		true,
 	)
@@ -2927,7 +2926,7 @@ func (ec *executionContext) fieldContext_Tag_id(_ context.Context, field graphql
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2999,7 +2998,7 @@ func (ec *executionContext) _Tag_match(ctx context.Context, field graphql.Collec
 		ec.fieldContext_Tag_match,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Tag().Match(ctx, obj, fc.Args["regex"].(*string))
+			return ec.resolvers.Tag().Match(ctx, obj, fc.Args["regex"].(string))
 		},
 		nil,
 		ec.marshalNSearchResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐSearchResult,
@@ -3067,17 +3066,17 @@ func (ec *executionContext) fieldContext_Tag_description(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Word_id(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+func (ec *executionContext) _Word_id(ctx context.Context, field graphql.CollectedField, obj *models.Word) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
 		ec.fieldContext_Word_id,
 		func(ctx context.Context) (any, error) {
-			return obj.ID, nil
+			return obj.Id, nil
 		},
 		nil,
-		ec.marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt,
+		ec.marshalNInt2int,
 		true,
 		true,
 	)
@@ -3090,13 +3089,13 @@ func (ec *executionContext) fieldContext_Word_id(_ context.Context, field graphq
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Word_word(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+func (ec *executionContext) _Word_word(ctx context.Context, field graphql.CollectedField, obj *models.Word) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -3125,7 +3124,7 @@ func (ec *executionContext) fieldContext_Word_word(_ context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _Word_wordType(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+func (ec *executionContext) _Word_wordType(ctx context.Context, field graphql.CollectedField, obj *models.Word) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -3154,7 +3153,7 @@ func (ec *executionContext) fieldContext_Word_wordType(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Word_description(ctx context.Context, field graphql.CollectedField, obj *model.Word) (ret graphql.Marshaler) {
+func (ec *executionContext) _Word_description(ctx context.Context, field graphql.CollectedField, obj *models.Word) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -3164,7 +3163,7 @@ func (ec *executionContext) _Word_description(ctx context.Context, field graphql
 			return obj.Description, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalOString2string,
 		true,
 		false,
 	)
@@ -3183,17 +3182,17 @@ func (ec *executionContext) fieldContext_Word_description(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _WordList_id(ctx context.Context, field graphql.CollectedField, obj *model.WordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _WordList_id(ctx context.Context, field graphql.CollectedField, obj *models.WordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
 		ec.fieldContext_WordList_id,
 		func(ctx context.Context) (any, error) {
-			return obj.ID, nil
+			return obj.Id, nil
 		},
 		nil,
-		ec.marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt,
+		ec.marshalNInt2int,
 		true,
 		true,
 	)
@@ -3206,13 +3205,13 @@ func (ec *executionContext) fieldContext_WordList_id(_ context.Context, field gr
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UInt does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _WordList_name(ctx context.Context, field graphql.CollectedField, obj *model.WordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _WordList_name(ctx context.Context, field graphql.CollectedField, obj *models.WordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -3241,7 +3240,7 @@ func (ec *executionContext) fieldContext_WordList_name(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _WordList_description(ctx context.Context, field graphql.CollectedField, obj *model.WordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _WordList_description(ctx context.Context, field graphql.CollectedField, obj *models.WordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -3251,7 +3250,7 @@ func (ec *executionContext) _WordList_description(ctx context.Context, field gra
 			return obj.Description, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalOString2string,
 		true,
 		false,
 	)
@@ -3270,17 +3269,17 @@ func (ec *executionContext) fieldContext_WordList_description(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _WordList_words(ctx context.Context, field graphql.CollectedField, obj *model.WordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _WordList_words(ctx context.Context, field graphql.CollectedField, obj *models.WordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
 		ec.fieldContext_WordList_words,
 		func(ctx context.Context) (any, error) {
-			return obj.Words, nil
+			return ec.resolvers.WordList().Words(ctx, obj)
 		},
 		nil,
-		ec.marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordᚄ,
+		ec.marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordᚄ,
 		true,
 		false,
 	)
@@ -3290,8 +3289,8 @@ func (ec *executionContext) fieldContext_WordList_words(_ context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "WordList",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -4878,8 +4877,8 @@ func (ec *executionContext) unmarshalInputNewTag(ctx context.Context, obj any) (
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj any) (model.NewWord, error) {
-	var it model.NewWord
+func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj any) (models.NewWord, error) {
+	var it models.NewWord
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -4908,7 +4907,7 @@ func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj any) 
 			it.WordType = data
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4919,8 +4918,8 @@ func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj any) 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewWordList(ctx context.Context, obj any) (model.NewWordList, error) {
-	var it model.NewWordList
+func (ec *executionContext) unmarshalInputNewWordList(ctx context.Context, obj any) (models.NewWordList, error) {
+	var it models.NewWordList
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -4942,7 +4941,7 @@ func (ec *executionContext) unmarshalInputNewWordList(ctx context.Context, obj a
 			it.Name = data
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5502,7 +5501,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getWord":
+		case "word":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -5511,7 +5510,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getWord(ctx, field)
+				res = ec._Query_word(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -5524,19 +5523,16 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "listWord":
+		case "words":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_listWord(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
+				res = ec._Query_words(ctx, field)
 				return res
 			}
 
@@ -5748,7 +5744,7 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 
 var wordImplementors = []string{"Word"}
 
-func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj *model.Word) graphql.Marshaler {
+func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj *models.Word) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, wordImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -5799,7 +5795,7 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 
 var wordListImplementors = []string{"WordList"}
 
-func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet, obj *model.WordList) graphql.Marshaler {
+func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet, obj *models.WordList) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, wordListImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -5811,17 +5807,48 @@ func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet,
 		case "id":
 			out.Values[i] = ec._WordList_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._WordList_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "description":
 			out.Values[i] = ec._WordList_description(ctx, field, obj)
 		case "words":
-			out.Values[i] = ec._WordList_words(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WordList_words(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6272,6 +6299,22 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	_ = sel
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNMyTime2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyTime(ctx context.Context, v any) (models.MyTime, error) {
 	var res models.MyTime
 	err := res.UnmarshalGQL(v)
@@ -6284,6 +6327,16 @@ func (ec *executionContext) marshalNMyTime2githubᚗcomᚋlinn221ᚋbaneᚋmodel
 
 func (ec *executionContext) unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag(ctx context.Context, v any) (models.NewTag, error) {
 	res, err := ec.unmarshalInputNewTag(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord(ctx context.Context, v any) (models.NewWord, error) {
+	res, err := ec.unmarshalInputNewWord(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList(ctx context.Context, v any) (models.NewWordList, error) {
+	res, err := ec.unmarshalInputNewWordList(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -6345,59 +6398,11 @@ func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 	return ec._Tag(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt(ctx context.Context, v any) (models.UInt, error) {
-	var res models.UInt
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt(ctx context.Context, sel ast.SelectionSet, v models.UInt) graphql.Marshaler {
-	return v
-}
-
-func (ec *executionContext) marshalNWord2githubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord(ctx context.Context, sel ast.SelectionSet, v model.Word) graphql.Marshaler {
+func (ec *executionContext) marshalNWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx context.Context, sel ast.SelectionSet, v models.Word) graphql.Marshaler {
 	return ec._Word(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord(ctx context.Context, sel ast.SelectionSet, v []*model.Word) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord(ctx context.Context, sel ast.SelectionSet, v *model.Word) graphql.Marshaler {
+func (ec *executionContext) marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx context.Context, sel ast.SelectionSet, v *models.Word) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6407,11 +6412,11 @@ func (ec *executionContext) marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgrap
 	return ec._Word(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWordList2githubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList(ctx context.Context, sel ast.SelectionSet, v model.WordList) graphql.Marshaler {
+func (ec *executionContext) marshalNWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList(ctx context.Context, sel ast.SelectionSet, v models.WordList) graphql.Marshaler {
 	return ec._WordList(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordList(ctx context.Context, sel ast.SelectionSet, v *model.WordList) graphql.Marshaler {
+func (ec *executionContext) marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList(ctx context.Context, sel ast.SelectionSet, v *models.WordList) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -6766,22 +6771,6 @@ func (ec *executionContext) unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋban
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalONewWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewWord(ctx context.Context, v any) (*model.NewWord, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputNewWord(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalONewWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewWordList(ctx context.Context, v any) (*model.NewWordList, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputNewWordList(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6896,23 +6885,7 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 	return ec._Tag(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt(ctx context.Context, v any) (*models.UInt, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(models.UInt)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOUInt2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐUInt(ctx context.Context, sel ast.SelectionSet, v *models.UInt) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
-}
-
-func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWordᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Word) graphql.Marshaler {
+func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx context.Context, sel ast.SelectionSet, v []*models.Word) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -6939,7 +6912,48 @@ func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋg
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord(ctx, sel, v[i])
+			ret[i] = ec.marshalOWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Word) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6959,7 +6973,7 @@ func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋg
 	return ret
 }
 
-func (ec *executionContext) marshalOWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐWord(ctx context.Context, sel ast.SelectionSet, v *model.Word) graphql.Marshaler {
+func (ec *executionContext) marshalOWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx context.Context, sel ast.SelectionSet, v *models.Word) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

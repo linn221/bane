@@ -60,6 +60,7 @@ func (r ruleUnique) CountResults(dbCtx *gorm.DB) error {
 	return nil
 }
 
+// only affects when id > 0
 func (r ruleUnique) Except(id int) ruleUnique {
 	r.exceptId = id
 	return r

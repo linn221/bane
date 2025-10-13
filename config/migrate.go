@@ -1,10 +1,13 @@
 package config
 
-import "gorm.io/gorm"
+import (
+	"github.com/linn221/bane/models"
+	"gorm.io/gorm"
+)
 
 func migrate(db *gorm.DB) {
-	// err := db.AutoMigrate()
-	// if err != nil {
-	// 	panic("Error migrating tables: " + err.Error())
-	// }
+	err := db.AutoMigrate(&models.Tag{})
+	if err != nil {
+		panic("Error migrating tables: " + err.Error())
+	}
 }

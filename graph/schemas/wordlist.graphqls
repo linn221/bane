@@ -1,7 +1,7 @@
 scalar WordType
 
 type Word {
-  id: UInt!
+  id: Int!
   word: String!
   wordType: WordType! # fuzz | attack
   description: String
@@ -16,7 +16,7 @@ input NewWord {
 }
 
 type WordList {
-    id: UInt!
+    id: Int!
     name: String!
     description: String
     words: [Word!]
@@ -28,30 +28,26 @@ input NewWordList {
 }
 
 type AllWordList {
-    id: UInt!
+    id: Int!
     name: String!
     description: String
 }
 
 extend type Mutation {
-  createWord(input: NewWord): Word!
-  updateWord(id: UInt, input: NewWord): Word!
-  deleteWord(id: UInt): Word!
+  createWord(input: NewWord!): Word!
+  updateWord(id: Int!, input: NewWord!): Word!
+  deleteWord(id: Int!): Word!
 
-  createWordList(input: NewWordList): WordList!
-  updateWordList(id: UInt, input: NewWordList): WordList!
-  deleteWordList(id: UInt): WordList!
+  createWordList(input: NewWordList!): WordList!
+  updateWordList(id: Int!, input: NewWordList!): WordList!
+  deleteWordList(id: Int!): WordList!
 }
 
 extend type Query {
-  getWord(id: UInt): Word!
-  listWord(
-    wordListId: UInt
-    regex: String
-    # tags
-  ): [Word]!
+  word(id: Int!): Word!
+  words(search: String): [Word]
 
-  getWordList(id: UInt): WordList!
+  getWordList(id: Int!): WordList!
   listWordList(
     regex: String
     # tags

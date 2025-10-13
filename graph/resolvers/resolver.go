@@ -2,7 +2,7 @@ package resolvers
 
 import (
 	"github.com/linn221/bane/app"
-	"github.com/linn221/bane/services"
+	"gorm.io/gorm"
 )
 
 // This file will not be regenerated automatically.
@@ -10,8 +10,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	app        *app.App
-	TagService *services.TagService
+	DB  *gorm.DB
+	app *app.App
+	// TagService *services.TagService
 	// ProductCategoryService *services.ProductCategoryService
 	// ProductTagService      *services.ProductTagService
 	// ProductUnitService     *services.ProductUnitService
@@ -21,8 +22,9 @@ type Resolver struct {
 func NewResolver(app *app.App) *Resolver {
 	return &Resolver{
 		app: app,
-		TagService: &services.TagService{
-			DB: app.DB,
-		},
+		DB:  app.DB,
+		// TagService: &services.TagService{
+		// 	DB: app.DB,
+		// },
 	}
 }

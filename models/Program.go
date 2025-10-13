@@ -1,7 +1,7 @@
 package models
 
 type Program struct {
-	Id          UInt   `gorm:"primaryKey"`
+	Id          int    `gorm:"primaryKey"`
 	Name        string `gorm:"size:255;not null"`
 	Url         string `gorm:"not null;index"`
 	Description string `gorm:"default:null"`

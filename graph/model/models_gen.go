@@ -7,17 +7,17 @@ import (
 )
 
 type AllProgram struct {
-	ID          models.UInt `json:"id"`
-	Name        string      `json:"name"`
-	Description *string     `json:"description,omitempty"`
-	Domain      string      `json:"domain"`
-	URL         string      `json:"url"`
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Domain      string  `json:"domain"`
+	URL         string  `json:"url"`
 }
 
 type AllWordList struct {
-	ID          models.UInt `json:"id"`
-	Name        string      `json:"name"`
-	Description *string     `json:"description,omitempty"`
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
 }
 
 type Download struct {
@@ -38,17 +38,6 @@ type NewProgram struct {
 	URL         string  `json:"url"`
 }
 
-type NewWord struct {
-	Word        string          `json:"word"`
-	WordType    models.WordType `json:"wordType"`
-	Description *string         `json:"description,omitempty"`
-}
-
-type NewWordList struct {
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
-}
-
 type Note struct {
 	Value     string        `json:"value"`
 	Match     *SearchResult `json:"match"`
@@ -62,18 +51,4 @@ type Query struct {
 type SearchResult struct {
 	Results []string `json:"results,omitempty"`
 	Count   *int     `json:"count,omitempty"`
-}
-
-type Word struct {
-	ID          models.UInt     `json:"id"`
-	Word        string          `json:"word"`
-	WordType    models.WordType `json:"wordType"`
-	Description *string         `json:"description,omitempty"`
-}
-
-type WordList struct {
-	ID          models.UInt `json:"id"`
-	Name        string      `json:"name"`
-	Description *string     `json:"description,omitempty"`
-	Words       []*Word     `json:"words,omitempty"`
 }

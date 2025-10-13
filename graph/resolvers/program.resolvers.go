@@ -18,17 +18,17 @@ func (r *mutationResolver) CreateProgram(ctx context.Context, input *model.NewPr
 }
 
 // UpdateProgram is the resolver for the updateProgram field.
-func (r *mutationResolver) UpdateProgram(ctx context.Context, id *models.UInt, input *model.NewProgram) (*models.Program, error) {
+func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, input *model.NewProgram) (*models.Program, error) {
 	panic(fmt.Errorf("not implemented: UpdateProgram - updateProgram"))
 }
 
 // DeleteProgram is the resolver for the deleteProgram field.
-func (r *mutationResolver) DeleteProgram(ctx context.Context, id *models.UInt) (*models.Program, error) {
+func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int) (*models.Program, error) {
 	panic(fmt.Errorf("not implemented: DeleteProgram - deleteProgram"))
 }
 
 // GetProgram is the resolver for the getProgram field.
-func (r *queryResolver) GetProgram(ctx context.Context, id *models.UInt) (*model.WordList, error) {
+func (r *queryResolver) GetProgram(ctx context.Context, id *int) (*models.WordList, error) {
 	panic(fmt.Errorf("not implemented: GetProgram - getProgram"))
 }
 

@@ -8,56 +8,78 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/services"
+	"github.com/linn221/bane/utils"
 )
 
 // CreateWord is the resolver for the createWord field.
-func (r *mutationResolver) CreateWord(ctx context.Context, input *model.NewWord) (*model.Word, error) {
-	panic(fmt.Errorf("not implemented: CreateWord - createWord"))
+func (r *mutationResolver) CreateWord(ctx context.Context, input models.NewWord) (*models.Word, error) {
+	return services.WordCrud.Create(r.DB.WithContext(ctx), input)
 }
 
 // UpdateWord is the resolver for the updateWord field.
-func (r *mutationResolver) UpdateWord(ctx context.Context, id *models.UInt, input *model.NewWord) (*model.Word, error) {
-	panic(fmt.Errorf("not implemented: UpdateWord - updateWord"))
+func (r *mutationResolver) UpdateWord(ctx context.Context, id int, input models.NewWord) (*models.Word, error) {
+	return services.WordCrud.Update(r.DB.WithContext(ctx), input, id)
 }
 
 // DeleteWord is the resolver for the deleteWord field.
-func (r *mutationResolver) DeleteWord(ctx context.Context, id *models.UInt) (*model.Word, error) {
-	panic(fmt.Errorf("not implemented: DeleteWord - deleteWord"))
+func (r *mutationResolver) DeleteWord(ctx context.Context, id int) (*models.Word, error) {
+	return services.WordCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
 // CreateWordList is the resolver for the createWordList field.
-func (r *mutationResolver) CreateWordList(ctx context.Context, input *model.NewWordList) (*model.WordList, error) {
-	panic(fmt.Errorf("not implemented: CreateWordList - createWordList"))
+func (r *mutationResolver) CreateWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error) {
+	return services.WordListCrud.Create(r.DB.WithContext(ctx), input)
 }
 
 // UpdateWordList is the resolver for the updateWordList field.
-func (r *mutationResolver) UpdateWordList(ctx context.Context, id *models.UInt, input *model.NewWordList) (*model.WordList, error) {
-	panic(fmt.Errorf("not implemented: UpdateWordList - updateWordList"))
+func (r *mutationResolver) UpdateWordList(ctx context.Context, id int, input models.NewWordList) (*models.WordList, error) {
+	return services.WordListCrud.Update(r.DB.WithContext(ctx), input, id)
 }
 
 // DeleteWordList is the resolver for the deleteWordList field.
-func (r *mutationResolver) DeleteWordList(ctx context.Context, id *models.UInt) (*model.WordList, error) {
-	panic(fmt.Errorf("not implemented: DeleteWordList - deleteWordList"))
+func (r *mutationResolver) DeleteWordList(ctx context.Context, id int) (*models.WordList, error) {
+	return services.WordListCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
-// GetWord is the resolver for the getWord field.
-func (r *queryResolver) GetWord(ctx context.Context, id *models.UInt) (*model.Word, error) {
-	panic(fmt.Errorf("not implemented: GetWord - getWord"))
+// Word is the resolver for the word field.
+func (r *queryResolver) Word(ctx context.Context, id int) (*models.Word, error) {
+	return services.WordCrud.Get(r.DB.WithContext(ctx), id)
 }
 
-// ListWord is the resolver for the listWord field.
-func (r *queryResolver) ListWord(ctx context.Context, wordListID *models.UInt, regex *string) ([]*model.Word, error) {
-	panic(fmt.Errorf("not implemented: ListWord - listWord"))
+// Words is the resolver for the words field.
+func (r *queryResolver) Words(ctx context.Context, search *string) ([]*models.Word, error) {
+	var words []*models.Word
+	dbctx := r.DB.WithContext(ctx).Model(&models.Word{})
+	if search != nil {
+		dbctx.Where("word LIKE ?", utils.SurroundPercentages(*search))
+	}
+
+	if err := dbctx.Order("word ASC").Find(&words).Error; err != nil {
+		return nil, fmt.Errorf("failed to list words: %v", err)
+	}
+	return words, nil
 }
 
 // GetWordList is the resolver for the getWordList field.
-func (r *queryResolver) GetWordList(ctx context.Context, id *models.UInt) (*model.WordList, error) {
-	panic(fmt.Errorf("not implemented: GetWordList - getWordList"))
+func (r *queryResolver) GetWordList(ctx context.Context, id int) (*models.WordList, error) {
+	return services.WordListCrud.Get(r.DB.WithContext(ctx), id)
 }
 
 // ListWordList is the resolver for the listWordList field.
 func (r *queryResolver) ListWordList(ctx context.Context, regex *string) ([]*model.AllWordList, error) {
 	panic(fmt.Errorf("not implemented: ListWordList - listWordList"))
 }
+
+// Words is the resolver for the words field.
+func (r *wordListResolver) Words(ctx context.Context, obj *models.WordList) ([]*models.Word, error) {
+	panic(fmt.Errorf("not implemented: Words - words"))
+}
+
+// WordList returns graph.WordListResolver implementation.
+func (r *Resolver) WordList() graph.WordListResolver { return &wordListResolver{r} }
+
+type wordListResolver struct{ *Resolver }

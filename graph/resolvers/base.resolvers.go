@@ -11,41 +11,54 @@ import (
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/services"
 )
 
 // CreateTag is the resolver for the createTag field.
 func (r *mutationResolver) CreateTag(ctx context.Context, input models.NewTag) (*models.Tag, error) {
-	return r.TagService.Create(ctx, &input)
+	return services.TagCrud.Create(r.DB, input)
 }
 
 // UpdateTag is the resolver for the updateTag field.
-func (r *mutationResolver) UpdateTag(ctx context.Context, id models.UInt, input models.NewTag) (*models.Tag, error) {
-	panic(fmt.Errorf("not implemented: UpdateTag - updateTag"))
+func (r *mutationResolver) UpdateTag(ctx context.Context, id int, input models.NewTag) (*models.Tag, error) {
+	return services.TagCrud.Update(r.DB.WithContext(ctx), input, id)
 }
 
 // DeleteTag is the resolver for the deleteTag field.
-func (r *mutationResolver) DeleteTag(ctx context.Context, id models.UInt) (*models.Tag, error) {
-	panic(fmt.Errorf("not implemented: DeleteTag - deleteTag"))
+func (r *mutationResolver) DeleteTag(ctx context.Context, id int) (*models.Tag, error) {
+	return services.TagCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
 // Match is the resolver for the match field.
-func (r *noteResolver) Match(ctx context.Context, obj *model.Note, regex *string) (*model.SearchResult, error) {
+func (r *noteResolver) Match(ctx context.Context, obj *model.Note, regex string) (*model.SearchResult, error) {
 	panic(fmt.Errorf("not implemented: Match - match"))
 }
 
 // Tag is the resolver for the tag field.
-func (r *queryResolver) Tag(ctx context.Context, id models.UInt) (*models.Tag, error) {
-	panic(fmt.Errorf("not implemented: Tag - tag"))
+func (r *queryResolver) Tag(ctx context.Context, id int) (*models.Tag, error) {
+	return services.TagCrud.Get(r.DB.WithContext(ctx), id)
 }
 
 // Tags is the resolver for the tags field.
 func (r *queryResolver) Tags(ctx context.Context, search *string) ([]*models.Tag, error) {
-	panic(fmt.Errorf("not implemented: Tags - tags"))
+	dbctx := r.DB.WithContext(ctx).Model(models.Tag{}).Where("is_active = 1")
+	var results []*models.Tag
+	err := dbctx.Find(&results).Error
+	return results, err
 }
 
 // Match is the resolver for the match field.
-func (r *tagResolver) Match(ctx context.Context, obj *models.Tag, regex *string) (*model.SearchResult, error) {
-	panic(fmt.Errorf("not implemented: Match - match"))
+func (r *tagResolver) Match(ctx context.Context, obj *models.Tag, regex string) (*model.SearchResult, error) {
+	var result model.SearchResult
+	matches, err := services.MatchRegex(obj, regex)
+	if err != nil {
+		return nil, err
+	}
+	result.Results = matches
+	count := len(matches)
+	result.Count = &count
+
+	return &result, nil
 }
 
 // Note returns graph.NoteResolver implementation.

@@ -1,7 +1,7 @@
 scalar ProgramType
 
 type Program {
-  id: UInt!
+  id: Int!
   name: String!
   description: String
   domain: String!
@@ -22,7 +22,7 @@ input NewProgram {
 }
 
 type AllProgram {
-  id: UInt!
+  id: Int!
   name: String!
   description: String
   domain: String!
@@ -31,12 +31,12 @@ type AllProgram {
 
 extend type Mutation {
   createProgram(input: NewProgram): Program!
-  updateProgram(id: UInt, input: NewProgram): Program!
-  deleteProgram(id: UInt): Program!
+  updateProgram(id: Int, input: NewProgram): Program!
+  deleteProgram(id: Int): Program!
 }
 
 extend type Query {
-  getProgram(id: UInt): WordList!
+  getProgram(id: Int): WordList!
   listProgram(
     search: String
     # tags
