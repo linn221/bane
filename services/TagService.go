@@ -15,7 +15,7 @@ var TagCrud = GeneralCrud[models.NewTag, models.Tag]{
 		}
 		return result
 	},
-	Updates: func(input models.NewTag) map[string]any {
+	Updates: func(existing models.Tag, input models.NewTag) map[string]any {
 		return map[string]any{
 			"Name":        input.Name,
 			"Description": input.Description,

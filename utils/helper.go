@@ -159,3 +159,11 @@ func GetEnv(key, fallback string) string {
 func SurroundPercentages(s string) string {
 	return "%" + s + "%"
 }
+
+func SafeDeref[T any](ptr *T) T {
+	var zero T
+	if ptr == nil {
+		return zero
+	}
+	return *ptr
+}

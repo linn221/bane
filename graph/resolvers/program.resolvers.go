@@ -13,12 +13,12 @@ import (
 )
 
 // CreateProgram is the resolver for the createProgram field.
-func (r *mutationResolver) CreateProgram(ctx context.Context, input *model.NewProgram) (*models.Program, error) {
+func (r *mutationResolver) CreateProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
 	panic(fmt.Errorf("not implemented: CreateProgram - createProgram"))
 }
 
 // UpdateProgram is the resolver for the updateProgram field.
-func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, input *model.NewProgram) (*models.Program, error) {
+func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, input *models.NewProgram) (*models.Program, error) {
 	panic(fmt.Errorf("not implemented: UpdateProgram - updateProgram"))
 }
 

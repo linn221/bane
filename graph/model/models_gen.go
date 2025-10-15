@@ -31,13 +31,6 @@ type NewNote struct {
 	Value string `json:"value"`
 }
 
-type NewProgram struct {
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
-	Domain      string  `json:"domain"`
-	URL         string  `json:"url"`
-}
-
 type Note struct {
 	Value     string        `json:"value"`
 	Match     *SearchResult `json:"match"`
@@ -51,4 +44,13 @@ type Query struct {
 type SearchResult struct {
 	Results []string `json:"results,omitempty"`
 	Count   *int     `json:"count,omitempty"`
+}
+
+type TodayMemorySheet struct {
+	Today     models.MyDate         `json:"today"`
+	Sheets    []*models.MemorySheet `json:"sheets"`
+	NextDay   []*models.MemorySheet `json:"nextDay"`
+	NextMonth []*models.MemorySheet `json:"nextMonth"`
+	ThisWeek  []*models.MemorySheet `json:"thisWeek"`
+	ThisMonth []*models.MemorySheet `json:"thisMonth"`
 }

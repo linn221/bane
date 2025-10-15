@@ -51,8 +51,34 @@ func (u MyTime) MarshalGQL(w io.Writer) {
 func (u *MyTime) UnmarshalGQL(v interface{}) error {
 	_, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("Uint must be a string")
+		return fmt.Errorf("uint must be a string")
 	}
 
+	return nil
+}
+
+type MyDate struct {
+	time.Time
+}
+
+// MarshalGQL implements the graphql.Marshaler interface.
+func (u MyDate) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(u.Format("02-01-2006")))
+}
+
+// UnmarshalGQL implements the graphql.Unmarshaler interface.
+func (u *MyDate) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("MyDate must be a string")
+	}
+
+	// Parse the date in format "15-08-2025"
+	parsedTime, err := time.Parse("02-01-2006", str)
+	if err != nil {
+		return fmt.Errorf("invalid date format, expected DD-MM-YYYY: %v", err)
+	}
+
+	u.Time = parsedTime
 	return nil
 }

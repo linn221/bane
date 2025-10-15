@@ -4,8 +4,8 @@ type Program struct {
 	Id          int    `gorm:"primaryKey"`
 	Name        string `gorm:"size:255;not null"`
 	Url         string `gorm:"not null;index"`
-	Description string `gorm:"default:null"`
 	Domain      string `gorm:"type:index;not null"` // Store as JSON string
+	Description string `gorm:"default:null"`
 
 	// // One-to-many relationships
 	// // ImportJobs []ImportJob `gorm:"foreignKey:ProgramId"`
@@ -17,4 +17,11 @@ type Program struct {
 	// Notes       []Note       `gorm:"polymorphic:Reference;polymorphicValue:programs"`
 	// Images      []Image      `gorm:"polymorphic:Reference;polymorphicValue:programs"`
 	// Taggables   []Taggable   `gorm:"polymorphic:Taggable;polymorphicValue:programs"`
+}
+
+type NewProgram struct {
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
+	Domain      string  `json:"domain"`
+	URL         string  `json:"url"`
 }

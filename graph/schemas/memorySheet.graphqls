@@ -1,0 +1,37 @@
+scalar MyDate
+
+type MemorySheet {
+    id: Int!
+    value: String!
+    createDate: MyDate!
+    currentDate: MyDate
+    nextDate: MyDate
+    notes: [Note!]!
+    # attachments: [Attachment!]!
+    # images: [Image!]!
+}
+
+input NewMemorySheet {
+    value: String!
+    date: MyDate
+}
+
+type TodayMemorySheet {
+    today: MyDate!
+    sheets: [MemorySheet!]!
+    nextDay: [MemorySheet!]! @goField(forceResolver: true)
+    nextMonth: [MemorySheet!]! @goField(forceResolver: true)   
+    thisWeek: [MemorySheet!]! @goField(forceResolver: true)
+    thisMonth: [MemorySheet!]! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+    createMemorySheet(input: NewMemorySheet!): MemorySheet!
+    updateMemorySheet(id: Int!, input: NewMemorySheet!): MemorySheet!
+    deleteMemorySheet(id: Int!): MemorySheet!
+}
+
+extend type Query {
+    memorySheet(id: Int!): MemorySheet!
+    mSheets(date: MyDate!): [MemorySheet!]!
+}

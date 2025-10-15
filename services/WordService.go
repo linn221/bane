@@ -14,7 +14,7 @@ var WordCrud = GeneralCrud[models.NewWord, models.Word]{
 		}
 		return result
 	},
-	Updates: func(input models.NewWord) map[string]any {
+	Updates: func(existing models.Word, input models.NewWord) map[string]any {
 		return map[string]any{
 			"Word":        input.Word,
 			"WordType":    input.WordType,
@@ -34,7 +34,7 @@ var WordListCrud = GeneralCrud[models.NewWordList, models.WordList]{
 		}
 		return result
 	},
-	Updates: func(input models.NewWordList) map[string]any {
+	Updates: func(existing models.WordList, input models.NewWordList) map[string]any {
 		return map[string]any{
 			"Name":        input.Name,
 			"Description": input.Description,

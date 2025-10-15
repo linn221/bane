@@ -40,10 +40,12 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	MemorySheet() MemorySheetResolver
 	Mutation() MutationResolver
 	Note() NoteResolver
 	Query() QueryResolver
 	Tag() TagResolver
+	TodayMemorySheet() TodayMemorySheetResolver
 	WordList() WordListResolver
 }
 
@@ -69,20 +71,32 @@ type ComplexityRoot struct {
 		URL func(childComplexity int) int
 	}
 
+	MemorySheet struct {
+		CreateDate  func(childComplexity int) int
+		CurrentDate func(childComplexity int) int
+		Id          func(childComplexity int) int
+		NextDate    func(childComplexity int) int
+		Notes       func(childComplexity int) int
+		Value       func(childComplexity int) int
+	}
+
 	Mutation struct {
-		CreateProgram  func(childComplexity int, input *model.NewProgram) int
-		CreateTag      func(childComplexity int, input models.NewTag) int
-		CreateWord     func(childComplexity int, input models.NewWord) int
-		CreateWordList func(childComplexity int, input models.NewWordList) int
-		DeleteProgram  func(childComplexity int, id *int) int
-		DeleteTag      func(childComplexity int, id int) int
-		DeleteWord     func(childComplexity int, id int) int
-		DeleteWordList func(childComplexity int, id int) int
-		Helloworld     func(childComplexity int) int
-		UpdateProgram  func(childComplexity int, id *int, input *model.NewProgram) int
-		UpdateTag      func(childComplexity int, id int, input models.NewTag) int
-		UpdateWord     func(childComplexity int, id int, input models.NewWord) int
-		UpdateWordList func(childComplexity int, id int, input models.NewWordList) int
+		CreateMemorySheet func(childComplexity int, input models.NewMemorySheet) int
+		CreateProgram     func(childComplexity int, input *models.NewProgram) int
+		CreateTag         func(childComplexity int, input models.NewTag) int
+		CreateWord        func(childComplexity int, input models.NewWord) int
+		CreateWordList    func(childComplexity int, input models.NewWordList) int
+		DeleteMemorySheet func(childComplexity int, id int) int
+		DeleteProgram     func(childComplexity int, id *int) int
+		DeleteTag         func(childComplexity int, id int) int
+		DeleteWord        func(childComplexity int, id int) int
+		DeleteWordList    func(childComplexity int, id int) int
+		Helloworld        func(childComplexity int) int
+		UpdateMemorySheet func(childComplexity int, id int, input models.NewMemorySheet) int
+		UpdateProgram     func(childComplexity int, id *int, input *models.NewProgram) int
+		UpdateTag         func(childComplexity int, id int, input models.NewTag) int
+		UpdateWord        func(childComplexity int, id int, input models.NewWord) int
+		UpdateWordList    func(childComplexity int, id int, input models.NewWordList) int
 	}
 
 	Note struct {
@@ -106,6 +120,8 @@ type ComplexityRoot struct {
 		Helloworld   func(childComplexity int) int
 		ListProgram  func(childComplexity int, search *string) int
 		ListWordList func(childComplexity int, regex *string) int
+		MSheets      func(childComplexity int, date models.MyDate) int
+		MemorySheet  func(childComplexity int, id int) int
 		Tag          func(childComplexity int, id int) int
 		Tags         func(childComplexity int, search *string) int
 		Word         func(childComplexity int, id int) int
@@ -125,6 +141,15 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
+	TodayMemorySheet struct {
+		NextDay   func(childComplexity int) int
+		NextMonth func(childComplexity int) int
+		Sheets    func(childComplexity int) int
+		ThisMonth func(childComplexity int) int
+		ThisWeek  func(childComplexity int) int
+		Today     func(childComplexity int) int
+	}
+
 	Word struct {
 		Description func(childComplexity int) int
 		Id          func(childComplexity int) int
@@ -140,13 +165,22 @@ type ComplexityRoot struct {
 	}
 }
 
+type MemorySheetResolver interface {
+	CreateDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error)
+	CurrentDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error)
+	NextDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error)
+	Notes(ctx context.Context, obj *models.MemorySheet) ([]*model.Note, error)
+}
 type MutationResolver interface {
 	Helloworld(ctx context.Context) (string, error)
 	CreateTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
 	UpdateTag(ctx context.Context, id int, input models.NewTag) (*models.Tag, error)
 	DeleteTag(ctx context.Context, id int) (*models.Tag, error)
-	CreateProgram(ctx context.Context, input *model.NewProgram) (*models.Program, error)
-	UpdateProgram(ctx context.Context, id *int, input *model.NewProgram) (*models.Program, error)
+	CreateMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error)
+	UpdateMemorySheet(ctx context.Context, id int, input models.NewMemorySheet) (*models.MemorySheet, error)
+	DeleteMemorySheet(ctx context.Context, id int) (*models.MemorySheet, error)
+	CreateProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error)
+	UpdateProgram(ctx context.Context, id *int, input *models.NewProgram) (*models.Program, error)
 	DeleteProgram(ctx context.Context, id *int) (*models.Program, error)
 	CreateWord(ctx context.Context, input models.NewWord) (*models.Word, error)
 	UpdateWord(ctx context.Context, id int, input models.NewWord) (*models.Word, error)
@@ -162,6 +196,8 @@ type QueryResolver interface {
 	Helloworld(ctx context.Context) (string, error)
 	Tag(ctx context.Context, id int) (*models.Tag, error)
 	Tags(ctx context.Context, search *string) ([]*models.Tag, error)
+	MemorySheet(ctx context.Context, id int) (*models.MemorySheet, error)
+	MSheets(ctx context.Context, date models.MyDate) ([]*models.MemorySheet, error)
 	GetProgram(ctx context.Context, id *int) (*models.WordList, error)
 	ListProgram(ctx context.Context, search *string) ([]*model.AllProgram, error)
 	Word(ctx context.Context, id int) (*models.Word, error)
@@ -171,6 +207,12 @@ type QueryResolver interface {
 }
 type TagResolver interface {
 	Match(ctx context.Context, obj *models.Tag, regex string) (*model.SearchResult, error)
+}
+type TodayMemorySheetResolver interface {
+	NextDay(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
+	NextMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
+	ThisWeek(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
+	ThisMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 }
 type WordListResolver interface {
 	Words(ctx context.Context, obj *models.WordList) ([]*models.Word, error)
@@ -252,6 +294,54 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Download.URL(childComplexity), true
 
+	case "MemorySheet.createDate":
+		if e.complexity.MemorySheet.CreateDate == nil {
+			break
+		}
+
+		return e.complexity.MemorySheet.CreateDate(childComplexity), true
+	case "MemorySheet.currentDate":
+		if e.complexity.MemorySheet.CurrentDate == nil {
+			break
+		}
+
+		return e.complexity.MemorySheet.CurrentDate(childComplexity), true
+	case "MemorySheet.id":
+		if e.complexity.MemorySheet.Id == nil {
+			break
+		}
+
+		return e.complexity.MemorySheet.Id(childComplexity), true
+	case "MemorySheet.nextDate":
+		if e.complexity.MemorySheet.NextDate == nil {
+			break
+		}
+
+		return e.complexity.MemorySheet.NextDate(childComplexity), true
+	case "MemorySheet.notes":
+		if e.complexity.MemorySheet.Notes == nil {
+			break
+		}
+
+		return e.complexity.MemorySheet.Notes(childComplexity), true
+	case "MemorySheet.value":
+		if e.complexity.MemorySheet.Value == nil {
+			break
+		}
+
+		return e.complexity.MemorySheet.Value(childComplexity), true
+
+	case "Mutation.createMemorySheet":
+		if e.complexity.Mutation.CreateMemorySheet == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createMemorySheet_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateMemorySheet(childComplexity, args["input"].(models.NewMemorySheet)), true
 	case "Mutation.createProgram":
 		if e.complexity.Mutation.CreateProgram == nil {
 			break
@@ -262,7 +352,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateProgram(childComplexity, args["input"].(*model.NewProgram)), true
+		return e.complexity.Mutation.CreateProgram(childComplexity, args["input"].(*models.NewProgram)), true
 	case "Mutation.createTag":
 		if e.complexity.Mutation.CreateTag == nil {
 			break
@@ -296,6 +386,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateWordList(childComplexity, args["input"].(models.NewWordList)), true
+	case "Mutation.deleteMemorySheet":
+		if e.complexity.Mutation.DeleteMemorySheet == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteMemorySheet_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteMemorySheet(childComplexity, args["id"].(int)), true
 	case "Mutation.deleteProgram":
 		if e.complexity.Mutation.DeleteProgram == nil {
 			break
@@ -346,6 +447,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.Helloworld(childComplexity), true
+	case "Mutation.updateMemorySheet":
+		if e.complexity.Mutation.UpdateMemorySheet == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateMemorySheet_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateMemorySheet(childComplexity, args["id"].(int), args["input"].(models.NewMemorySheet)), true
 	case "Mutation.updateProgram":
 		if e.complexity.Mutation.UpdateProgram == nil {
 			break
@@ -356,7 +468,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateProgram(childComplexity, args["id"].(*int), args["input"].(*model.NewProgram)), true
+		return e.complexity.Mutation.UpdateProgram(childComplexity, args["id"].(*int), args["input"].(*models.NewProgram)), true
 	case "Mutation.updateTag":
 		if e.complexity.Mutation.UpdateTag == nil {
 			break
@@ -502,6 +614,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.ListWordList(childComplexity, args["regex"].(*string)), true
+	case "Query.mSheets":
+		if e.complexity.Query.MSheets == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mSheets_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MSheets(childComplexity, args["date"].(models.MyDate)), true
+	case "Query.memorySheet":
+		if e.complexity.Query.MemorySheet == nil {
+			break
+		}
+
+		args, err := ec.field_Query_memorySheet_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MemorySheet(childComplexity, args["id"].(int)), true
 	case "Query.tag":
 		if e.complexity.Query.Tag == nil {
 			break
@@ -596,6 +730,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Tag.Name(childComplexity), true
 
+	case "TodayMemorySheet.nextDay":
+		if e.complexity.TodayMemorySheet.NextDay == nil {
+			break
+		}
+
+		return e.complexity.TodayMemorySheet.NextDay(childComplexity), true
+	case "TodayMemorySheet.nextMonth":
+		if e.complexity.TodayMemorySheet.NextMonth == nil {
+			break
+		}
+
+		return e.complexity.TodayMemorySheet.NextMonth(childComplexity), true
+	case "TodayMemorySheet.sheets":
+		if e.complexity.TodayMemorySheet.Sheets == nil {
+			break
+		}
+
+		return e.complexity.TodayMemorySheet.Sheets(childComplexity), true
+	case "TodayMemorySheet.thisMonth":
+		if e.complexity.TodayMemorySheet.ThisMonth == nil {
+			break
+		}
+
+		return e.complexity.TodayMemorySheet.ThisMonth(childComplexity), true
+	case "TodayMemorySheet.thisWeek":
+		if e.complexity.TodayMemorySheet.ThisWeek == nil {
+			break
+		}
+
+		return e.complexity.TodayMemorySheet.ThisWeek(childComplexity), true
+	case "TodayMemorySheet.today":
+		if e.complexity.TodayMemorySheet.Today == nil {
+			break
+		}
+
+		return e.complexity.TodayMemorySheet.Today(childComplexity), true
+
 	case "Word.description":
 		if e.complexity.Word.Description == nil {
 			break
@@ -654,6 +825,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputNewMemorySheet,
 		ec.unmarshalInputNewNote,
 		ec.unmarshalInputNewProgram,
 		ec.unmarshalInputNewTag,
@@ -755,7 +927,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schemas/base.graphqls" "schemas/program.graphqls" "schemas/root.graphqls" "schemas/wordlist.graphqls"
+//go:embed "schemas/base.graphqls" "schemas/memorySheet.graphqls" "schemas/program.graphqls" "schemas/root.graphqls" "schemas/wordlist.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -768,6 +940,7 @@ func sourceData(filename string) string {
 
 var sources = []*ast.Source{
 	{Name: "schemas/base.graphqls", Input: sourceData("schemas/base.graphqls"), BuiltIn: false},
+	{Name: "schemas/memorySheet.graphqls", Input: sourceData("schemas/memorySheet.graphqls"), BuiltIn: false},
 	{Name: "schemas/program.graphqls", Input: sourceData("schemas/program.graphqls"), BuiltIn: false},
 	{Name: "schemas/root.graphqls", Input: sourceData("schemas/root.graphqls"), BuiltIn: false},
 	{Name: "schemas/wordlist.graphqls", Input: sourceData("schemas/wordlist.graphqls"), BuiltIn: false},
@@ -778,10 +951,21 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_createMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewProgram)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram)
 	if err != nil {
 		return nil, err
 	}
@@ -819,6 +1003,17 @@ func (ec *executionContext) field_Mutation_createWord_args(ctx context.Context, 
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -866,6 +1061,22 @@ func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -874,7 +1085,7 @@ func (ec *executionContext) field_Mutation_updateProgram_args(ctx context.Contex
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewProgram)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram)
 	if err != nil {
 		return nil, err
 	}
@@ -993,6 +1204,28 @@ func (ec *executionContext) field_Query_listWordList_args(ctx context.Context, r
 		return nil, err
 	}
 	args["regex"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mSheets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "date", ec.unmarshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate)
+	if err != nil {
+		return nil, err
+	}
+	args["date"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_memorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNInt2int)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1364,6 +1597,190 @@ func (ec *executionContext) fieldContext_Download_url(_ context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _MemorySheet_id(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MemorySheet_id,
+		func(ctx context.Context) (any, error) {
+			return obj.Id, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MemorySheet_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MemorySheet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MemorySheet_value(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MemorySheet_value,
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MemorySheet_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MemorySheet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MemorySheet_createDate(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MemorySheet_createDate,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.MemorySheet().CreateDate(ctx, obj)
+		},
+		nil,
+		ec.marshalNMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MemorySheet_createDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MyDate does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MemorySheet_currentDate(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MemorySheet_currentDate,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.MemorySheet().CurrentDate(ctx, obj)
+		},
+		nil,
+		ec.marshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MemorySheet_currentDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MyDate does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MemorySheet_nextDate(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MemorySheet_nextDate,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.MemorySheet().NextDate(ctx, obj)
+		},
+		nil,
+		ec.marshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_MemorySheet_nextDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MyDate does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _MemorySheet_notes(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_MemorySheet_notes,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.MemorySheet().Notes(ctx, obj)
+		},
+		nil,
+		ec.marshalNNote2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNoteᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_MemorySheet_notes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "MemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "value":
+				return ec.fieldContext_Note_value(ctx, field)
+			case "match":
+				return ec.fieldContext_Note_match(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Note_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Note_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Note", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_helloworld(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1552,6 +1969,171 @@ func (ec *executionContext) fieldContext_Mutation_deleteTag(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_createMemorySheet,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().CreateMemorySheet(ctx, fc.Args["input"].(models.NewMemorySheet))
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateMemorySheet,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateMemorySheet(ctx, fc.Args["id"].(int), fc.Args["input"].(models.NewMemorySheet))
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_deleteMemorySheet,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().DeleteMemorySheet(ctx, fc.Args["id"].(int))
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1560,7 +2142,7 @@ func (ec *executionContext) _Mutation_createProgram(ctx context.Context, field g
 		ec.fieldContext_Mutation_createProgram,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateProgram(ctx, fc.Args["input"].(*model.NewProgram))
+			return ec.resolvers.Mutation().CreateProgram(ctx, fc.Args["input"].(*models.NewProgram))
 		},
 		nil,
 		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
@@ -1613,7 +2195,7 @@ func (ec *executionContext) _Mutation_updateProgram(ctx context.Context, field g
 		ec.fieldContext_Mutation_updateProgram,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateProgram(ctx, fc.Args["id"].(*int), fc.Args["input"].(*model.NewProgram))
+			return ec.resolvers.Mutation().UpdateProgram(ctx, fc.Args["id"].(*int), fc.Args["input"].(*models.NewProgram))
 		},
 		nil,
 		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
@@ -2431,6 +3013,116 @@ func (ec *executionContext) fieldContext_Query_tags(ctx context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_memorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_memorySheet,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().MemorySheet(ctx, fc.Args["id"].(int))
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_memorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_memorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mSheets(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_mSheets,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().MSheets(ctx, fc.Args["date"].(models.MyDate))
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_mSheets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mSheets_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3061,6 +3753,250 @@ func (ec *executionContext) fieldContext_Tag_description(_ context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodayMemorySheet_today(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TodayMemorySheet_today,
+		func(ctx context.Context) (any, error) {
+			return obj.Today, nil
+		},
+		nil,
+		ec.marshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TodayMemorySheet_today(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodayMemorySheet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type MyDate does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodayMemorySheet_sheets(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TodayMemorySheet_sheets,
+		func(ctx context.Context) (any, error) {
+			return obj.Sheets, nil
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TodayMemorySheet_sheets(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodayMemorySheet",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodayMemorySheet_nextDay(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TodayMemorySheet_nextDay,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.TodayMemorySheet().NextDay(ctx, obj)
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TodayMemorySheet_nextDay(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodayMemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodayMemorySheet_nextMonth(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TodayMemorySheet_nextMonth,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.TodayMemorySheet().NextMonth(ctx, obj)
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TodayMemorySheet_nextMonth(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodayMemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodayMemorySheet_thisWeek(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TodayMemorySheet_thisWeek,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.TodayMemorySheet().ThisWeek(ctx, obj)
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TodayMemorySheet_thisWeek(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodayMemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodayMemorySheet_thisMonth(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TodayMemorySheet_thisMonth,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.TodayMemorySheet().ThisMonth(ctx, obj)
+		},
+		nil,
+		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TodayMemorySheet_thisMonth(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodayMemorySheet",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_MemorySheet_id(ctx, field)
+			case "value":
+				return ec.fieldContext_MemorySheet_value(ctx, field)
+			case "createDate":
+				return ec.fieldContext_MemorySheet_createDate(ctx, field)
+			case "currentDate":
+				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
+			case "nextDate":
+				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
+			case "notes":
+				return ec.fieldContext_MemorySheet_notes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
 		},
 	}
 	return fc, nil
@@ -4754,6 +5690,40 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputNewMemorySheet(ctx context.Context, obj any) (models.NewMemorySheet, error) {
+	var it models.NewMemorySheet
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"value", "date"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		case "date":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Date = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewNote(ctx context.Context, obj any) (model.NewNote, error) {
 	var it model.NewNote
 	asMap := map[string]any{}
@@ -4781,8 +5751,8 @@ func (ec *executionContext) unmarshalInputNewNote(ctx context.Context, obj any) 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj any) (model.NewProgram, error) {
-	var it model.NewProgram
+func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj any) (models.NewProgram, error) {
+	var it models.NewProgram
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -5101,6 +6071,188 @@ func (ec *executionContext) _Download(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var memorySheetImplementors = []string{"MemorySheet"}
+
+func (ec *executionContext) _MemorySheet(ctx context.Context, sel ast.SelectionSet, obj *models.MemorySheet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, memorySheetImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MemorySheet")
+		case "id":
+			out.Values[i] = ec._MemorySheet_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "value":
+			out.Values[i] = ec._MemorySheet_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createDate":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MemorySheet_createDate(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "currentDate":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MemorySheet_currentDate(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "nextDate":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MemorySheet_nextDate(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "notes":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MemorySheet_notes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -5144,6 +6296,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "deleteTag":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteTag(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createMemorySheet":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createMemorySheet(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateMemorySheet":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateMemorySheet(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteMemorySheet":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteMemorySheet(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -5457,6 +6630,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "memorySheet":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_memorySheet(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mSheets":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mSheets(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "getProgram":
 			field := field
 
@@ -5719,6 +6936,194 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "description":
 			out.Values[i] = ec._Tag_description(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var todayMemorySheetImplementors = []string{"TodayMemorySheet"}
+
+func (ec *executionContext) _TodayMemorySheet(ctx context.Context, sel ast.SelectionSet, obj *model.TodayMemorySheet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, todayMemorySheetImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TodayMemorySheet")
+		case "today":
+			out.Values[i] = ec._TodayMemorySheet_today(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "sheets":
+			out.Values[i] = ec._TodayMemorySheet_sheets(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "nextDay":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TodayMemorySheet_nextDay(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "nextMonth":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TodayMemorySheet_nextMonth(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "thisWeek":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TodayMemorySheet_thisWeek(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "thisMonth":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TodayMemorySheet_thisMonth(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6315,6 +7720,90 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx context.Context, sel ast.SelectionSet, v models.MemorySheet) graphql.Marshaler {
+	return ec._MemorySheet(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.MemorySheet) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx context.Context, sel ast.SelectionSet, v *models.MemorySheet) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MemorySheet(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, v any) (models.MyDate, error) {
+	var res models.MyDate
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, sel ast.SelectionSet, v models.MyDate) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, v any) (*models.MyDate, error) {
+	var res = new(models.MyDate)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, sel ast.SelectionSet, v *models.MyDate) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return v
+}
+
 func (ec *executionContext) unmarshalNMyTime2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyTime(ctx context.Context, v any) (models.MyTime, error) {
 	var res models.MyTime
 	err := res.UnmarshalGQL(v)
@@ -6323,6 +7812,11 @@ func (ec *executionContext) unmarshalNMyTime2githubᚗcomᚋlinn221ᚋbaneᚋmod
 
 func (ec *executionContext) marshalNMyTime2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyTime(ctx context.Context, sel ast.SelectionSet, v models.MyTime) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet(ctx context.Context, v any) (models.NewMemorySheet, error) {
+	res, err := ec.unmarshalInputNewMemorySheet(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag(ctx context.Context, v any) (models.NewTag, error) {
@@ -6338,6 +7832,60 @@ func (ec *executionContext) unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmo
 func (ec *executionContext) unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList(ctx context.Context, v any) (models.NewWordList, error) {
 	res, err := ec.unmarshalInputNewWordList(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNNote2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNoteᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Note) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNote(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNote(ctx context.Context, sel ast.SelectionSet, v *model.Note) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Note(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx context.Context, sel ast.SelectionSet, v models.Program) graphql.Marshaler {
@@ -6763,7 +8311,23 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐNewProgram(ctx context.Context, v any) (*model.NewProgram, error) {
+func (ec *executionContext) unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, v any) (*models.MyDate, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(models.MyDate)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, sel ast.SelectionSet, v *models.MyDate) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram(ctx context.Context, v any) (*models.NewProgram, error) {
 	if v == nil {
 		return nil, nil
 	}

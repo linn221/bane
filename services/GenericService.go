@@ -6,15 +6,17 @@ import (
 
 // service code with no run time dependencies
 type GeneralCrud[I any, M any] struct {
-	Transform      func(I) M
-	Updates        func(I) map[string]any
-	ValidateWrite  func(*gorm.DB, I, int) error
-	ValidateDelete func(*gorm.DB, M) error
+	Transform      func(input I) M
+	Updates        func(existing M, input I) map[string]any
+	ValidateWrite  func(db *gorm.DB, input I, id int) error
+	ValidateDelete func(db *gorm.DB, existing M) error
 }
 
 func (s *GeneralCrud[I, M]) Create(db *gorm.DB, input I) (*M, error) {
-	if err := s.ValidateWrite(db, input, 0); err != nil {
-		return nil, err
+	if s.ValidateWrite != nil {
+		if err := s.ValidateWrite(db, input, 0); err != nil {
+			return nil, err
+		}
 	}
 	m := s.Transform(input)
 	err := db.Create(&m).Error
@@ -30,7 +32,7 @@ func (s *GeneralCrud[I, M]) Update(tx *gorm.DB, input I, id int) (*M, error) {
 	if err := s.ValidateWrite(tx, input, id); err != nil {
 		return nil, err
 	}
-	err := tx.Model(&existing).Updates(s.Updates(input)).Error
+	err := tx.Model(&existing).Updates(s.Updates(existing, input)).Error
 	return &existing, err
 }
 
