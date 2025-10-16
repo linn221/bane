@@ -5,12 +5,35 @@ import (
 
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/utils"
+	"gorm.io/gorm"
 )
 
 func GetNextDate(currentDate time.Time, index int) time.Time {
 	var intervals = [...]int{1, 1, 5, 7, 14, 19, 30, 50, 60, 80, 100, 120}
 	i := min(index, len(intervals)-1)
 	return currentDate.AddDate(0, 0, intervals[i])
+}
+func GetTodayNotes(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, error) {
+	nextSheets, err := getMemorySheetsByNextDate(db, currentDate)
+	if err != nil {
+		return nil, err
+	}
+	tx := db.Begin()
+	defer tx.Rollback()
+	for _, nSheet := range nextSheets {
+		_, err := MemorySheetCrud.Update(tx, models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+	currentSheets, err := getMemorySheetsByCurrentDate(tx, currentDate)
+	if err != nil {
+		return nil, err
+	}
+	return currentSheets, err
 }
 
 var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
@@ -49,4 +72,15 @@ var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
 	// ValidateWrite: func(db *gorm.DB, input models.NewMemorySheet, id int) error {
 	// 	return input.Validate(db, id)
 	// },
+}
+
+func getMemorySheetsByNextDate(db *gorm.DB, nextDate time.Time) ([]*models.MemorySheet, error) {
+	var memorySheets []*models.MemorySheet
+	err := db.Where("next_date = ?", nextDate).Find(&memorySheets).Error
+	return memorySheets, err
+}
+func getMemorySheetsByCurrentDate(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, error) {
+	var memorySheets []*models.MemorySheet
+	err := db.Where("current_date = ?", currentDate).Find(&memorySheets).Error
+	return memorySheets, err
 }

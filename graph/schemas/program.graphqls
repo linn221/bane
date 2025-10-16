@@ -2,10 +2,12 @@ scalar ProgramType
 
 type Program {
   id: Int!
+  alias: String!
   name: String!
   description: String
   domain: String!
   url: String!
+  match(regex: String!): SearchResult! @goField(forceResolver: true)
   # technologies: [Tag]
   # tags: [Tag]
   # notes: [Note]
@@ -13,6 +15,7 @@ type Program {
 
 input NewProgram {
   name: String!
+  alias: String!
   description: String
   domain: String!
   url: String!
@@ -24,6 +27,7 @@ input NewProgram {
 type AllProgram {
   id: Int!
   name: String!
+  alias: String!
   description: String
   domain: String!
   url: String!
@@ -36,7 +40,7 @@ extend type Mutation {
 }
 
 extend type Query {
-  getProgram(id: Int): WordList!
+  getProgram(id: Int): Program!
   listProgram(
     search: String
     # tags

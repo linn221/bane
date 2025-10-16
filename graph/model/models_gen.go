@@ -6,20 +6,6 @@ import (
 	"github.com/linn221/bane/models"
 )
 
-type AllProgram struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
-	Domain      string  `json:"domain"`
-	URL         string  `json:"url"`
-}
-
-type AllWordList struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	Description *string `json:"description,omitempty"`
-}
-
 type Download struct {
 	URL string `json:"url"`
 }

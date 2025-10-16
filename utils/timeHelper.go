@@ -4,6 +4,6 @@ import "time"
 
 func Today() time.Time {
 	// local time.Now with time part zero
-	panic("//2d")
-
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 }

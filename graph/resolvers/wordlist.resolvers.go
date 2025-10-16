@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/linn221/bane/graph"
-	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
 	"github.com/linn221/bane/utils"
@@ -70,13 +69,14 @@ func (r *queryResolver) GetWordList(ctx context.Context, id int) (*models.WordLi
 }
 
 // ListWordList is the resolver for the listWordList field.
-func (r *queryResolver) ListWordList(ctx context.Context, regex *string) ([]*model.AllWordList, error) {
+func (r *queryResolver) ListWordList(ctx context.Context, regex *string) ([]*models.AllWordList, error) {
 	panic(fmt.Errorf("not implemented: ListWordList - listWordList"))
 }
 
-// Words is the resolver for the words field.
-func (r *wordListResolver) Words(ctx context.Context, obj *models.WordList) ([]*models.Word, error) {
-	panic(fmt.Errorf("not implemented: Words - words"))
+// ImportURL is the resolver for the importUrl field.
+func (r *wordListResolver) ImportURL(ctx context.Context, obj *models.WordList) (*string, error) {
+	url := fmt.Sprintf("/importWordlist/%d", obj.Id)
+	return &url, nil
 }
 
 // WordList returns graph.WordListResolver implementation.

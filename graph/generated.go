@@ -43,6 +43,7 @@ type ResolverRoot interface {
 	MemorySheet() MemorySheetResolver
 	Mutation() MutationResolver
 	Note() NoteResolver
+	Program() ProgramResolver
 	Query() QueryResolver
 	Tag() TagResolver
 	TodayMemorySheet() TodayMemorySheetResolver
@@ -54,6 +55,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AllProgram struct {
+		Alias       func(childComplexity int) int
 		Description func(childComplexity int) int
 		Domain      func(childComplexity int) int
 		ID          func(childComplexity int) int
@@ -107,9 +109,11 @@ type ComplexityRoot struct {
 	}
 
 	Program struct {
+		Alias       func(childComplexity int) int
 		Description func(childComplexity int) int
 		Domain      func(childComplexity int) int
 		Id          func(childComplexity int) int
+		Match       func(childComplexity int, regex string) int
 		Name        func(childComplexity int) int
 		Url         func(childComplexity int) int
 	}
@@ -160,6 +164,7 @@ type ComplexityRoot struct {
 	WordList struct {
 		Description func(childComplexity int) int
 		Id          func(childComplexity int) int
+		ImportURL   func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Words       func(childComplexity int) int
 	}
@@ -192,18 +197,21 @@ type MutationResolver interface {
 type NoteResolver interface {
 	Match(ctx context.Context, obj *model.Note, regex string) (*model.SearchResult, error)
 }
+type ProgramResolver interface {
+	Match(ctx context.Context, obj *models.Program, regex string) (*model.SearchResult, error)
+}
 type QueryResolver interface {
 	Helloworld(ctx context.Context) (string, error)
 	Tag(ctx context.Context, id int) (*models.Tag, error)
 	Tags(ctx context.Context, search *string) ([]*models.Tag, error)
 	MemorySheet(ctx context.Context, id int) (*models.MemorySheet, error)
 	MSheets(ctx context.Context, date models.MyDate) ([]*models.MemorySheet, error)
-	GetProgram(ctx context.Context, id *int) (*models.WordList, error)
-	ListProgram(ctx context.Context, search *string) ([]*model.AllProgram, error)
+	GetProgram(ctx context.Context, id *int) (*models.Program, error)
+	ListProgram(ctx context.Context, search *string) ([]*models.AllProgram, error)
 	Word(ctx context.Context, id int) (*models.Word, error)
 	Words(ctx context.Context, search *string) ([]*models.Word, error)
 	GetWordList(ctx context.Context, id int) (*models.WordList, error)
-	ListWordList(ctx context.Context, regex *string) ([]*model.AllWordList, error)
+	ListWordList(ctx context.Context, regex *string) ([]*models.AllWordList, error)
 }
 type TagResolver interface {
 	Match(ctx context.Context, obj *models.Tag, regex string) (*model.SearchResult, error)
@@ -215,7 +223,7 @@ type TodayMemorySheetResolver interface {
 	ThisMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 }
 type WordListResolver interface {
-	Words(ctx context.Context, obj *models.WordList) ([]*models.Word, error)
+	ImportURL(ctx context.Context, obj *models.WordList) (*string, error)
 }
 
 type executableSchema struct {
@@ -237,6 +245,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "AllProgram.alias":
+		if e.complexity.AllProgram.Alias == nil {
+			break
+		}
+
+		return e.complexity.AllProgram.Alias(childComplexity), true
 	case "AllProgram.description":
 		if e.complexity.AllProgram.Description == nil {
 			break
@@ -533,6 +547,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Note.Value(childComplexity), true
 
+	case "Program.alias":
+		if e.complexity.Program.Alias == nil {
+			break
+		}
+
+		return e.complexity.Program.Alias(childComplexity), true
 	case "Program.description":
 		if e.complexity.Program.Description == nil {
 			break
@@ -551,6 +571,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Program.Id(childComplexity), true
+	case "Program.match":
+		if e.complexity.Program.Match == nil {
+			break
+		}
+
+		args, err := ec.field_Program_match_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Program.Match(childComplexity, args["regex"].(string)), true
 	case "Program.name":
 		if e.complexity.Program.Name == nil {
 			break
@@ -804,6 +835,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.WordList.Id(childComplexity), true
+	case "WordList.importUrl":
+		if e.complexity.WordList.ImportURL == nil {
+			break
+		}
+
+		return e.complexity.WordList.ImportURL(childComplexity), true
 	case "WordList.name":
 		if e.complexity.WordList.Name == nil {
 			break
@@ -1152,6 +1189,17 @@ func (ec *executionContext) field_Note_match_args(ctx context.Context, rawArgs m
 	return args, nil
 }
 
+func (ec *executionContext) field_Program_match_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["regex"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1336,7 +1384,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AllProgram_id(ctx context.Context, field graphql.CollectedField, obj *model.AllProgram) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllProgram_id(ctx context.Context, field graphql.CollectedField, obj *models.AllProgram) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1365,7 +1413,7 @@ func (ec *executionContext) fieldContext_AllProgram_id(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _AllProgram_name(ctx context.Context, field graphql.CollectedField, obj *model.AllProgram) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllProgram_name(ctx context.Context, field graphql.CollectedField, obj *models.AllProgram) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1394,7 +1442,36 @@ func (ec *executionContext) fieldContext_AllProgram_name(_ context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _AllProgram_description(ctx context.Context, field graphql.CollectedField, obj *model.AllProgram) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllProgram_alias(ctx context.Context, field graphql.CollectedField, obj *models.AllProgram) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AllProgram_alias,
+		func(ctx context.Context) (any, error) {
+			return obj.Alias, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_AllProgram_alias(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllProgram",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllProgram_description(ctx context.Context, field graphql.CollectedField, obj *models.AllProgram) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1423,7 +1500,7 @@ func (ec *executionContext) fieldContext_AllProgram_description(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _AllProgram_domain(ctx context.Context, field graphql.CollectedField, obj *model.AllProgram) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllProgram_domain(ctx context.Context, field graphql.CollectedField, obj *models.AllProgram) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1452,7 +1529,7 @@ func (ec *executionContext) fieldContext_AllProgram_domain(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _AllProgram_url(ctx context.Context, field graphql.CollectedField, obj *model.AllProgram) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllProgram_url(ctx context.Context, field graphql.CollectedField, obj *models.AllProgram) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1481,7 +1558,7 @@ func (ec *executionContext) fieldContext_AllProgram_url(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _AllWordList_id(ctx context.Context, field graphql.CollectedField, obj *model.AllWordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllWordList_id(ctx context.Context, field graphql.CollectedField, obj *models.AllWordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1510,7 +1587,7 @@ func (ec *executionContext) fieldContext_AllWordList_id(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _AllWordList_name(ctx context.Context, field graphql.CollectedField, obj *model.AllWordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllWordList_name(ctx context.Context, field graphql.CollectedField, obj *models.AllWordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -1539,7 +1616,7 @@ func (ec *executionContext) fieldContext_AllWordList_name(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _AllWordList_description(ctx context.Context, field graphql.CollectedField, obj *model.AllWordList) (ret graphql.Marshaler) {
+func (ec *executionContext) _AllWordList_description(ctx context.Context, field graphql.CollectedField, obj *models.AllWordList) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
@@ -2161,6 +2238,8 @@ func (ec *executionContext) fieldContext_Mutation_createProgram(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Program_id(ctx, field)
+			case "alias":
+				return ec.fieldContext_Program_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Program_name(ctx, field)
 			case "description":
@@ -2169,6 +2248,8 @@ func (ec *executionContext) fieldContext_Mutation_createProgram(ctx context.Cont
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
+			case "match":
+				return ec.fieldContext_Program_match(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -2214,6 +2295,8 @@ func (ec *executionContext) fieldContext_Mutation_updateProgram(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Program_id(ctx, field)
+			case "alias":
+				return ec.fieldContext_Program_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Program_name(ctx, field)
 			case "description":
@@ -2222,6 +2305,8 @@ func (ec *executionContext) fieldContext_Mutation_updateProgram(ctx context.Cont
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
+			case "match":
+				return ec.fieldContext_Program_match(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -2267,6 +2352,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteProgram(ctx context.Cont
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Program_id(ctx, field)
+			case "alias":
+				return ec.fieldContext_Program_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Program_name(ctx, field)
 			case "description":
@@ -2275,6 +2362,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteProgram(ctx context.Cont
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
+			case "match":
+				return ec.fieldContext_Program_match(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
@@ -2479,6 +2568,8 @@ func (ec *executionContext) fieldContext_Mutation_createWordList(ctx context.Con
 				return ec.fieldContext_WordList_description(ctx, field)
 			case "words":
 				return ec.fieldContext_WordList_words(ctx, field)
+			case "importUrl":
+				return ec.fieldContext_WordList_importUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
 		},
@@ -2530,6 +2621,8 @@ func (ec *executionContext) fieldContext_Mutation_updateWordList(ctx context.Con
 				return ec.fieldContext_WordList_description(ctx, field)
 			case "words":
 				return ec.fieldContext_WordList_words(ctx, field)
+			case "importUrl":
+				return ec.fieldContext_WordList_importUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
 		},
@@ -2581,6 +2674,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteWordList(ctx context.Con
 				return ec.fieldContext_WordList_description(ctx, field)
 			case "words":
 				return ec.fieldContext_WordList_words(ctx, field)
+			case "importUrl":
+				return ec.fieldContext_WordList_importUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
 		},
@@ -2762,6 +2857,35 @@ func (ec *executionContext) fieldContext_Program_id(_ context.Context, field gra
 	return fc, nil
 }
 
+func (ec *executionContext) _Program_alias(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Program_alias,
+		func(ctx context.Context) (any, error) {
+			return obj.Alias, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Program_alias(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Program",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Program_name(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2874,6 +2998,53 @@ func (ec *executionContext) fieldContext_Program_url(_ context.Context, field gr
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Program_match(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Program_match,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Program().Match(ctx, obj, fc.Args["regex"].(string))
+		},
+		nil,
+		ec.marshalNSearchResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐSearchResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Program_match(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Program",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "results":
+				return ec.fieldContext_SearchResult_results(ctx, field)
+			case "count":
+				return ec.fieldContext_SearchResult_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SearchResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Program_match_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3134,7 +3305,7 @@ func (ec *executionContext) _Query_getProgram(ctx context.Context, field graphql
 			return ec.resolvers.Query().GetProgram(ctx, fc.Args["id"].(*int))
 		},
 		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
+		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
 		true,
 		true,
 	)
@@ -3149,15 +3320,21 @@ func (ec *executionContext) fieldContext_Query_getProgram(ctx context.Context, f
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_WordList_id(ctx, field)
+				return ec.fieldContext_Program_id(ctx, field)
+			case "alias":
+				return ec.fieldContext_Program_alias(ctx, field)
 			case "name":
-				return ec.fieldContext_WordList_name(ctx, field)
+				return ec.fieldContext_Program_name(ctx, field)
 			case "description":
-				return ec.fieldContext_WordList_description(ctx, field)
-			case "words":
-				return ec.fieldContext_WordList_words(ctx, field)
+				return ec.fieldContext_Program_description(ctx, field)
+			case "domain":
+				return ec.fieldContext_Program_domain(ctx, field)
+			case "url":
+				return ec.fieldContext_Program_url(ctx, field)
+			case "match":
+				return ec.fieldContext_Program_match(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
 	}
 	defer func() {
@@ -3185,7 +3362,7 @@ func (ec *executionContext) _Query_listProgram(ctx context.Context, field graphq
 			return ec.resolvers.Query().ListProgram(ctx, fc.Args["search"].(*string))
 		},
 		nil,
-		ec.marshalNAllProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllProgram,
+		ec.marshalNAllProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllProgram,
 		true,
 		true,
 	)
@@ -3203,6 +3380,8 @@ func (ec *executionContext) fieldContext_Query_listProgram(ctx context.Context, 
 				return ec.fieldContext_AllProgram_id(ctx, field)
 			case "name":
 				return ec.fieldContext_AllProgram_name(ctx, field)
+			case "alias":
+				return ec.fieldContext_AllProgram_alias(ctx, field)
 			case "description":
 				return ec.fieldContext_AllProgram_description(ctx, field)
 			case "domain":
@@ -3362,6 +3541,8 @@ func (ec *executionContext) fieldContext_Query_getWordList(ctx context.Context, 
 				return ec.fieldContext_WordList_description(ctx, field)
 			case "words":
 				return ec.fieldContext_WordList_words(ctx, field)
+			case "importUrl":
+				return ec.fieldContext_WordList_importUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
 		},
@@ -3391,7 +3572,7 @@ func (ec *executionContext) _Query_listWordList(ctx context.Context, field graph
 			return ec.resolvers.Query().ListWordList(ctx, fc.Args["regex"].(*string))
 		},
 		nil,
-		ec.marshalNAllWordList2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllWordList,
+		ec.marshalNAllWordList2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllWordList,
 		true,
 		true,
 	)
@@ -4212,10 +4393,10 @@ func (ec *executionContext) _WordList_words(ctx context.Context, field graphql.C
 		field,
 		ec.fieldContext_WordList_words,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.WordList().Words(ctx, obj)
+			return obj.Words, nil
 		},
 		nil,
-		ec.marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordᚄ,
+		ec.marshalOWord2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordᚄ,
 		true,
 		false,
 	)
@@ -4225,8 +4406,8 @@ func (ec *executionContext) fieldContext_WordList_words(_ context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "WordList",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -4239,6 +4420,35 @@ func (ec *executionContext) fieldContext_WordList_words(_ context.Context, field
 				return ec.fieldContext_Word_description(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WordList_importUrl(ctx context.Context, field graphql.CollectedField, obj *models.WordList) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_WordList_importUrl,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.WordList().ImportURL(ctx, obj)
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_WordList_importUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WordList",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -5758,7 +5968,7 @@ func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "description", "domain", "url"}
+	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5772,6 +5982,13 @@ func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj an
 				return it, err
 			}
 			it.Name = data
+		case "alias":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alias = data
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -5932,7 +6149,7 @@ func (ec *executionContext) unmarshalInputNewWordList(ctx context.Context, obj a
 
 var allProgramImplementors = []string{"AllProgram"}
 
-func (ec *executionContext) _AllProgram(ctx context.Context, sel ast.SelectionSet, obj *model.AllProgram) graphql.Marshaler {
+func (ec *executionContext) _AllProgram(ctx context.Context, sel ast.SelectionSet, obj *models.AllProgram) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, allProgramImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -5948,6 +6165,11 @@ func (ec *executionContext) _AllProgram(ctx context.Context, sel ast.SelectionSe
 			}
 		case "name":
 			out.Values[i] = ec._AllProgram_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "alias":
+			out.Values[i] = ec._AllProgram_alias(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -5988,7 +6210,7 @@ func (ec *executionContext) _AllProgram(ctx context.Context, sel ast.SelectionSe
 
 var allWordListImplementors = []string{"AllWordList"}
 
-func (ec *executionContext) _AllWordList(ctx context.Context, sel ast.SelectionSet, obj *model.AllWordList) graphql.Marshaler {
+func (ec *executionContext) _AllWordList(ctx context.Context, sel ast.SelectionSet, obj *models.AllWordList) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, allWordListImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -6506,25 +6728,66 @@ func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Program_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "alias":
+			out.Values[i] = ec._Program_alias(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Program_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "description":
 			out.Values[i] = ec._Program_description(ctx, field, obj)
 		case "domain":
 			out.Values[i] = ec._Program_domain(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "url":
 			out.Values[i] = ec._Program_url(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "match":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Program_match(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7222,6 +7485,8 @@ func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet,
 		case "description":
 			out.Values[i] = ec._WordList_description(ctx, field, obj)
 		case "words":
+			out.Values[i] = ec._WordList_words(ctx, field, obj)
+		case "importUrl":
 			field := field
 
 			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
@@ -7230,7 +7495,7 @@ func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet,
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._WordList_words(ctx, field, obj)
+				res = ec._WordList_importUrl(ctx, field, obj)
 				return res
 			}
 
@@ -7612,7 +7877,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAllProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllProgram(ctx context.Context, sel ast.SelectionSet, v []*model.AllProgram) graphql.Marshaler {
+func (ec *executionContext) marshalNAllProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllProgram(ctx context.Context, sel ast.SelectionSet, v []*models.AllProgram) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7636,7 +7901,7 @@ func (ec *executionContext) marshalNAllProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOAllProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllProgram(ctx, sel, v[i])
+			ret[i] = ec.marshalOAllProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllProgram(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -7650,7 +7915,7 @@ func (ec *executionContext) marshalNAllProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋba
 	return ret
 }
 
-func (ec *executionContext) marshalNAllWordList2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllWordList(ctx context.Context, sel ast.SelectionSet, v []*model.AllWordList) graphql.Marshaler {
+func (ec *executionContext) marshalNAllWordList2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllWordList(ctx context.Context, sel ast.SelectionSet, v []*models.AllWordList) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -7674,7 +7939,7 @@ func (ec *executionContext) marshalNAllWordList2ᚕᚖgithubᚗcomᚋlinn221ᚋb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOAllWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllWordList(ctx, sel, v[i])
+			ret[i] = ec.marshalOAllWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllWordList(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8237,14 +8502,14 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAllProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllProgram(ctx context.Context, sel ast.SelectionSet, v *model.AllProgram) graphql.Marshaler {
+func (ec *executionContext) marshalOAllProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllProgram(ctx context.Context, sel ast.SelectionSet, v *models.AllProgram) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._AllProgram(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOAllWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐAllWordList(ctx context.Context, sel ast.SelectionSet, v *model.AllWordList) graphql.Marshaler {
+func (ec *executionContext) marshalOAllWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllWordList(ctx context.Context, sel ast.SelectionSet, v *models.AllWordList) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -8449,6 +8714,53 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 	return ec._Tag(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOWord2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Word) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx context.Context, sel ast.SelectionSet, v []*models.Word) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -8486,53 +8798,6 @@ func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋm
 
 	}
 	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOWord2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Word) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
 
 	return ret
 }

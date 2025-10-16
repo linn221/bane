@@ -10,12 +10,13 @@ import (
 
 // Word represents a word in a wordlist
 type Word struct {
-	Id          int       `gorm:"primaryKey"`
-	Word        string    `gorm:"size:255;not null;index"`
-	WordType    WordType  `gorm:"not null;index"`
-	Description string    `gorm:"text;default:null"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+	Id          int        `gorm:"primaryKey"`
+	Word        string     `gorm:"size:255;not null;index"`
+	WordType    WordType   `gorm:"not null;index"`
+	Description string     `gorm:"text;default:null"`
+	WordLists   []WordList `gorm:"many2many:word_list_words"`
+	CreatedAt   time.Time  `gorm:"autoCreateTime"`
+	UpdatedAt   time.Time  `gorm:"autoUpdateTime"`
 }
 
 type NewWord struct {

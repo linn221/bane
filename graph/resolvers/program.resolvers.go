@@ -8,31 +8,45 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/services"
 )
 
 // CreateProgram is the resolver for the createProgram field.
 func (r *mutationResolver) CreateProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
-	panic(fmt.Errorf("not implemented: CreateProgram - createProgram"))
+	return services.ProgramCrud.Create(r.DB.WithContext(ctx), *input)
 }
 
 // UpdateProgram is the resolver for the updateProgram field.
 func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, input *models.NewProgram) (*models.Program, error) {
-	panic(fmt.Errorf("not implemented: UpdateProgram - updateProgram"))
+	return services.ProgramCrud.Update(r.DB.WithContext(ctx), *input, *id)
 }
 
 // DeleteProgram is the resolver for the deleteProgram field.
 func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int) (*models.Program, error) {
-	panic(fmt.Errorf("not implemented: DeleteProgram - deleteProgram"))
+	return services.ProgramCrud.Delete(r.DB.WithContext(ctx), *id)
+}
+
+// Match is the resolver for the match field.
+func (r *programResolver) Match(ctx context.Context, obj *models.Program, regex string) (*model.SearchResult, error) {
+	panic(fmt.Errorf("not implemented: Match - match"))
 }
 
 // GetProgram is the resolver for the getProgram field.
-func (r *queryResolver) GetProgram(ctx context.Context, id *int) (*models.WordList, error) {
-	panic(fmt.Errorf("not implemented: GetProgram - getProgram"))
+func (r *queryResolver) GetProgram(ctx context.Context, id *int) (*models.Program, error) {
+	// Note: This returns WordList but should probably return Program based on the schema
+	// For now, returning a placeholder WordList as per the current schema
+	return services.ProgramCrud.Get(r.DB.WithContext(ctx), *id)
 }
 
 // ListProgram is the resolver for the listProgram field.
-func (r *queryResolver) ListProgram(ctx context.Context, search *string) ([]*model.AllProgram, error) {
-	panic(fmt.Errorf("not implemented: ListProgram - listProgram"))
+func (r *queryResolver) ListProgram(ctx context.Context, search *string) ([]*models.AllProgram, error) {
+	return services.ListPrograms(r.DB.WithContext(ctx), search)
 }
+
+// Program returns graph.ProgramResolver implementation.
+func (r *Resolver) Program() graph.ProgramResolver { return &programResolver{r} }
+
+type programResolver struct{ *Resolver }

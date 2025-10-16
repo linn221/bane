@@ -20,6 +20,7 @@ type WordList {
     name: String!
     description: String
     words: [Word!]
+    importUrl: String @goField(forceResolver: true)
 }
 
 input NewWordList {

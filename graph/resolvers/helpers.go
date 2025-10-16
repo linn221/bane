@@ -8,10 +8,12 @@ import (
 )
 
 func getMemorySheetsByNextDate(db *gorm.DB, nextDate time.Time) ([]*models.MemorySheet, error) {
-	panic("//2d")
-
+	var memorySheets []*models.MemorySheet
+	err := db.Where("next_date = ?", nextDate).Find(&memorySheets).Error
+	return memorySheets, err
 }
 func getMemorySheetsByCurrentDate(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, error) {
-	panic("//2d")
-
+	var memorySheets []*models.MemorySheet
+	err := db.Where("current_date = ?", currentDate).Find(&memorySheets).Error
+	return memorySheets, err
 }

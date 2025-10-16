@@ -13,6 +13,7 @@ type WordList struct {
 	Id          int       `gorm:"primaryKey"`
 	Name        string    `gorm:"size:255;not null;index"`
 	Description string    `gorm:"text;default:null"`
+	Words       []Word    `gorm:"many2many:word_list_words"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
@@ -20,6 +21,12 @@ type WordList struct {
 type NewWordList struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
+}
+
+type AllWordList struct {
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Description *string `json:"description,omitempty"`
 }
 
 func (input *NewWordList) Validate(db *gorm.DB, id int) error {
