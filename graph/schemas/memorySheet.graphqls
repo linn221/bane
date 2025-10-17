@@ -33,5 +33,5 @@ extend type Mutation {
 
 extend type Query {
     memorySheet(id: Int!): MemorySheet!
-    mSheets(date: MyDate!): [MemorySheet!]!
+    mSheets(date: MyDate): [MemorySheet!]!
 }

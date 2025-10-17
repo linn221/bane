@@ -2,10 +2,10 @@ package models
 
 type Program struct {
 	Id          int    `gorm:"primaryKey"`
-	Alias       string `gorm:"size:255;not null;uniqueIndex"`
+	Alias       string `gorm:"size:255;not null;unique"`
 	Name        string `gorm:"size:255;not null"`
 	Url         string `gorm:"not null;index"`
-	Domain      string `gorm:"type:index;not null"` // Store as JSON string
+	Domain      string `gorm:"index;not null"` // Store as JSON string
 	Description string `gorm:"default:null"`
 
 	// // One-to-many relationships

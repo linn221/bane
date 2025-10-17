@@ -124,7 +124,7 @@ type ComplexityRoot struct {
 		Helloworld   func(childComplexity int) int
 		ListProgram  func(childComplexity int, search *string) int
 		ListWordList func(childComplexity int, regex *string) int
-		MSheets      func(childComplexity int, date models.MyDate) int
+		MSheets      func(childComplexity int, date *models.MyDate) int
 		MemorySheet  func(childComplexity int, id int) int
 		Tag          func(childComplexity int, id int) int
 		Tags         func(childComplexity int, search *string) int
@@ -205,7 +205,7 @@ type QueryResolver interface {
 	Tag(ctx context.Context, id int) (*models.Tag, error)
 	Tags(ctx context.Context, search *string) ([]*models.Tag, error)
 	MemorySheet(ctx context.Context, id int) (*models.MemorySheet, error)
-	MSheets(ctx context.Context, date models.MyDate) ([]*models.MemorySheet, error)
+	MSheets(ctx context.Context, date *models.MyDate) ([]*models.MemorySheet, error)
 	GetProgram(ctx context.Context, id *int) (*models.Program, error)
 	ListProgram(ctx context.Context, search *string) ([]*models.AllProgram, error)
 	Word(ctx context.Context, id int) (*models.Word, error)
@@ -655,7 +655,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.MSheets(childComplexity, args["date"].(models.MyDate)), true
+		return e.complexity.Query.MSheets(childComplexity, args["date"].(*models.MyDate)), true
 	case "Query.memorySheet":
 		if e.complexity.Query.MemorySheet == nil {
 			break
@@ -1258,7 +1258,7 @@ func (ec *executionContext) field_Query_listWordList_args(ctx context.Context, r
 func (ec *executionContext) field_Query_mSheets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "date", ec.unmarshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "date", ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate)
 	if err != nil {
 		return nil, err
 	}
@@ -3247,7 +3247,7 @@ func (ec *executionContext) _Query_mSheets(ctx context.Context, field graphql.Co
 		ec.fieldContext_Query_mSheets,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().MSheets(ctx, fc.Args["date"].(models.MyDate))
+			return ec.resolvers.Query().MSheets(ctx, fc.Args["date"].(*models.MyDate))
 		},
 		nil,
 		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,

@@ -41,11 +41,9 @@ var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
 		result := models.MemorySheet{
 			Value: input.Value,
 		}
-		if input.Date != nil {
-			result.CreateDate = input.Date.Time
-		} else {
-			result.CreateDate = utils.Today()
-		}
+		result.CreateDate = utils.Today()
+		result.CurrentDate = result.CreateDate
+		result.NextDate = result.CurrentDate.AddDate(0, 0, 1)
 		return result
 	},
 	Updates: func(existing models.MemorySheet, input models.NewMemorySheet) map[string]any {
@@ -61,10 +59,6 @@ var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
 		} else { // normal update coming from graphql
 			if input.Value != "" {
 				updates["Value"] = input.Value
-			}
-
-			if input.Date != nil {
-				updates["CreateDate"] = input.Date.Time
 			}
 		}
 		return updates

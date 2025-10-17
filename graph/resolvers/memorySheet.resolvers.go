@@ -11,6 +11,7 @@ import (
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
+	"github.com/linn221/bane/utils"
 )
 
 // CreateDate is the resolver for the createDate field.
@@ -58,21 +59,29 @@ func (r *queryResolver) MemorySheet(ctx context.Context, id int) (*models.Memory
 }
 
 // MSheets is the resolver for the mSheets field.
-func (r *queryResolver) MSheets(ctx context.Context, date models.MyDate) ([]*models.MemorySheet, error) {
+func (r *queryResolver) MSheets(ctx context.Context, date *models.MyDate) ([]*models.MemorySheet, error) {
+	if date == nil {
+		var v models.MyDate
+		v.Time = utils.Today()
+		date = &v
+	}
+
 	nextSheets, err := getMemorySheetsByNextDate(r.DB.WithContext(ctx), date.Time)
 	if err != nil {
 		return nil, err
 	}
-	tx := r.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-	for _, nSheet := range nextSheets {
-		_, err := services.MemorySheetCrud.Update(tx, models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
-		if err != nil {
+	if len(nextSheets) > 0 {
+		tx := r.DB.WithContext(ctx).Begin()
+		defer tx.Rollback()
+		for _, nSheet := range nextSheets {
+			_, err := services.MemorySheetCrud.Update(tx, models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if err := tx.Commit().Error; err != nil {
 			return nil, err
 		}
-	}
-	if err := tx.Commit().Error; err != nil {
-		return nil, err
 	}
 	currentSheets, err := getMemorySheetsByCurrentDate(r.DB.WithContext(ctx), date.Time)
 	if err != nil {
