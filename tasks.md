@@ -1,0 +1,1 @@
+in @enums.go , implement gql methods for HttpSchema, HttpMethod, and other enum types so that i can use them as scalar in graphql schema. you can look at existing code in enums.go's WordType for reference

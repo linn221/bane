@@ -82,3 +82,111 @@ func (u *MyDate) UnmarshalGQL(v interface{}) error {
 	u.Time = parsedTime
 	return nil
 }
+
+// HttpSchema GraphQL methods
+func (h HttpSchema) MarshalGQL(w io.Writer) {
+	w.Write([]byte(strconv.Quote(string(h))))
+}
+
+func (h *HttpSchema) UnmarshalGQL(i interface{}) error {
+	str, ok := i.(string)
+	if !ok {
+		return errors.New("http schema must be string")
+	}
+	switch str {
+	case "http":
+		*h = HttpSchemaHttp
+	case "https":
+		*h = HttpSchemaHttps
+	default:
+		return errors.New("invalid http schema")
+	}
+	return nil
+}
+
+// HttpMethod GraphQL methods
+func (h HttpMethod) MarshalGQL(w io.Writer) {
+	w.Write([]byte(strconv.Quote(string(h))))
+}
+
+func (h *HttpMethod) UnmarshalGQL(i interface{}) error {
+	str, ok := i.(string)
+	if !ok {
+		return errors.New("http method must be string")
+	}
+	switch str {
+	case "GET":
+		*h = HttpMethodGet
+	case "POST":
+		*h = HttpMethodPost
+	case "PUT":
+		*h = HttpMethodPut
+	case "DELETE":
+		*h = HttpMethodDelete
+	case "PATCH":
+		*h = HttpMethodPatch
+	case "HEAD":
+		*h = HttpMethodHead
+	case "OPTIONS":
+		*h = HttpMethodOptions
+	case "TRACE":
+		*h = HttpMethodTrace
+	default:
+		return errors.New("invalid http method")
+	}
+	return nil
+}
+
+// VulnReferenceType GraphQL methods
+func (v VulnReferenceType) MarshalGQL(w io.Writer) {
+	w.Write([]byte(strconv.Quote(string(v))))
+}
+
+func (v *VulnReferenceType) UnmarshalGQL(i interface{}) error {
+	str, ok := i.(string)
+	if !ok {
+		return errors.New("vuln reference type must be string")
+	}
+	switch str {
+	case "programs":
+		*v = VulnReferenceTypeProgram
+	case "endpoints":
+		*v = VulnReferenceTypeEndpoint
+	case "requests":
+		*v = VulnReferenceTypeRequest
+	case "notes":
+		*v = VulnReferenceTypeNote
+	case "attachments":
+		*v = VulnReferenceTypeAttachment
+	default:
+		return errors.New("invalid vuln reference type")
+	}
+	return nil
+}
+
+// TaggableType GraphQL methods
+func (t TaggableType) MarshalGQL(w io.Writer) {
+	w.Write([]byte(strconv.Quote(string(t))))
+}
+
+func (t *TaggableType) UnmarshalGQL(i interface{}) error {
+	str, ok := i.(string)
+	if !ok {
+		return errors.New("taggable type must be string")
+	}
+	switch str {
+	case "programs":
+		*t = TaggableTypePrograms
+	case "endpoints":
+		*t = TaggableTypeEndpoints
+	case "requests":
+		*t = TaggableTypeRequests
+	case "vulns":
+		*t = TaggableTypeVulns
+	case "notes":
+		*t = TaggableTypeNotes
+	default:
+		return errors.New("invalid taggable type")
+	}
+	return nil
+}

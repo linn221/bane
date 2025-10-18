@@ -18,8 +18,7 @@ type Tag struct {
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 
-	// Many-to-many polymorphic relationships through Taggable
-	// Taggables []Taggable `gorm:"foreignKey:TagID"`
+	Taggables []Taggable `gorm:"foreignKey:TagID"`
 }
 
 type NewTag struct {
@@ -51,18 +50,6 @@ const (
 	TaggableTypeVulns     TaggableType = "vulns"
 	TaggableTypeNotes     TaggableType = "notes"
 )
-
-// // Tag represents a tag that can be applied to various resources
-// type Tag struct {
-// 	Id        int       `gorm:"primaryKey"`
-// 	Name      string    `gorm:"size:100;not null;uniqueIndex"`
-// 	Priority  int       `gorm:"default:0"`
-// 	CreatedAt time.Time `gorm:"autoCreateTime"`
-// 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
-
-// 	// Many-to-many polymorphic relationships through Taggable
-// 	Taggables []Taggable `gorm:"foreignKey:TagID"`
-// }
 
 // Taggable represents the many-to-many polymorphic relationship between tags and resources
 type Taggable struct {
