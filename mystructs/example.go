@@ -1,0 +1,55 @@
+package mystructs
+
+import (
+	"fmt"
+)
+
+// Example demonstrates the usage of both VarString and KVGroupInput
+func Example() {
+	fmt.Println("=== VarString Example ===")
+
+	// Create a VarString with the example from the user's description
+	vs, err := NewVarString("{id:1}-{name:Henry Cohle}")
+	if err != nil {
+		fmt.Printf("Error creating VarString: %v\n", err)
+		return
+	}
+
+	// Initially, it uses default values
+	fmt.Printf("Default execution: %s\n", vs.Exec()) // Output: "1-Henry Cohle"
+
+	// Inject new values
+	vs.Inject(map[string]string{"id": "3"})
+	fmt.Printf("After injection: %s\n", vs.Exec()) // Output: "3-Henry Cohle"
+
+	// The Stringer interface calls Exec()
+	fmt.Printf("Stringer output: %s\n", vs) // Output: "3-Henry Cohle"
+
+	// Demonstrate GORM compatibility
+	// This stores only the original string in the database
+	value, _ := vs.Value()
+	fmt.Printf("GORM Value (original string): %s\n", value)
+
+	// Demonstrate GraphQL marshaling
+	marshaled, _ := vs.MarshalGQL()
+	fmt.Printf("GraphQL Marshal: %s\n", string(marshaled))
+
+	fmt.Println("\n=== KVGroupInput Example ===")
+
+	// Create KVGroupInput from string
+	kv, err := NewKVGroupInputFromString("name:John age:30 city:NewYork")
+	if err != nil {
+		fmt.Printf("Error creating KVGroupInput: %v\n", err)
+		return
+	}
+
+	fmt.Printf("KVGroupInput string: %s\n", kv.String())
+
+	// Demonstrate GraphQL marshaling
+	kvMarshaled, _ := kv.MarshalGQL()
+	fmt.Printf("GraphQL Marshal: %s\n", string(kvMarshaled))
+
+	// Demonstrate conversion to KVPairGroup
+	group := kv.ToKVPairGroup()
+	fmt.Printf("Converted to KVPairGroup: %+v\n", group)
+}

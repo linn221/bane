@@ -13,17 +13,6 @@ type Download struct {
 type Mutation struct {
 }
 
-type NewNote struct {
-	Value string `json:"value"`
-}
-
-type Note struct {
-	Value     string        `json:"value"`
-	Match     *SearchResult `json:"match"`
-	CreatedAt models.MyTime `json:"createdAt"`
-	UpdatedAt models.MyTime `json:"updatedAt"`
-}
-
 type Query struct {
 }
 

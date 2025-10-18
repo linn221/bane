@@ -8,6 +8,8 @@ type Program {
   domain: String!
   url: String!
   match(regex: String!): SearchResult! @goField(forceResolver: true)
+  rid: Int! @goField(forceResolver: true)
+  notes: [Note] @goField(forceResolver: true)
   # technologies: [Tag]
   # tags: [Tag]
   # notes: [Note]
@@ -40,9 +42,7 @@ extend type Mutation {
 }
 
 extend type Query {
+  programs: [Program]
+  program(id: Int!): Program!
   getProgram(id: Int): Program!
-  listProgram(
-    search: String
-    # tags
-  ): [AllProgram]!
 }

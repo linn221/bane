@@ -10,6 +10,7 @@ import (
 type Middleware func(http.Handler) http.Handler
 
 type App struct {
+	Deducer            *Deducer
 	DB                 *gorm.DB
 	Cache              config.CacheService
 	RecoveryMiddleware Middleware

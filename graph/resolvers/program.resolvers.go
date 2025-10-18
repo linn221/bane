@@ -10,23 +10,24 @@ import (
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
+	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
 )
 
 // CreateProgram is the resolver for the createProgram field.
 func (r *mutationResolver) CreateProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
-	return services.ProgramCrud.Create(r.DB.WithContext(ctx), *input)
+	return services.ProgramService.Create(r.DB.WithContext(ctx), *input)
 }
 
 // UpdateProgram is the resolver for the updateProgram field.
 func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, input *models.NewProgram) (*models.Program, error) {
-	return services.ProgramCrud.Update(r.DB.WithContext(ctx), *input, *id)
+	return services.ProgramService.Update(r.DB.WithContext(ctx), *input, *id)
 }
 
 // DeleteProgram is the resolver for the deleteProgram field.
 func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int) (*models.Program, error) {
-	return services.ProgramCrud.Delete(r.DB.WithContext(ctx), *id)
+	return services.ProgramService.Delete(r.DB.WithContext(ctx), *id)
 }
 
 // Match is the resolver for the match field.
@@ -34,16 +35,33 @@ func (r *programResolver) Match(ctx context.Context, obj *models.Program, regex 
 	panic(fmt.Errorf("not implemented: Match - match"))
 }
 
-// GetProgram is the resolver for the getProgram field.
-func (r *queryResolver) GetProgram(ctx context.Context, id *int) (*models.Program, error) {
-	// Note: This returns WordList but should probably return Program based on the schema
-	// For now, returning a placeholder WordList as per the current schema
-	return services.ProgramCrud.Get(r.DB.WithContext(ctx), *id)
+// Rid is the resolver for the rid field.
+func (r *programResolver) Rid(ctx context.Context, obj *models.Program) (int, error) {
+	rid := r.app.Deducer.SetReference(obj.Id, "programs")
+	return rid, nil
 }
 
-// ListProgram is the resolver for the listProgram field.
-func (r *queryResolver) ListProgram(ctx context.Context, search *string) ([]*models.AllProgram, error) {
-	return services.ListPrograms(r.DB.WithContext(ctx), search)
+// Notes is the resolver for the notes field.
+func (r *programResolver) Notes(ctx context.Context, obj *models.Program) ([]*models.Note, error) {
+	// Use dataloader for efficient Notes loading
+	return loaders.GetNotesForProgram(ctx, obj.Id)
+}
+
+// Programs is the resolver for the programs field.
+func (r *queryResolver) Programs(ctx context.Context) ([]*models.Program, error) {
+	return services.ProgramService.ListPrograms(r.DB.WithContext(ctx))
+}
+
+// Program is the resolver for the program field.
+func (r *queryResolver) Program(ctx context.Context, id int) (*models.Program, error) {
+	// Use dataloader for efficient Program loading
+	return loaders.GetProgram(ctx, id)
+}
+
+// GetProgram is the resolver for the getProgram field.
+func (r *queryResolver) GetProgram(ctx context.Context, id *int) (*models.Program, error) {
+	// Use dataloader for efficient Program loading
+	return loaders.GetProgram(ctx, *id)
 }
 
 // Program returns graph.ProgramResolver implementation.

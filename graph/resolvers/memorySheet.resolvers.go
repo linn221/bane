@@ -33,9 +33,10 @@ func (r *memorySheetResolver) NextDate(ctx context.Context, obj *models.MemorySh
 }
 
 // Notes is the resolver for the notes field.
-func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet) ([]*model.Note, error) {
+func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet) ([]*models.Note, error) {
 	// TODO: Implement notes relationship when Note model is available
-	return []*model.Note{}, nil
+	panic("//2d")
+	// return []*model.Note{}, nil
 }
 
 // CreateMemorySheet is the resolver for the createMemorySheet field.

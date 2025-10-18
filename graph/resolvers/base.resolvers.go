@@ -29,9 +29,19 @@ func (r *mutationResolver) DeleteTag(ctx context.Context, id int) (*models.Tag, 
 	return services.TagCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
+// NewNote is the resolver for the newNote field.
+func (r *mutationResolver) NewNote(ctx context.Context, input *models.NewNote) (*models.Note, error) {
+	panic(fmt.Errorf("not implemented: NewNote - newNote"))
+}
+
 // Match is the resolver for the match field.
-func (r *noteResolver) Match(ctx context.Context, obj *model.Note, regex string) (*model.SearchResult, error) {
+func (r *noteResolver) Match(ctx context.Context, obj *models.Note, regex string) (*model.SearchResult, error) {
 	panic(fmt.Errorf("not implemented: Match - match"))
+}
+
+// NoteDate is the resolver for the noteDate field.
+func (r *noteResolver) NoteDate(ctx context.Context, obj *models.Note) (*models.MyDate, error) {
+	panic(fmt.Errorf("not implemented: NoteDate - noteDate"))
 }
 
 // Tag is the resolver for the tag field.
@@ -45,6 +55,11 @@ func (r *queryResolver) Tags(ctx context.Context, search *string) ([]*models.Tag
 	var results []*models.Tag
 	err := dbctx.Find(&results).Error
 	return results, err
+}
+
+// Notes is the resolver for the notes field.
+func (r *queryResolver) Notes(ctx context.Context, rid *int, referenceID *int, referenceType *string) ([]*models.Note, error) {
+	panic(fmt.Errorf("not implemented: Notes - notes"))
 }
 
 // Match is the resolver for the match field.
@@ -61,11 +76,20 @@ func (r *tagResolver) Match(ctx context.Context, obj *models.Tag, regex string) 
 	return &result, nil
 }
 
+// RID is the resolver for the rId field.
+func (r *newNoteResolver) RID(ctx context.Context, obj *models.NewNote, data *int) error {
+	panic(fmt.Errorf("not implemented: RID - rId"))
+}
+
 // Note returns graph.NoteResolver implementation.
 func (r *Resolver) Note() graph.NoteResolver { return &noteResolver{r} }
 
 // Tag returns graph.TagResolver implementation.
 func (r *Resolver) Tag() graph.TagResolver { return &tagResolver{r} }
 
+// NewNote returns graph.NewNoteResolver implementation.
+func (r *Resolver) NewNote() graph.NewNoteResolver { return &newNoteResolver{r} }
+
 type noteResolver struct{ *Resolver }
 type tagResolver struct{ *Resolver }
+type newNoteResolver struct{ *Resolver }

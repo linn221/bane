@@ -37,32 +37,47 @@ func ListPrograms(db *gorm.DB, search *string) ([]*models.AllProgram, error) {
 
 }
 
-var ProgramCrud = GeneralCrud[models.NewProgram, models.Program]{
-	Transform: func(input models.NewProgram) models.Program {
-		return models.Program{
-			Alias:       input.Alias,
-			Name:        input.Name,
-			Url:         input.URL,
-			Description: utils.SafeDeref(input.Description),
-			Domain:      input.Domain,
-		}
-	},
-	Updates: func(existing models.Program, input models.NewProgram) map[string]any {
-		return map[string]any{
-			"Alias":       input.Alias,
-			"Name":        input.Name,
-			"Url":         input.URL,
-			"Description": utils.SafeDeref(input.Description),
-			"Domain":      input.Domain,
-		}
-	},
+type programCrud struct {
+	GeneralCrud[models.NewProgram, models.Program]
+}
 
-	ValidateWrite: func(db *gorm.DB, input models.NewProgram, id int) error {
-		return validate.Validate(db,
-			validate.NewUniqueRule("programs", "name", input.Name, nil).Except(id).Say("duplicate program name"),
-			validate.NewUniqueRule("programs", "alias", input.Alias, nil).Except(id).Say("duplicate program alias"))
+var ProgramService = programCrud{
+	GeneralCrud: GeneralCrud[models.NewProgram, models.Program]{
+		Transform: func(input models.NewProgram) models.Program {
+			return models.Program{
+				Alias:       input.Alias,
+				Name:        input.Name,
+				Url:         input.URL,
+				Description: utils.SafeDeref(input.Description),
+				Domain:      input.Domain,
+			}
+		},
+		Updates: func(existing models.Program, input models.NewProgram) map[string]any {
+			return map[string]any{
+				"Alias":       input.Alias,
+				"Name":        input.Name,
+				"Url":         input.URL,
+				"Description": utils.SafeDeref(input.Description),
+				"Domain":      input.Domain,
+			}
+		},
+
+		ValidateWrite: func(db *gorm.DB, input models.NewProgram, id int) error {
+			return validate.Validate(db,
+				validate.NewUniqueRule("programs", "name", input.Name, nil).Except(id).Say("duplicate program name"),
+				validate.NewUniqueRule("programs", "alias", input.Alias, nil).Except(id).Say("duplicate program alias"))
+		},
+		ValidateDelete: func(db *gorm.DB, existing models.Program) error {
+			return nil
+		},
 	},
-	ValidateDelete: func(db *gorm.DB, existing models.Program) error {
-		return nil
-	},
+}
+
+func (crud *programCrud) ListPrograms(db *gorm.DB) ([]*models.Program, error) {
+	var results []*models.Program
+	if err := db.Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
