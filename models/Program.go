@@ -1,5 +1,9 @@
 package models
 
+import (
+	"strings"
+)
+
 type Program struct {
 	Id          int    `gorm:"primaryKey"`
 	Alias       string `gorm:"size:255;not null;unique"`
@@ -35,4 +39,13 @@ type AllProgram struct {
 	Description *string `json:"description,omitempty"`
 	Domain      string  `json:"domain"`
 	URL         string  `json:"url"`
+}
+
+func (p *Program) Text() string {
+	return strings.Join([]string{p.Name,
+		p.Alias,
+		p.Domain,
+		p.Url,
+		p.Description,
+	}, "\n")
 }

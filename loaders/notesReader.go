@@ -10,12 +10,12 @@ import (
 // This function should be used in the Program.Notes resolver instead of direct database queries
 func GetNotesForProgram(ctx context.Context, programId int) ([]*models.Note, error) {
 	loaders := For(ctx)
-	return loaders.NotesLoader.Load(ctx, programId)()
+	return loaders.NotesLoaderForProgram.Load(ctx, programId)()
 }
 
 // GetNotesForPrograms returns Notes for multiple Program IDs efficiently using dataloader
 // This function should be used when you need to load Notes for multiple Programs at once
 func GetNotesForPrograms(ctx context.Context, programIds []int) ([][]*models.Note, []error) {
 	loaders := For(ctx)
-	return loaders.NotesLoader.LoadMany(ctx, programIds)()
+	return loaders.NotesLoaderForProgram.LoadMany(ctx, programIds)()
 }

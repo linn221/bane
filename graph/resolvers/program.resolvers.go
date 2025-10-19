@@ -6,8 +6,8 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/loaders"
@@ -15,30 +15,29 @@ import (
 	"github.com/linn221/bane/services"
 )
 
-// CreateProgram is the resolver for the createProgram field.
-func (r *mutationResolver) CreateProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
-	return services.ProgramService.Create(r.DB.WithContext(ctx), *input)
+// NewProgram is the resolver for the newProgram field.
+func (r *mutationResolver) NewProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
+	return services.ProgramService.Create(r.DB.WithContext(ctx), input)
 }
 
 // UpdateProgram is the resolver for the updateProgram field.
-func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, input *models.NewProgram) (*models.Program, error) {
-	return services.ProgramService.Update(r.DB.WithContext(ctx), *input, *id)
+func (r *mutationResolver) UpdateProgram(ctx context.Context, alias string, input models.NewProgram) (*models.Program, error) {
+	return services.ProgramService.UpdateByAlias(r.DB.WithContext(ctx), &input, alias)
 }
 
 // DeleteProgram is the resolver for the deleteProgram field.
-func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int) (*models.Program, error) {
-	return services.ProgramService.Delete(r.DB.WithContext(ctx), *id)
+func (r *mutationResolver) DeleteProgram(ctx context.Context, alias string) (*models.Program, error) {
+	return services.ProgramService.DeleteByAlias(r.DB.WithContext(ctx), alias)
 }
 
 // Match is the resolver for the match field.
 func (r *programResolver) Match(ctx context.Context, obj *models.Program, regex string) (*model.SearchResult, error) {
-	panic(fmt.Errorf("not implemented: Match - match"))
+	return services.MatchRegex(obj, regex)
 }
 
 // Rid is the resolver for the rid field.
 func (r *programResolver) Rid(ctx context.Context, obj *models.Program) (int, error) {
-	rid := r.app.Deducer.SetReference(obj.Id, "programs")
-	return rid, nil
+	return loaders.GetRId(ctx, app.Reference{ReferenceId: obj.Id, ReferenceType: "programs"})
 }
 
 // Notes is the resolver for the notes field.
@@ -48,20 +47,13 @@ func (r *programResolver) Notes(ctx context.Context, obj *models.Program) ([]*mo
 }
 
 // Programs is the resolver for the programs field.
-func (r *queryResolver) Programs(ctx context.Context) ([]*models.Program, error) {
+func (r *queryResolver) Programs(ctx context.Context, search *string) ([]*models.Program, error) {
 	return services.ProgramService.ListPrograms(r.DB.WithContext(ctx))
 }
 
 // Program is the resolver for the program field.
-func (r *queryResolver) Program(ctx context.Context, id int) (*models.Program, error) {
-	// Use dataloader for efficient Program loading
-	return loaders.GetProgram(ctx, id)
-}
-
-// GetProgram is the resolver for the getProgram field.
-func (r *queryResolver) GetProgram(ctx context.Context, id *int) (*models.Program, error) {
-	// Use dataloader for efficient Program loading
-	return loaders.GetProgram(ctx, *id)
+func (r *queryResolver) Program(ctx context.Context, alias string) (*models.Program, error) {
+	return services.ProgramService.GetByAlias(r.DB.WithContext(ctx), alias)
 }
 
 // Program returns graph.ProgramResolver implementation.

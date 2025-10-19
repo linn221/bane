@@ -16,12 +16,12 @@ import (
 
 // CreateWord is the resolver for the createWord field.
 func (r *mutationResolver) CreateWord(ctx context.Context, input models.NewWord) (*models.Word, error) {
-	return services.WordCrud.Create(r.DB.WithContext(ctx), input)
+	return services.WordCrud.Create(r.DB.WithContext(ctx), &input)
 }
 
 // UpdateWord is the resolver for the updateWord field.
 func (r *mutationResolver) UpdateWord(ctx context.Context, id int, input models.NewWord) (*models.Word, error) {
-	return services.WordCrud.Update(r.DB.WithContext(ctx), input, id)
+	return services.WordCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
 // DeleteWord is the resolver for the deleteWord field.
@@ -31,12 +31,12 @@ func (r *mutationResolver) DeleteWord(ctx context.Context, id int) (*models.Word
 
 // CreateWordList is the resolver for the createWordList field.
 func (r *mutationResolver) CreateWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error) {
-	return services.WordListCrud.Create(r.DB.WithContext(ctx), input)
+	return services.WordListCrud.Create(r.DB.WithContext(ctx), &input)
 }
 
 // UpdateWordList is the resolver for the updateWordList field.
 func (r *mutationResolver) UpdateWordList(ctx context.Context, id int, input models.NewWordList) (*models.WordList, error) {
-	return services.WordListCrud.Update(r.DB.WithContext(ctx), input, id)
+	return services.WordListCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
 // DeleteWordList is the resolver for the deleteWordList field.

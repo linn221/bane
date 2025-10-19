@@ -6,7 +6,20 @@ import (
 )
 
 func migrate(db *gorm.DB) {
-	err := db.AutoMigrate(&models.Tag{}, &models.Program{}, &models.MemorySheet{})
+	err := db.AutoMigrate(
+		&models.Tag{},
+		&models.Program{},
+		&models.MemorySheet{},
+		&models.Note{},
+		&models.Endpoint{},
+		&models.Vuln{},
+		&models.VulnConnection{},
+		&models.Job{},
+		&models.Request{},
+		&models.WordList{},
+		&models.Word{},
+		// &models.Taggable{},
+	)
 	if err != nil {
 		panic("Error migrating tables: " + err.Error())
 	}

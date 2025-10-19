@@ -8,6 +8,7 @@ import (
 
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/config"
+	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/middlewares"
 	"github.com/linn221/bane/utils"
 )
@@ -32,11 +33,12 @@ func main() {
 		},
 	}
 	secretMiddleware := secretConfig.Middleware()
+	loaderMiddleware := loaders.LoaderMiddleware(app.DB, app.Deducer)
 
 	// Start server
 	srv := http.Server{
 		Addr:         ":" + port,
-		Handler:      app.WrapMiddlewares(mux, secretMiddleware),
+		Handler:      app.WrapMiddlewares(mux, secretMiddleware, loaderMiddleware),
 		WriteTimeout: time.Second * 30,
 		ReadTimeout:  time.Second * 10,
 		IdleTimeout:  time.Minute,

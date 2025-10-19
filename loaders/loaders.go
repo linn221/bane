@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/graph-gophers/dataloader/v7"
+	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
@@ -22,19 +23,22 @@ func LoadersKey() ctxKey {
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	ProgramLoader *dataloader.Loader[int, *models.Program]
-	NotesLoader   *dataloader.Loader[int, []*models.Note]
+	ProgramLoader         *dataloader.Loader[int, *models.Program]
+	NotesLoaderForProgram *dataloader.Loader[int, []*models.Note]
+	RIdLoader             *dataloader.Loader[app.Reference, int]
 }
 
 // NewLoaders instantiates data loaders for the middleware
-func NewLoaders(conn *gorm.DB) *Loaders {
+func NewLoaders(conn *gorm.DB, deducer *app.Deducer) *Loaders {
 	// Create Program and Notes readers for efficient loading
 	programReader := &ProgramReader{db: conn}
-	notesReader := &NotesReader{db: conn}
+	notesReader := &NotesReader{db: conn, referenceType: "programs"}
+	ridReader := &RIdReader{deducer: deducer}
 
 	return &Loaders{
-		ProgramLoader: dataloader.NewBatchedLoader(programReader.GetPrograms, dataloader.WithWait[int, *models.Program](time.Millisecond)),
-		NotesLoader:   dataloader.NewBatchedLoader(notesReader.GetNotesForPrograms, dataloader.WithWait[int, []*models.Note](time.Millisecond)),
+		ProgramLoader:         dataloader.NewBatchedLoader(programReader.GetPrograms, dataloader.WithWait[int, *models.Program](time.Millisecond)),
+		NotesLoaderForProgram: dataloader.NewBatchedLoader(notesReader.GetNotes, dataloader.WithWait[int, []*models.Note](time.Millisecond)),
+		RIdLoader:             dataloader.NewBatchedLoader(ridReader.GetRIds, dataloader.WithWait[app.Reference, int](time.Millisecond)),
 	}
 }
 

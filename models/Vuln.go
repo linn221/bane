@@ -5,7 +5,8 @@ type Vuln struct {
 	Name        string `gorm:"size:255;not null"`
 	Alias       string `gorm:"index;default:null"`
 	Description string `gorm:"default:null"`
-	Notes       []Note `gorm:"foreignKey:VulnId"`
+	// Notes relationship is handled through polymorphic pattern in Note model
+	// Notes can be linked via ReferenceType="vulns" and ReferenceID=Id
 }
 
 type NewVuln struct {
@@ -22,6 +23,7 @@ const (
 	VulnReferenceTypeRequest    VulnReferenceType = "requests"
 	VulnReferenceTypeNote       VulnReferenceType = "notes"
 	VulnReferenceTypeAttachment VulnReferenceType = "attachments"
+	VulnReferenceTypeVuln       VulnReferenceType = "vulns"
 )
 
 type VulnConnection struct {

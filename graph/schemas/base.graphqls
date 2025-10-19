@@ -9,18 +9,6 @@ type Download {
     url: String!
 }
 
-type Note {
-    value: String!
-    match(regex: String!): SearchResult! @goField(forceResolver: true)
-    noteDate: MyDate!
-}
-
-input NewNote {
-    value: String!
-    rId: Int
-    referenceId: Int
-    referenceType: String
-}
 
 type Tag {
     id: Int!
@@ -37,25 +25,13 @@ input NewTag {
     priority: Int
 }
 
-input NoteFilter {
-    rId: Int
-    referenceId: Int
-    referenceType: String
-    noteDate: MyDate
-    search: String
-}
-
-
 extend type Mutation {
     createTag(input: NewTag!): Tag!
     updateTag(id: Int!, input: NewTag!): Tag!
     deleteTag(id: Int!): Tag!
-    newNote(input: NewNote): Note!
-    delNote(id: Int!): Note!
 }
 
 extend type Query {
     tag(id: Int!): Tag!
     tags(search: String): [Tag]
-    notes(filter: NoteFilter): [Note]
 }

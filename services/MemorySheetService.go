@@ -21,7 +21,7 @@ func GetTodayNotes(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, e
 	tx := db.Begin()
 	defer tx.Rollback()
 	for _, nSheet := range nextSheets {
-		_, err := MemorySheetCrud.Update(tx, models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
+		_, err := MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -37,7 +37,7 @@ func GetTodayNotes(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, e
 }
 
 var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
-	Transform: func(input models.NewMemorySheet) models.MemorySheet {
+	transform: func(input *models.NewMemorySheet) models.MemorySheet {
 		result := models.MemorySheet{
 			Value: input.Value,
 		}
@@ -46,7 +46,7 @@ var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
 		result.NextDate = result.CurrentDate.AddDate(0, 0, 1)
 		return result
 	},
-	Updates: func(existing models.MemorySheet, input models.NewMemorySheet) map[string]any {
+	updates: func(existing models.MemorySheet, input *models.NewMemorySheet) map[string]any {
 		updates := map[string]any{}
 
 		if input.UpdateNextDate {

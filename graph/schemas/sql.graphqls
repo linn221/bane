@@ -1,0 +1,18 @@
+type SQL {
+    delId(table: String!, id: Int!): SQLResult
+        @goField(forceResolver: true)
+    delRid(rId: Int!): SQLResult
+        @goField(forceResolver: true)
+    del(table: String!, where: String!): SQLResult
+        @goField(forceResolver: true)
+    count(table: String!, where: String!): SQLResult
+        @goField(forceResolver: true)
+}
+
+type SQLResult {
+    success: Boolean!
+    count: Int!
+}
+extend type Mutation {
+    raw: SQL @goField(forceResolver: true)
+}

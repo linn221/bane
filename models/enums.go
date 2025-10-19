@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
@@ -83,6 +84,54 @@ func (u *MyDate) UnmarshalGQL(v interface{}) error {
 	return nil
 }
 
+// Value implements the driver.Valuer interface for GORM
+func (u MyDate) Value() (driver.Value, error) {
+	if u.Time.IsZero() {
+		return nil, nil
+	}
+	return u.Time, nil
+}
+
+// Scan implements the sql.Scanner interface for GORM
+func (u *MyDate) Scan(value interface{}) error {
+	if value == nil {
+		u.Time = time.Time{}
+		return nil
+	}
+
+	switch v := value.(type) {
+	case time.Time:
+		u.Time = v
+		return nil
+	case []byte:
+		// Try to parse as time.Time from bytes
+		parsedTime, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", string(v))
+		if err != nil {
+			// Try alternative format
+			parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", string(v))
+			if err != nil {
+				return fmt.Errorf("cannot scan %T into MyDate: %v", value, err)
+			}
+		}
+		u.Time = parsedTime
+		return nil
+	case string:
+		// Try to parse as time.Time from string
+		parsedTime, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", v)
+		if err != nil {
+			// Try alternative format
+			parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", v)
+			if err != nil {
+				return fmt.Errorf("cannot scan %T into MyDate: %v", value, err)
+			}
+		}
+		u.Time = parsedTime
+		return nil
+	default:
+		return fmt.Errorf("cannot scan %T into MyDate", value)
+	}
+}
+
 // HttpSchema GraphQL methods
 func (h HttpSchema) MarshalGQL(w io.Writer) {
 	w.Write([]byte(strconv.Quote(string(h))))
@@ -158,6 +207,8 @@ func (v *VulnReferenceType) UnmarshalGQL(i interface{}) error {
 		*v = VulnReferenceTypeNote
 	case "attachments":
 		*v = VulnReferenceTypeAttachment
+	case "vulns":
+		*v = VulnReferenceTypeVuln
 	default:
 		return errors.New("invalid vuln reference type")
 	}

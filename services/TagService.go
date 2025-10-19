@@ -6,7 +6,7 @@ import (
 )
 
 var TagCrud = GeneralCrud[models.NewTag, models.Tag]{
-	Transform: func(input models.NewTag) models.Tag {
+	transform: func(input *models.NewTag) models.Tag {
 		result := models.Tag{
 			Name:        input.Name,
 			Description: input.Description,
@@ -15,7 +15,7 @@ var TagCrud = GeneralCrud[models.NewTag, models.Tag]{
 		}
 		return result
 	},
-	Updates: func(existing models.Tag, input models.NewTag) map[string]any {
+	updates: func(existing models.Tag, input *models.NewTag) map[string]any {
 		return map[string]any{
 			"Name":        input.Name,
 			"Description": input.Description,
@@ -23,7 +23,7 @@ var TagCrud = GeneralCrud[models.NewTag, models.Tag]{
 			"Priority":    input.Priority,
 		}
 	},
-	ValidateWrite: func(db *gorm.DB, input models.NewTag, id int) error {
+	validateWrite: func(db *gorm.DB, input *models.NewTag, id int) error {
 		return input.Validate(db, id)
 	},
 }

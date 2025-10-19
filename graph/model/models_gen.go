@@ -16,6 +16,14 @@ type Mutation struct {
 type Query struct {
 }
 
+type SQL struct {
+}
+
+type SQLResult struct {
+	Success bool `json:"success"`
+	Count   int  `json:"count"`
+}
+
 type SearchResult struct {
 	Results []string `json:"results,omitempty"`
 	Count   *int     `json:"count,omitempty"`

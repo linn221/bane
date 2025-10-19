@@ -1,0 +1,30 @@
+type Note {
+    id: Int!
+    value: String!
+    match(regex: String!): SearchResult! @goField(forceResolver: true)
+    noteDate: MyDate!
+}
+
+input NewNote {
+    value: String!
+    rId: Int
+    referenceId: Int
+    referenceType: String
+}
+
+input NoteFilter {
+    rId: Int
+    referenceId: Int
+    referenceType: String
+    noteDate: MyDate
+    search: String
+}
+
+extend type Mutation {
+    newNote(input: NewNote): Note!
+    delNote(id: Int!): Note!
+}
+
+extend type Query {
+    notes(filter: NoteFilter): [Note]
+}

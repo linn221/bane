@@ -26,23 +26,14 @@ input NewProgram {
   # notes: [Note]
 }
 
-type AllProgram {
-  id: Int!
-  name: String!
-  alias: String!
-  description: String
-  domain: String!
-  url: String!
+extend type Mutation {
+  newProgram(input: NewProgram): Program!
+  updateProgram(alias: String!, input: NewProgram!): Program!
+  deleteProgram(alias: String!): Program!
 }
 
-extend type Mutation {
-  createProgram(input: NewProgram): Program!
-  updateProgram(id: Int, input: NewProgram): Program!
-  deleteProgram(id: Int): Program!
-}
 
 extend type Query {
-  programs: [Program]
-  program(id: Int!): Program!
-  getProgram(id: Int): Program!
+  programs(search: String): [Program]
+  program(alias: String!): Program!
 }

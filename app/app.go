@@ -23,6 +23,7 @@ func NewApp(db *gorm.DB, cache config.CacheService) *App {
 		Cache:              cache,
 		RecoveryMiddleware: recovery,
 		LoggingMiddleware:  loggingMiddleware,
+		Deducer:            &Deducer{},
 	}
 }
 

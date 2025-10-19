@@ -1,6 +1,7 @@
 package mystructs
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"strings"
 )
@@ -114,4 +115,66 @@ func NewKVGroupInputFromString(input string) (KVGroupInput, error) {
 	kv := &KVGroupInput{}
 	err := kv.UnmarshalGQL(input)
 	return *kv, err
+}
+
+// Value implements the driver.Valuer interface for GORM
+// Stores the KVPairGroup as a string in format "key:value key:value ..."
+func (kg KVPairGroup) Value() (driver.Value, error) {
+	if len(kg.KVPairs) == 0 {
+		return "", nil
+	}
+
+	var parts []string
+	for _, kv := range kg.KVPairs {
+		parts = append(parts, fmt.Sprintf("%s:%s", kv.Key, kv.Value))
+	}
+
+	return strings.Join(parts, " "), nil
+}
+
+// Scan implements the sql.Scanner interface for GORM
+// Parses the stored string format back into KVPairGroup
+func (kg *KVPairGroup) Scan(value interface{}) error {
+	if value == nil {
+		kg.KVPairs = []KVPair{}
+		return nil
+	}
+
+	var input string
+	switch v := value.(type) {
+	case []byte:
+		input = string(v)
+	case string:
+		input = v
+	default:
+		return fmt.Errorf("cannot scan %T into KVPairGroup", value)
+	}
+
+	if input == "" {
+		kg.KVPairs = []KVPair{}
+		return nil
+	}
+
+	// Split by spaces to get individual key:value pairs
+	parts := strings.Fields(input)
+	var pairs []KVPair
+
+	for _, part := range parts {
+		// Split by colon to separate key and value
+		colonIndex := strings.Index(part, ":")
+		if colonIndex == -1 {
+			return fmt.Errorf("invalid format: missing colon in '%s'", part)
+		}
+
+		key := part[:colonIndex]
+		value := part[colonIndex+1:]
+
+		pairs = append(pairs, KVPair{
+			Key:   key,
+			Value: value,
+		})
+	}
+
+	kg.KVPairs = pairs
+	return nil
 }

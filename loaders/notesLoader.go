@@ -12,24 +12,25 @@ import (
 // This reader implements the BatchFunc interface for dataloader to batch multiple
 // Note requests into a single database query, reducing N+1 query problems
 type NotesReader struct {
-	db *gorm.DB
+	db            *gorm.DB
+	referenceType string
 }
 
-// GetNotesForPrograms is the batch function that loads Notes for multiple Program IDs
+// GetNotes is the batch function that loads Notes for multiple Program IDs
 // It receives a slice of Program IDs and returns a slice of dataloader.Result containing Note slices
 // This function is called by dataloader when multiple Note requests are batched
-func (r *NotesReader) GetNotesForPrograms(ctx context.Context, programIds []int) []*dataloader.Result[[]*models.Note] {
+func (r *NotesReader) GetNotes(ctx context.Context, referenceIds []int) []*dataloader.Result[[]*models.Note] {
 	// Query the database for all Notes that belong to the given Program IDs
 	// Notes are linked to Programs via polymorphic relationship (ReferenceType="programs", ReferenceID=Program.Id)
 	var results []models.Note
 	err := r.db.WithContext(ctx).
-		Where("reference_type = ? AND reference_id IN ?", "programs", programIds).
+		Where("reference_type = ? AND reference_id IN ?", r.referenceType, referenceIds).
 		Order("note_date DESC"). // Order by most recent notes first
 		Find(&results).Error
 
 	if err != nil {
 		// If there's an error, return error results for all requested Program IDs
-		return handleError[[]*models.Note](len(programIds), err)
+		return handleError[[]*models.Note](len(referenceIds), err)
 	}
 
 	// Group Notes by Program ID
@@ -41,8 +42,8 @@ func (r *NotesReader) GetNotesForPrograms(ctx context.Context, programIds []int)
 	}
 
 	// Create dataloader results in the same order as requested Program IDs
-	loaderResults := make([]*dataloader.Result[[]*models.Note], 0, len(programIds))
-	for _, programId := range programIds {
+	loaderResults := make([]*dataloader.Result[[]*models.Note], 0, len(referenceIds))
+	for _, programId := range referenceIds {
 		if notes, exists := notesByProgramId[programId]; exists {
 			loaderResults = append(loaderResults, &dataloader.Result[[]*models.Note]{Data: notes})
 		} else {

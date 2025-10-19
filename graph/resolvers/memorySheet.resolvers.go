@@ -41,12 +41,12 @@ func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet
 
 // CreateMemorySheet is the resolver for the createMemorySheet field.
 func (r *mutationResolver) CreateMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error) {
-	return services.MemorySheetCrud.Create(r.DB.WithContext(ctx), input)
+	return services.MemorySheetCrud.Create(r.DB.WithContext(ctx), &input)
 }
 
 // UpdateMemorySheet is the resolver for the updateMemorySheet field.
 func (r *mutationResolver) UpdateMemorySheet(ctx context.Context, id int, input models.NewMemorySheet) (*models.MemorySheet, error) {
-	return services.MemorySheetCrud.Update(r.DB.WithContext(ctx), input, id)
+	return services.MemorySheetCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
 // DeleteMemorySheet is the resolver for the deleteMemorySheet field.
@@ -75,7 +75,7 @@ func (r *queryResolver) MSheets(ctx context.Context, date *models.MyDate) ([]*mo
 		tx := r.DB.WithContext(ctx).Begin()
 		defer tx.Rollback()
 		for _, nSheet := range nextSheets {
-			_, err := services.MemorySheetCrud.Update(tx, models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
+			_, err := services.MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
 			if err != nil {
 				return nil, err
 			}
