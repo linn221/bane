@@ -29,6 +29,7 @@ func (d *Deducer) Lock() func() {
 func (d *Deducer) ReadRId(rid int) (int, string) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	ref := d.References[rid]
+	// RId is 1-based, so subtract 1 to get the 0-based index
+	ref := d.References[rid-1]
 	return ref.ReferenceId, ref.ReferenceType
 }

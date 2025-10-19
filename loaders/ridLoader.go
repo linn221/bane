@@ -19,7 +19,7 @@ func (r *RIdReader) GetRIds(ctx context.Context, keys []app.Reference) []*datalo
 	loaderResults := make([]*dataloader.Result[int], 0, len(keys))
 	references := make([]app.Reference, 0, len(keys))
 	for idx, ref := range keys {
-		loaderResults = append(loaderResults, &dataloader.Result[int]{Data: idx})
+		loaderResults = append(loaderResults, &dataloader.Result[int]{Data: idx + 1}) // Start RId from 1
 		references = append(references, ref)
 	}
 	// re assign references

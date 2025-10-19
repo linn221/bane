@@ -3,7 +3,9 @@ package mystructs
 import (
 	"database/sql/driver"
 	"fmt"
+	"io"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -78,7 +80,7 @@ func (vs *VarString) String() string {
 
 // Value implements the driver.Valuer interface for GORM
 // Stores only the original string to database
-func (vs *VarString) Value() (driver.Value, error) {
+func (vs VarString) Value() (driver.Value, error) {
 	return vs.OriginalString, nil
 }
 
@@ -111,10 +113,9 @@ func (vs *VarString) Scan(value interface{}) error {
 }
 
 // MarshalGQL implements the graphql.Marshaler interface for GraphQL serialization
-func (vs VarString) MarshalGQL() ([]byte, error) {
-	// Return the executed string (with variables substituted)
-	result := vs.Exec()
-	return []byte(fmt.Sprintf(`"%s"`, result)), nil
+func (vs VarString) MarshalGQL(w io.Writer) {
+	// Return the original string (as stored in database)
+	fmt.Fprint(w, strconv.Quote(vs.OriginalString))
 }
 
 // UnmarshalGQL implements the graphql.Unmarshaler interface for GraphQL deserialization

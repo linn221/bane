@@ -1,6 +1,7 @@
 package mystructs
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -125,10 +126,9 @@ func TestVarStringGraphQL(t *testing.T) {
 	}
 
 	// Test MarshalGQL
-	marshaled, err := vs.MarshalGQL()
-	if err != nil {
-		t.Fatalf("MarshalGQL() failed: %v", err)
-	}
+	var buf bytes.Buffer
+	vs.MarshalGQL(&buf)
+	marshaled := buf.Bytes()
 
 	// Should return the executed string (with default values)
 	expected := `"1-Henry Cohle"`
@@ -138,10 +138,9 @@ func TestVarStringGraphQL(t *testing.T) {
 
 	// Test with injection
 	vs.Inject(map[string]string{"id": "99"})
-	marshaled, err = vs.MarshalGQL()
-	if err != nil {
-		t.Fatalf("MarshalGQL() after injection failed: %v", err)
-	}
+	var buf2 bytes.Buffer
+	vs.MarshalGQL(&buf2)
+	marshaled = buf2.Bytes()
 
 	expected = `"99-Henry Cohle"`
 	if string(marshaled) != expected {

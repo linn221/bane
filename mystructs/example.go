@@ -1,6 +1,7 @@
 package mystructs
 
 import (
+	"bytes"
 	"fmt"
 )
 
@@ -31,8 +32,9 @@ func Example() {
 	fmt.Printf("GORM Value (original string): %s\n", value)
 
 	// Demonstrate GraphQL marshaling
-	marshaled, _ := vs.MarshalGQL()
-	fmt.Printf("GraphQL Marshal: %s\n", string(marshaled))
+	var buf bytes.Buffer
+	vs.MarshalGQL(&buf)
+	fmt.Printf("GraphQL Marshal: %s\n", buf.String())
 
 	fmt.Println("\n=== KVGroupInput Example ===")
 

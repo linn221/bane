@@ -1,0 +1,57 @@
+type Endpoint {
+    id: Int!
+    programId: Int!
+    program: Program! @goField(forceResolver: true)
+    name: String!
+    description: String
+    httpSchema: HttpSchema!
+    httpMethod: HttpMethod!
+    httpDomain: String!
+    httpPath: VarString!
+    httpQueries: VarKVGroup!
+    httpHeaders: VarKVGroup!
+    httpCookies: VarKVGroup!
+    httpBody: VarString!
+    httpPathMy(separator: String): MyString! @goField(forceResolver: true)
+    httpQueriesMy(separator: String): MyString! @goField(forceResolver: true)
+    httpHeadersMy(separator: String): MyString! @goField(forceResolver: true)
+    httpCookiesMy(separator: String): MyString! @goField(forceResolver: true)
+    httpBodyMy(separator: String): MyString! @goField(forceResolver: true)
+    match(regex: String!): SearchResult! @goField(forceResolver: true)
+    curl(variables: String): String! @goField(forceResolver: true)
+    rid: Int! @goField(forceResolver: true)
+    notes: [Note] @goField(forceResolver: true)
+}
+
+input NewEndpoint {
+    name: String!
+    programAlias: String!
+    description: String
+    httpSchema: HttpSchema!
+    httpMethod: HttpMethod!
+    httpDomain: String!
+    httpPath: VarString!
+    httpQueries: VarKVGroup!
+    httpHeaders: VarKVGroup!
+    httpCookies: VarKVGroup!
+    httpBody: VarString!
+}
+
+input EndpointFilter {
+    programAlias: String
+    httpSchema: HttpSchema
+    httpMethod: HttpMethod
+    httpDomain: String
+    search: String
+}
+
+extend type Mutation {
+    newEndpoint(input: NewEndpoint!): Endpoint!
+    updateEndpoint(id: Int!, input: NewEndpoint!): Endpoint!
+    deleteEndpoint(id: Int!): Endpoint!
+}
+
+extend type Query {
+    endpoint(id: Int!): Endpoint!
+    endpoints(filter: EndpointFilter): [Endpoint]
+}

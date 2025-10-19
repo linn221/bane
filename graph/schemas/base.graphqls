@@ -1,4 +1,9 @@
 scalar MyTime
+scalar VarString
+scalar VarKVGroup
+scalar MyString
+scalar HttpSchema
+scalar HttpMethod
 
 type SearchResult {
     results: [String!]

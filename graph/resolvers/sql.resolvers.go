@@ -50,20 +50,3 @@ func (r *sQLResolver) Count(ctx context.Context, obj *model.SQL, table string, w
 func (r *Resolver) SQL() graph.SQLResolver { return &sQLResolver{r} }
 
 type sQLResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *mutationResolver) Del(ctx context.Context, table string, where string) (*bool, error) {
-	sql := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
-	err := r.DB.WithContext(ctx).Exec(sql).Error
-	if err != nil {
-		return nil, err
-	}
-	return utils.NewTrue(), nil
-}
-*/

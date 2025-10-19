@@ -17,6 +17,10 @@ type Query struct {
 }
 
 type SQL struct {
+	DelID  *SQLResult `json:"delId,omitempty"`
+	DelRid *SQLResult `json:"delRid,omitempty"`
+	Del    *SQLResult `json:"del,omitempty"`
+	Count  *SQLResult `json:"count,omitempty"`
 }
 
 type SQLResult struct {
