@@ -1,0 +1,54 @@
+type MyRequest {
+    id: Int!
+    programId: Int!
+    program: Program! @goField(forceResolver: true)
+    endpointId: Int!
+    endpoint: Endpoint! @goField(forceResolver: true)
+    
+    # Request information
+    requestMethod: String!
+    requestUrl: String!
+    requestHeaders: String
+    requestBody: String
+    
+    # Response information
+    responseStatus: Int!
+    responseHeaders: String
+    responseBody: String
+    contentType: String
+    contentLength: Int!
+    
+    # Performance metrics
+    latency: Int!
+    size: Int!
+    
+    # Execution metadata
+    executedAt: String!
+    variables: String
+    curlCommand: String
+    
+    # Error information
+    error: String
+    success: Boolean!
+}
+
+input MyRequestFilter {
+    programId: Int
+    endpointId: Int
+    success: Boolean
+    statusMin: Int
+    statusMax: Int
+    dateFrom: String
+    dateTo: String
+}
+
+extend type Query {
+    myRequests(filter: MyRequestFilter): [MyRequest]
+    myRequest(id: Int!): MyRequest!
+}
+
+scalar KVGroup
+
+extend type Mutation {
+    runCurl(endpointAlias: String!, variables: KVGroup!): MyRequest! @goField(forceResolver: true)
+}

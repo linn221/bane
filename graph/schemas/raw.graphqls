@@ -1,0 +1,14 @@
+type QueryResult {
+    count: Int!
+    results(sep: String, limit: Int): [MyString]! @goField(forceResolver: true)
+}
+
+extend type Query {
+    raw(sql: String!): QueryResult! @goField(forceResolver: true)
+}
+
+extend type Mutation {
+    raw(sql: String!): Int! @goField(forceResolver: true)
+}
+
+

@@ -18,7 +18,7 @@ type VarString struct {
 	Placeholders   []string          `json:"placeholders"`    // List of placeholder names found in the string
 }
 
-// NewVarString parses a string with variable placeholders in the format {name:default}
+// NewVarString parses a string with variable placeholders in the format {name=default}
 // Returns a VarString with parsed placeholders and default values
 func NewVarString(s string) (*VarString, error) {
 	vs := &VarString{
@@ -27,15 +27,15 @@ func NewVarString(s string) (*VarString, error) {
 		Placeholders:   make([]string, 0),
 	}
 
-	// Parse the string to extract placeholders in format {name:default}
-	// This regex matches {name:default} where name is alphanumeric and default can contain any character except }
-	re := regexp.MustCompile(`\{([a-zA-Z_][a-zA-Z0-9_]*):([^}]*)\}`)
+	// Parse the string to extract placeholders in format {name=default}
+	// This regex matches {name=default} where name is alphanumeric and default can contain any character except }
+	re := regexp.MustCompile(`\{([a-zA-Z_][a-zA-Z0-9_]*)=([^}]*)\}`)
 	matches := re.FindAllStringSubmatch(s, -1)
 
 	// Build the parsed template by replacing placeholders with variable references
 	parsedTemplate := s
 	for _, match := range matches {
-		placeholder := match[0]  // Full match like "{id:1}"
+		placeholder := match[0]  // Full match like "{id=1}"
 		varName := match[1]      // Variable name like "id"
 		defaultValue := match[2] // Default value like "1"
 
@@ -139,4 +139,9 @@ func (vs *VarString) UnmarshalGQL(v interface{}) error {
 	// Copy the parsed values to this instance
 	*vs = *parsedVs
 	return nil
+}
+
+// IsZero returns true if the VarString is in its zero state
+func (vs VarString) IsZero() bool {
+	return vs.OriginalString == "" && len(vs.Variables) == 0 && vs.ParsedTemplate == "" && len(vs.Placeholders) == 0
 }

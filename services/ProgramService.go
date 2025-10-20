@@ -80,3 +80,19 @@ func (crud *programService) ListPrograms(db *gorm.DB) ([]*models.Program, error)
 
 	return results, nil
 }
+
+func (crud *programService) UpdateByID(tx *gorm.DB, input *models.NewProgram, id int) (*models.Program, error) {
+	return crud.Update(tx, input, &id)
+}
+
+func (crud *programService) PatchByID(tx *gorm.DB, updates map[string]any, id int) (*models.Program, error) {
+	return crud.Patch(tx, updates, &id)
+}
+
+func (crud *programService) DeleteByID(tx *gorm.DB, id int) (*models.Program, error) {
+	return crud.Delete(tx, &id)
+}
+
+func (crud *programService) GetByID(db *gorm.DB, id int) (*models.Program, error) {
+	return crud.Get(db, &id)
+}

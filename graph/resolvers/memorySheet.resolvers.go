@@ -45,17 +45,31 @@ func (r *mutationResolver) CreateMemorySheet(ctx context.Context, input models.N
 }
 
 // UpdateMemorySheet is the resolver for the updateMemorySheet field.
-func (r *mutationResolver) UpdateMemorySheet(ctx context.Context, id int, input models.NewMemorySheet) (*models.MemorySheet, error) {
+func (r *mutationResolver) UpdateMemorySheet(ctx context.Context, id *int, alias *string, input models.NewMemorySheet) (*models.MemorySheet, error) {
 	return services.MemorySheetCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
+// PatchMemorySheet is the resolver for the patchMemorySheet field.
+func (r *mutationResolver) PatchMemorySheet(ctx context.Context, id *int, alias *string, input models.PatchMemorySheet) (*models.MemorySheet, error) {
+	updates := make(map[string]any)
+
+	if input.Value != nil && *input.Value != "" {
+		updates["value"] = *input.Value
+	}
+	if input.Date != nil {
+		updates["current_date"] = input.Date.Time
+	}
+
+	return services.MemorySheetCrud.Patch(r.DB.WithContext(ctx), updates, id)
+}
+
 // DeleteMemorySheet is the resolver for the deleteMemorySheet field.
-func (r *mutationResolver) DeleteMemorySheet(ctx context.Context, id int) (*models.MemorySheet, error) {
+func (r *mutationResolver) DeleteMemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error) {
 	return services.MemorySheetCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
 // MemorySheet is the resolver for the memorySheet field.
-func (r *queryResolver) MemorySheet(ctx context.Context, id int) (*models.MemorySheet, error) {
+func (r *queryResolver) MemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error) {
 	return services.MemorySheetCrud.Get(r.DB.WithContext(ctx), id)
 }
 
@@ -75,7 +89,8 @@ func (r *queryResolver) MSheets(ctx context.Context, date *models.MyDate) ([]*mo
 		tx := r.DB.WithContext(ctx).Begin()
 		defer tx.Rollback()
 		for _, nSheet := range nextSheets {
-			_, err := services.MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
+			id := nSheet.Id
+			_, err := services.MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, &id)
 			if err != nil {
 				return nil, err
 			}

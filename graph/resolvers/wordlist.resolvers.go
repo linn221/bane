@@ -20,12 +20,29 @@ func (r *mutationResolver) CreateWord(ctx context.Context, input models.NewWord)
 }
 
 // UpdateWord is the resolver for the updateWord field.
-func (r *mutationResolver) UpdateWord(ctx context.Context, id int, input models.NewWord) (*models.Word, error) {
+func (r *mutationResolver) UpdateWord(ctx context.Context, id *int, alias *string, input models.NewWord) (*models.Word, error) {
 	return services.WordCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
+// PatchWord is the resolver for the patchWord field.
+func (r *mutationResolver) PatchWord(ctx context.Context, id *int, alias *string, input models.PatchWord) (*models.Word, error) {
+	updates := make(map[string]any)
+
+	if input.Word != nil && *input.Word != "" {
+		updates["word"] = *input.Word
+	}
+	if input.WordType != nil {
+		updates["word_type"] = *input.WordType
+	}
+	if input.Description != nil && *input.Description != "" {
+		updates["description"] = *input.Description
+	}
+
+	return services.WordCrud.Patch(r.DB.WithContext(ctx), updates, id)
+}
+
 // DeleteWord is the resolver for the deleteWord field.
-func (r *mutationResolver) DeleteWord(ctx context.Context, id int) (*models.Word, error) {
+func (r *mutationResolver) DeleteWord(ctx context.Context, id *int, alias *string) (*models.Word, error) {
 	return services.WordCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
@@ -35,17 +52,31 @@ func (r *mutationResolver) CreateWordList(ctx context.Context, input models.NewW
 }
 
 // UpdateWordList is the resolver for the updateWordList field.
-func (r *mutationResolver) UpdateWordList(ctx context.Context, id int, input models.NewWordList) (*models.WordList, error) {
+func (r *mutationResolver) UpdateWordList(ctx context.Context, id *int, alias *string, input models.NewWordList) (*models.WordList, error) {
 	return services.WordListCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
+// PatchWordList is the resolver for the patchWordList field.
+func (r *mutationResolver) PatchWordList(ctx context.Context, id *int, alias *string, input models.PatchWordList) (*models.WordList, error) {
+	updates := make(map[string]any)
+
+	if input.Name != nil && *input.Name != "" {
+		updates["name"] = *input.Name
+	}
+	if input.Description != nil && *input.Description != "" {
+		updates["description"] = *input.Description
+	}
+
+	return services.WordListCrud.Patch(r.DB.WithContext(ctx), updates, id)
+}
+
 // DeleteWordList is the resolver for the deleteWordList field.
-func (r *mutationResolver) DeleteWordList(ctx context.Context, id int) (*models.WordList, error) {
+func (r *mutationResolver) DeleteWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
 	return services.WordListCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
 // Word is the resolver for the word field.
-func (r *queryResolver) Word(ctx context.Context, id int) (*models.Word, error) {
+func (r *queryResolver) Word(ctx context.Context, id *int, alias *string) (*models.Word, error) {
 	return services.WordCrud.Get(r.DB.WithContext(ctx), id)
 }
 
@@ -64,7 +95,7 @@ func (r *queryResolver) Words(ctx context.Context, search *string) ([]*models.Wo
 }
 
 // GetWordList is the resolver for the getWordList field.
-func (r *queryResolver) GetWordList(ctx context.Context, id int) (*models.WordList, error) {
+func (r *queryResolver) GetWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
 	return services.WordListCrud.Get(r.DB.WithContext(ctx), id)
 }
 

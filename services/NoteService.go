@@ -62,3 +62,10 @@ func (ns *noteService) ListNotes(app *app.App, db *gorm.DB, filter *models.NoteF
 	err := dbctx.Find(&results).Error
 	return results, err
 }
+
+func (ns *noteService) Delete(db *gorm.DB, id *int) (*models.Note, error) {
+	if id == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return ns.GeneralCrud.Delete(db, id)
+}

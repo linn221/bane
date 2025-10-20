@@ -13,6 +13,4 @@ type SQLResult {
     success: Boolean!
     count: Int!
 }
-extend type Mutation {
-    raw: SQL @goField(forceResolver: true)
-}
+# Removed legacy raw field to avoid conflicts with new raw(sql: ...) endpoints

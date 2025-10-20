@@ -73,7 +73,7 @@ func (es *endpointService) ListEndpoints(app *app.App, db *gorm.DB, filter *mode
 		}
 
 		if filter.Search != "" {
-			query = query.Where("name ILIKE ? OR description ILIKE ? OR http_domain ILIKE ?",
+			query = query.Where("name LIKE ? OR description LIKE ? OR http_domain LIKE ?",
 				"%"+filter.Search+"%", "%"+filter.Search+"%", "%"+filter.Search+"%")
 		}
 	}
@@ -86,6 +86,12 @@ func (es *endpointService) ListEndpoints(app *app.App, db *gorm.DB, filter *mode
 func (es *endpointService) GetEndpointByID(app *app.App, db *gorm.DB, id int) (*models.Endpoint, error) {
 	var endpoint models.Endpoint
 	err := db.Preload("Program").First(&endpoint, id).Error
+	return &endpoint, err
+}
+
+func (es *endpointService) GetEndpointByAlias(app *app.App, db *gorm.DB, alias string) (*models.Endpoint, error) {
+	var endpoint models.Endpoint
+	err := db.Preload("Program").Where("alias = ?", alias).First(&endpoint).Error
 	return &endpoint, err
 }
 
@@ -128,6 +134,104 @@ func (es *endpointService) UpdateEndpoint(app *app.App, db *gorm.DB, id int, inp
 	}
 
 	return es.GetEndpointByID(app, db, id)
+}
+
+func (es *endpointService) UpdateEndpointByAlias(app *app.App, db *gorm.DB, alias string, input *models.NewEndpoint) (*models.Endpoint, error) {
+	// Find endpoint by alias first
+	var endpoint models.Endpoint
+	err := db.Where("alias = ?", alias).First(&endpoint).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the existing UpdateEndpoint method
+	return es.UpdateEndpoint(app, db, endpoint.Id, input)
+}
+
+func (es *endpointService) PatchEndpointByAlias(app *app.App, db *gorm.DB, alias string, input *models.PatchEndpoint) (*models.Endpoint, error) {
+	// Find endpoint by alias first
+	var endpoint models.Endpoint
+	err := db.Where("alias = ?", alias).First(&endpoint).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the existing PatchEndpoint method
+	return es.PatchEndpoint(app, db, endpoint.Id, input)
+}
+
+func (es *endpointService) DeleteEndpointByAlias(app *app.App, db *gorm.DB, alias string) (*models.Endpoint, error) {
+	// Find endpoint by alias first
+	var endpoint models.Endpoint
+	err := db.Where("alias = ?", alias).First(&endpoint).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Use the existing DeleteEndpoint method
+	return es.DeleteEndpoint(app, db, endpoint.Id)
+}
+
+func (es *endpointService) PatchEndpoint(app *app.App, db *gorm.DB, id int, input *models.PatchEndpoint) (*models.Endpoint, error) {
+	updates := make(map[string]any)
+
+	// Handle program alias separately
+	if input.ProgramAlias != nil && *input.ProgramAlias != "" {
+		var program models.Program
+		err := db.Where("alias = ?", *input.ProgramAlias).First(&program).Error
+		if err != nil {
+			return nil, err
+		}
+		updates["program_id"] = program.Id
+	}
+
+	// Add other fields if they are provided
+	if input.Name != nil && *input.Name != "" {
+		updates["name"] = *input.Name
+	}
+	if input.Alias != nil && *input.Alias != "" {
+		updates["alias"] = *input.Alias
+	}
+	if input.Description != nil && *input.Description != "" {
+		updates["description"] = *input.Description
+	}
+	if input.HttpSchema != nil {
+		updates["http_schema"] = *input.HttpSchema
+	}
+	if input.HttpMethod != nil {
+		updates["http_method"] = *input.HttpMethod
+	}
+	if input.HttpDomain != nil && *input.HttpDomain != "" {
+		updates["http_domain"] = *input.HttpDomain
+	}
+	if input.HttpPort != nil {
+		updates["http_port"] = *input.HttpPort
+	}
+	if input.HttpTimeout != nil {
+		updates["http_timeout"] = *input.HttpTimeout
+	}
+	if input.HttpFollowRedirects != nil {
+		updates["http_follow_redirects"] = *input.HttpFollowRedirects
+	}
+	// Check custom types using their IsZero methods
+	if input.HttpPath != nil && !input.HttpPath.IsZero() {
+		updates["http_path"] = *input.HttpPath
+	}
+	if input.HttpQueries != nil && !input.HttpQueries.IsZero() {
+		updates["http_queries"] = *input.HttpQueries
+	}
+	if input.HttpHeaders != nil && !input.HttpHeaders.IsZero() {
+		updates["http_headers"] = *input.HttpHeaders
+	}
+	if input.HttpCookies != nil && !input.HttpCookies.IsZero() {
+		updates["http_cookies"] = *input.HttpCookies
+	}
+	if input.HttpBody != nil && !input.HttpBody.IsZero() {
+		updates["http_body"] = *input.HttpBody
+	}
+
+	// Use the GeneralCrud Patch method
+	return es.Patch(db, updates, &id)
 }
 
 func (es *endpointService) DeleteEndpoint(app *app.App, db *gorm.DB, id int) (*models.Endpoint, error) {

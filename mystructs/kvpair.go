@@ -3,6 +3,8 @@ package mystructs
 import (
 	"database/sql/driver"
 	"fmt"
+	"io"
+	"strconv"
 	"strings"
 )
 
@@ -11,24 +13,25 @@ type KVPair struct {
 	Value string
 }
 
-type KVPairGroup struct {
+type KVGroup struct {
 	KVPairs []KVPair
 }
 
 type NewKVPairGroup struct {
-	KVPairGroup
+	KVGroup
 }
 
 // KVGroupInput represents a GraphQL scalar type for key-value pair groups
 // It can be marshaled to/from strings in the format "key1:value1 key2:value2 ..."
 type KVGroupInput struct {
-	KVPairGroup
+	KVGroup
 }
 
 // MarshalGQL implements the graphql.Marshaler interface for GraphQL serialization
-func (kv KVGroupInput) MarshalGQL() ([]byte, error) {
+func (kv KVGroup) MarshalGQL(w io.Writer) {
 	if len(kv.KVPairs) == 0 {
-		return []byte(`""`), nil
+		fmt.Fprint(w, `""`)
+		return
 	}
 
 	var parts []string
@@ -37,11 +40,11 @@ func (kv KVGroupInput) MarshalGQL() ([]byte, error) {
 	}
 
 	result := strings.Join(parts, " ")
-	return []byte(fmt.Sprintf(`"%s"`, result)), nil
+	fmt.Fprint(w, strconv.Quote(result))
 }
 
 // UnmarshalGQL implements the graphql.Unmarshaler interface for GraphQL deserialization
-func (kv *KVGroupInput) UnmarshalGQL(v interface{}) error {
+func (kv *KVGroup) UnmarshalGQL(v interface{}) error {
 	var input string
 	switch val := v.(type) {
 	case string:
@@ -49,7 +52,7 @@ func (kv *KVGroupInput) UnmarshalGQL(v interface{}) error {
 	case []byte:
 		input = string(val)
 	default:
-		return fmt.Errorf("KVGroupInput must be a string, got %T", v)
+		return fmt.Errorf("KVGroup must be a string, got %T", v)
 	}
 
 	// Parse the input string in format "key1:value1 key2:value2 ..."
@@ -87,7 +90,7 @@ func (kv *KVGroupInput) UnmarshalGQL(v interface{}) error {
 }
 
 // String returns the string representation of the KVGroupInput
-func (kv KVGroupInput) String() string {
+func (kv KVGroup) String() string {
 	if len(kv.KVPairs) == 0 {
 		return ""
 	}
@@ -101,25 +104,25 @@ func (kv KVGroupInput) String() string {
 }
 
 // ToKVPairGroup converts KVGroupInput to KVPairGroup
-func (kv KVGroupInput) ToKVPairGroup() KVPairGroup {
-	return kv.KVPairGroup
+func (kv KVGroup) ToKVGroup() KVGroup {
+	return kv
 }
 
 // NewKVGroupInput creates a new KVGroupInput from a KVPairGroup
-func NewKVGroupInput(group KVPairGroup) KVGroupInput {
-	return KVGroupInput{KVPairGroup: group}
+func NewKVGroup(group KVGroup) KVGroup {
+	return group
 }
 
 // NewKVGroupInputFromString creates a new KVGroupInput from a string
-func NewKVGroupInputFromString(input string) (KVGroupInput, error) {
-	kv := &KVGroupInput{}
+func NewKVGroupFromString(input string) (KVGroup, error) {
+	kv := &KVGroup{}
 	err := kv.UnmarshalGQL(input)
 	return *kv, err
 }
 
 // Value implements the driver.Valuer interface for GORM
 // Stores the KVPairGroup as a string in format "key:value key:value ..."
-func (kg KVPairGroup) Value() (driver.Value, error) {
+func (kg KVGroup) Value() (driver.Value, error) {
 	if len(kg.KVPairs) == 0 {
 		return "", nil
 	}
@@ -134,7 +137,7 @@ func (kg KVPairGroup) Value() (driver.Value, error) {
 
 // Scan implements the sql.Scanner interface for GORM
 // Parses the stored string format back into KVPairGroup
-func (kg *KVPairGroup) Scan(value interface{}) error {
+func (kg *KVGroup) Scan(value interface{}) error {
 	if value == nil {
 		kg.KVPairs = []KVPair{}
 		return nil

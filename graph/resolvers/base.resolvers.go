@@ -19,17 +19,37 @@ func (r *mutationResolver) CreateTag(ctx context.Context, input models.NewTag) (
 }
 
 // UpdateTag is the resolver for the updateTag field.
-func (r *mutationResolver) UpdateTag(ctx context.Context, id int, input models.NewTag) (*models.Tag, error) {
+func (r *mutationResolver) UpdateTag(ctx context.Context, id *int, alias *string, input models.NewTag) (*models.Tag, error) {
 	return services.TagCrud.Update(r.DB.WithContext(ctx), &input, id)
 }
 
+// PatchTag is the resolver for the patchTag field.
+func (r *mutationResolver) PatchTag(ctx context.Context, id *int, alias *string, input models.PatchTag) (*models.Tag, error) {
+	updates := make(map[string]any)
+
+	if input.Name != nil && *input.Name != "" {
+		updates["name"] = *input.Name
+	}
+	if input.Alias != nil && *input.Alias != "" {
+		updates["alias"] = *input.Alias
+	}
+	if input.Description != nil && *input.Description != "" {
+		updates["description"] = *input.Description
+	}
+	if input.Priority != nil {
+		updates["priority"] = *input.Priority
+	}
+
+	return services.TagCrud.Patch(r.DB.WithContext(ctx), updates, id)
+}
+
 // DeleteTag is the resolver for the deleteTag field.
-func (r *mutationResolver) DeleteTag(ctx context.Context, id int) (*models.Tag, error) {
+func (r *mutationResolver) DeleteTag(ctx context.Context, id *int, alias *string) (*models.Tag, error) {
 	return services.TagCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
 // Tag is the resolver for the tag field.
-func (r *queryResolver) Tag(ctx context.Context, id int) (*models.Tag, error) {
+func (r *queryResolver) Tag(ctx context.Context, id *int, alias *string) (*models.Tag, error) {
 	return services.TagCrud.Get(r.DB.WithContext(ctx), id)
 }
 

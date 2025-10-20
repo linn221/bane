@@ -13,11 +13,6 @@ import (
 	"github.com/linn221/bane/graph/model"
 )
 
-// Raw is the resolver for the raw field.
-func (r *mutationResolver) Raw(ctx context.Context) (*model.SQL, error) {
-	return &model.SQL{}, nil
-}
-
 // DelID is the resolver for the delId field.
 func (r *sQLResolver) DelID(ctx context.Context, obj *model.SQL, table string, id int) (*model.SQLResult, error) {
 	panic(fmt.Errorf("not implemented: DelID - delId"))

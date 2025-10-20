@@ -3,7 +3,6 @@ package mystructs
 import (
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 )
 
@@ -13,6 +12,8 @@ type MyString struct {
 	Content   string
 	Separator string
 	Format    string // "string", "kv", "list"
+	Sep       string // separator for VarKVGroup (default: "\n")
+	Limit     int    // limit for VarKVGroup items (default: 20)
 }
 
 // NewMyStringFromVarString creates a MyString from a VarString
@@ -21,28 +22,54 @@ func NewMyStringFromVarString(vs VarString) MyString {
 		Content:   vs.Exec(),
 		Separator: "",
 		Format:    "string",
+		Sep:       "\n",
+		Limit:     20,
 	}
 }
 
 // NewMyStringFromVarKVGroup creates a MyString from a VarKVGroup
-func NewMyStringFromVarKVGroup(vkg VarKVGroup, separator string) MyString {
+func NewMyStringFromVarKVGroup(vkg VarKVGroup, sep *string, limit *int) MyString {
+	// Set defaults
+	separator := "\n"
+	if sep != nil {
+		separator = *sep
+	}
+
+	lim := 20
+	if limit != nil {
+		lim = *limit
+	}
+
 	if len(vkg.VarKVs) == 0 {
 		return MyString{
 			Content:   "",
-			Separator: separator,
+			Separator: "",
 			Format:    "kv",
+			Sep:       separator,
+			Limit:     lim,
 		}
 	}
 
-	var parts []string
-	for _, kv := range vkg.VarKVs {
-		parts = append(parts, fmt.Sprintf("%s:%s", kv.Key.Exec(), kv.Value.Exec()))
+	// Apply limit
+	varKVs := vkg.VarKVs
+	if lim > 0 && len(varKVs) > lim {
+		varKVs = varKVs[:lim]
 	}
 
+	var parts []string
+	for _, kv := range varKVs {
+		parts = append(parts, fmt.Sprintf("%s: %s", kv.Key.Exec(), kv.Value.Exec()))
+	}
+
+	// Join with separator (which should be actual newline, not escaped)
+	content := strings.Join(parts, separator)
+
 	return MyString{
-		Content:   strings.Join(parts, separator),
-		Separator: separator,
+		Content:   content,
+		Separator: "",
 		Format:    "kv",
+		Sep:       separator,
+		Limit:     lim,
 	}
 }
 
@@ -69,6 +96,20 @@ func NewMyStringFromVarKVGroupAsList(vkg VarKVGroup, separator string) MyString 
 	}
 }
 
+// NewMyStringFromVarKV creates a MyString from a single VarKV
+func NewMyStringFromVarKV(kv VarKV) MyString {
+	content := fmt.Sprintf("%s: %s", kv.Key.Exec(), kv.Value.Exec())
+	// Convert \n to actual newlines
+	content = strings.ReplaceAll(content, "\\n", "\n")
+	return MyString{
+		Content:   content,
+		Separator: "",
+		Format:    "kv",
+		Sep:       "\n",
+		Limit:     20,
+	}
+}
+
 // String returns the string representation
 func (ms MyString) String() string {
 	return ms.Content
@@ -76,7 +117,10 @@ func (ms MyString) String() string {
 
 // MarshalGQL implements the graphql.Marshaler interface for GraphQL serialization
 func (ms MyString) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(ms.Content))
+	// Use block string syntax to preserve newlines in GraphQL Playground
+	fmt.Fprint(w, `"""`)
+	fmt.Fprint(w, ms.Content)
+	fmt.Fprint(w, `"""`)
 }
 
 // UnmarshalGQL implements the graphql.Unmarshaler interface for GraphQL deserialization

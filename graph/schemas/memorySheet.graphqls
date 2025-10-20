@@ -3,6 +3,7 @@ scalar MyDate
 type MemorySheet {
     id: Int!
     value: String!
+    alias: String
     createDate: MyDate!
     currentDate: MyDate
     nextDate: MyDate
@@ -13,6 +14,7 @@ type MemorySheet {
 
 input NewMemorySheet {
     value: String!
+    alias: String
     date: MyDate
 }
 
@@ -25,13 +27,19 @@ type TodayMemorySheet {
     thisMonth: [MemorySheet!]! @goField(forceResolver: true)
 }
 
+input PatchMemorySheet {
+    value: String
+    date: MyDate
+}
+
 extend type Mutation {
     createMemorySheet(input: NewMemorySheet!): MemorySheet!
-    updateMemorySheet(id: Int!, input: NewMemorySheet!): MemorySheet!
-    deleteMemorySheet(id: Int!): MemorySheet!
+    updateMemorySheet(id: Int, alias: String, input: NewMemorySheet!): MemorySheet!
+    patchMemorySheet(id: Int, alias: String, input: PatchMemorySheet!): MemorySheet!
+    deleteMemorySheet(id: Int, alias: String): MemorySheet!
 }
 
 extend type Query {
-    memorySheet(id: Int!): MemorySheet!
+    memorySheet(id: Int, alias: String): MemorySheet!
     mSheets(date: MyDate): [MemorySheet!]!
 }

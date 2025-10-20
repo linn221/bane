@@ -8,6 +8,7 @@ require (
 	github.com/99designs/gqlgen v0.17.81
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/vektah/gqlparser/v2 v2.5.30
+	parse-curl v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -21,6 +22,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/mattn/go-shellwords v1.0.12 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
@@ -43,3 +45,7 @@ require (
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.0
 )
+
+replace github.com/killlowkey/parse-curl => github.com/killlowkey/parse-curl v1.0.0
+
+replace parse-curl => github.com/killlowkey/parse-curl v1.0.0

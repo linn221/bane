@@ -18,7 +18,7 @@ type VarKV struct {
 }
 
 // Value implements the driver.Valuer interface for GORM
-// Stores the VarKVGroup as a string in format "key|{key:default} value|{value:default} ..."
+// Stores the VarKVGroup as a string in format "key:value key:value ..."
 func (vkg VarKVGroup) Value() (driver.Value, error) {
 	if len(vkg.VarKVs) == 0 {
 		return "", nil
@@ -28,7 +28,7 @@ func (vkg VarKVGroup) Value() (driver.Value, error) {
 	for _, kv := range vkg.VarKVs {
 		keyStr := kv.Key.OriginalString
 		valueStr := kv.Value.OriginalString
-		parts = append(parts, fmt.Sprintf("%s|%s", keyStr, valueStr))
+		parts = append(parts, fmt.Sprintf("%s:%s", keyStr, valueStr))
 	}
 
 	return strings.Join(parts, " "), nil
@@ -57,19 +57,19 @@ func (vkg *VarKVGroup) Scan(value interface{}) error {
 		return nil
 	}
 
-	// Split by spaces to get individual key|value pairs
+	// Split by spaces to get individual key:value pairs
 	parts := strings.Fields(input)
 	var varKVs []VarKV
 
 	for _, part := range parts {
-		// Split by pipe to separate key and value
-		pipeIndex := strings.Index(part, "|")
-		if pipeIndex == -1 {
-			return fmt.Errorf("invalid format: missing pipe in '%s'", part)
+		// Split by first colon to separate key and value
+		colonIndex := strings.Index(part, ":")
+		if colonIndex == -1 {
+			return fmt.Errorf("invalid format: missing colon in '%s'", part)
 		}
 
-		keyStr := part[:pipeIndex]
-		valueStr := part[pipeIndex+1:]
+		keyStr := part[:colonIndex]
+		valueStr := part[colonIndex+1:]
 
 		// Parse key as VarString
 		keyVarString, err := NewVarString(keyStr)
@@ -103,7 +103,7 @@ func (vkg VarKVGroup) MarshalGQL(w io.Writer) {
 	// Return the original string format as stored in database
 	var parts []string
 	for _, kv := range vkg.VarKVs {
-		parts = append(parts, fmt.Sprintf("%s|%s", kv.Key.OriginalString, kv.Value.OriginalString))
+		parts = append(parts, fmt.Sprintf("%s:%s", kv.Key.OriginalString, kv.Value.OriginalString))
 	}
 
 	result := strings.Join(parts, " ")
@@ -127,19 +127,19 @@ func (vkg *VarKVGroup) UnmarshalGQL(v interface{}) error {
 		return nil
 	}
 
-	// Parse the input string in format "key|value key|value ..."
+	// Parse the input string in format "key:value key:value ..."
 	parts := strings.Fields(input)
 	var varKVs []VarKV
 
 	for _, part := range parts {
-		// Split by pipe to separate key and value
-		pipeIndex := strings.Index(part, "|")
-		if pipeIndex == -1 {
-			return fmt.Errorf("invalid format: missing pipe in '%s'", part)
+		// Split by first colon to separate key and value
+		colonIndex := strings.Index(part, ":")
+		if colonIndex == -1 {
+			return fmt.Errorf("invalid format: missing colon in '%s'", part)
 		}
 
-		keyStr := part[:pipeIndex]
-		valueStr := part[pipeIndex+1:]
+		keyStr := part[:colonIndex]
+		valueStr := part[colonIndex+1:]
 
 		// Parse key as VarString
 		keyVarString, err := NewVarString(keyStr)
@@ -175,4 +175,9 @@ func (vkg VarKVGroup) Exec() string {
 	}
 
 	return strings.Join(parts, " ")
+}
+
+// IsZero returns true if the VarKVGroup is in its zero state
+func (vkg VarKVGroup) IsZero() bool {
+	return len(vkg.VarKVs) == 0
 }

@@ -2,6 +2,9 @@ package models
 
 import (
 	"strings"
+
+	"github.com/linn221/bane/validate"
+	"gorm.io/gorm"
 )
 
 type Program struct {
@@ -48,4 +51,24 @@ func (p *Program) Text() string {
 		p.Url,
 		p.Description,
 	}, "\n")
+}
+
+// PatchProgram represents partial updates for Program
+type PatchProgram struct {
+	Name        *string `json:"name,omitempty"`
+	Alias       *string `json:"alias,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Domain      *string `json:"domain,omitempty"`
+	URL         *string `json:"url,omitempty"`
+}
+
+func (input *PatchProgram) Validate(db *gorm.DB, id int) error {
+	var rules []validate.Rule
+
+	// Validate alias uniqueness if provided
+	if input.Alias != nil && *input.Alias != "" {
+		rules = append(rules, validate.NewUniqueRule("programs", "alias", *input.Alias, nil).Except(id).Say("duplicate alias for program"))
+	}
+
+	return validate.Validate(db, rules...)
 }

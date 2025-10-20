@@ -6,6 +6,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
@@ -27,50 +28,35 @@ func (r *endpointResolver) Program(ctx context.Context, obj *models.Endpoint) (*
 }
 
 // HTTPPathMy is the resolver for the httpPathMy field.
-func (r *endpointResolver) HTTPPathMy(ctx context.Context, obj *models.Endpoint, separator *string) (string, error) {
+func (r *endpointResolver) HTTPPathMy(ctx context.Context, obj *models.Endpoint, sep *string) (string, error) {
 	myString := mystructs.NewMyStringFromVarString(obj.HttpPath)
-	if separator != nil {
-		myString.Separator = *separator
+	if sep != nil {
+		myString.Separator = *sep
 	}
 	return myString.String(), nil
 }
 
 // HTTPQueriesMy is the resolver for the httpQueriesMy field.
-func (r *endpointResolver) HTTPQueriesMy(ctx context.Context, obj *models.Endpoint, separator *string) (string, error) {
-	sep := " "
-	if separator != nil {
-		sep = *separator
-	}
-	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpQueries, sep)
+func (r *endpointResolver) HTTPQueriesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error) {
+	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpQueries, sep, limit)
 	return myString.String(), nil
 }
 
 // HTTPHeadersMy is the resolver for the httpHeadersMy field.
-func (r *endpointResolver) HTTPHeadersMy(ctx context.Context, obj *models.Endpoint, separator *string) (string, error) {
-	sep := " "
-	if separator != nil {
-		sep = *separator
-	}
-	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpHeaders, sep)
+func (r *endpointResolver) HTTPHeadersMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error) {
+	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpHeaders, sep, limit)
 	return myString.String(), nil
 }
 
 // HTTPCookiesMy is the resolver for the httpCookiesMy field.
-func (r *endpointResolver) HTTPCookiesMy(ctx context.Context, obj *models.Endpoint, separator *string) (string, error) {
-	sep := " "
-	if separator != nil {
-		sep = *separator
-	}
-	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpCookies, sep)
+func (r *endpointResolver) HTTPCookiesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error) {
+	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpCookies, sep, limit)
 	return myString.String(), nil
 }
 
 // HTTPBodyMy is the resolver for the httpBodyMy field.
-func (r *endpointResolver) HTTPBodyMy(ctx context.Context, obj *models.Endpoint, separator *string) (string, error) {
+func (r *endpointResolver) HTTPBodyMy(ctx context.Context, obj *models.Endpoint) (string, error) {
 	myString := mystructs.NewMyStringFromVarString(obj.HttpBody)
-	if separator != nil {
-		myString.Separator = *separator
-	}
 	return myString.String(), nil
 }
 
@@ -106,18 +92,52 @@ func (r *mutationResolver) NewEndpoint(ctx context.Context, input models.NewEndp
 }
 
 // UpdateEndpoint is the resolver for the updateEndpoint field.
-func (r *mutationResolver) UpdateEndpoint(ctx context.Context, id int, input models.NewEndpoint) (*models.Endpoint, error) {
-	return services.EndpointService.UpdateEndpoint(r.app, r.DB, id, &input)
+func (r *mutationResolver) UpdateEndpoint(ctx context.Context, id *int, alias *string, input models.NewEndpoint) (*models.Endpoint, error) {
+	if id != nil {
+		return services.EndpointService.UpdateEndpoint(r.app, r.DB.WithContext(ctx), *id, &input)
+	}
+	if alias != nil {
+		return services.EndpointService.UpdateEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias, &input)
+	}
+	return nil, fmt.Errorf("either id or alias must be provided")
+}
+
+// PatchEndpoint is the resolver for the patchEndpoint field.
+func (r *mutationResolver) PatchEndpoint(ctx context.Context, id *int, alias *string, input models.PatchEndpoint) (*models.Endpoint, error) {
+	if id != nil {
+		return services.EndpointService.PatchEndpoint(r.app, r.DB.WithContext(ctx), *id, &input)
+	}
+	if alias != nil {
+		return services.EndpointService.PatchEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias, &input)
+	}
+	return nil, fmt.Errorf("either id or alias must be provided")
 }
 
 // DeleteEndpoint is the resolver for the deleteEndpoint field.
-func (r *mutationResolver) DeleteEndpoint(ctx context.Context, id int) (*models.Endpoint, error) {
-	return services.EndpointService.DeleteEndpoint(r.app, r.DB, id)
+func (r *mutationResolver) DeleteEndpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
+	if id != nil {
+		return services.EndpointService.DeleteEndpoint(r.app, r.DB.WithContext(ctx), *id)
+	}
+	if alias != nil {
+		return services.EndpointService.DeleteEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias)
+	}
+	return nil, fmt.Errorf("either id or alias must be provided")
+}
+
+// ImportCurl is the resolver for the importCurl field.
+func (r *mutationResolver) ImportCurl(ctx context.Context, curl string) (*models.CurlImportResult, error) {
+	return services.ParseCurlCommand(curl)
 }
 
 // Endpoint is the resolver for the endpoint field.
-func (r *queryResolver) Endpoint(ctx context.Context, id int) (*models.Endpoint, error) {
-	return services.EndpointService.GetEndpointByID(r.app, r.DB, id)
+func (r *queryResolver) Endpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
+	if id != nil {
+		return services.EndpointService.GetEndpointByID(r.app, r.DB.WithContext(ctx), *id)
+	}
+	if alias != nil {
+		return services.EndpointService.GetEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias)
+	}
+	return nil, fmt.Errorf("either id or alias must be provided")
 }
 
 // Endpoints is the resolver for the endpoints field.

@@ -3,20 +3,24 @@ type Endpoint {
     programId: Int!
     program: Program! @goField(forceResolver: true)
     name: String!
+    alias: String
     description: String
     httpSchema: HttpSchema!
     httpMethod: HttpMethod!
     httpDomain: String!
+    httpPort: Int!
     httpPath: VarString!
     httpQueries: VarKVGroup!
     httpHeaders: VarKVGroup!
     httpCookies: VarKVGroup!
     httpBody: VarString!
-    httpPathMy(separator: String): MyString! @goField(forceResolver: true)
-    httpQueriesMy(separator: String): MyString! @goField(forceResolver: true)
-    httpHeadersMy(separator: String): MyString! @goField(forceResolver: true)
-    httpCookiesMy(separator: String): MyString! @goField(forceResolver: true)
-    httpBodyMy(separator: String): MyString! @goField(forceResolver: true)
+    httpTimeout: Int!
+    httpFollowRedirects: Boolean!
+    httpPathMy(sep: String): MyString! @goField(forceResolver: true)
+    httpQueriesMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
+    httpHeadersMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
+    httpCookiesMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
+    httpBodyMy: MyString! @goField(forceResolver: true)
     match(regex: String!): SearchResult! @goField(forceResolver: true)
     curl(variables: String): String! @goField(forceResolver: true)
     rid: Int! @goField(forceResolver: true)
@@ -25,16 +29,20 @@ type Endpoint {
 
 input NewEndpoint {
     name: String!
+    alias: String
     programAlias: String!
     description: String
     httpSchema: HttpSchema!
     httpMethod: HttpMethod!
     httpDomain: String!
+    httpPort: Int
     httpPath: VarString!
     httpQueries: VarKVGroup!
     httpHeaders: VarKVGroup!
     httpCookies: VarKVGroup!
     httpBody: VarString!
+    httpTimeout: Int
+    httpFollowRedirects: Boolean
 }
 
 input EndpointFilter {
@@ -45,13 +53,50 @@ input EndpointFilter {
     search: String
 }
 
+type CurlImportResult {
+    name: String!
+    programAlias: String!
+    description: String
+    httpSchema: HttpSchema!
+    httpMethod: HttpMethod!
+    httpDomain: String!
+    httpPort: Int
+    httpPath: VarString!
+    httpQueries: VarKVGroup!
+    httpHeaders: VarKVGroup!
+    httpCookies: VarKVGroup!
+    httpBody: VarString!
+    httpTimeout: Int
+    httpFollowRedirects: Boolean
+}
+
+input PatchEndpoint {
+    name: String
+    alias: String
+    programAlias: String
+    description: String
+    httpSchema: HttpSchema
+    httpMethod: HttpMethod
+    httpDomain: String
+    httpPort: Int
+    httpPath: VarString
+    httpQueries: VarKVGroup
+    httpHeaders: VarKVGroup
+    httpCookies: VarKVGroup
+    httpBody: VarString
+    httpTimeout: Int
+    httpFollowRedirects: Boolean
+}
+
 extend type Mutation {
     newEndpoint(input: NewEndpoint!): Endpoint!
-    updateEndpoint(id: Int!, input: NewEndpoint!): Endpoint!
-    deleteEndpoint(id: Int!): Endpoint!
+    updateEndpoint(id: Int, alias: String, input: NewEndpoint!): Endpoint!
+    patchEndpoint(id: Int, alias: String, input: PatchEndpoint!): Endpoint!
+    deleteEndpoint(id: Int, alias: String): Endpoint!
+    importCurl(curl: String!): CurlImportResult! @goField(forceResolver: true)
 }
 
 extend type Query {
-    endpoint(id: Int!): Endpoint!
+    endpoint(id: Int, alias: String): Endpoint!
     endpoints(filter: EndpointFilter): [Endpoint]
 }

@@ -21,7 +21,8 @@ func GetTodayNotes(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, e
 	tx := db.Begin()
 	defer tx.Rollback()
 	for _, nSheet := range nextSheets {
-		_, err := MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, nSheet.Id)
+		id := nSheet.Id
+		_, err := MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, &id)
 		if err != nil {
 			return nil, err
 		}

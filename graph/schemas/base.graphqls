@@ -30,13 +30,21 @@ input NewTag {
     priority: Int
 }
 
+input PatchTag {
+    name: String
+    alias: String
+    description: String
+    priority: Int
+}
+
 extend type Mutation {
     createTag(input: NewTag!): Tag!
-    updateTag(id: Int!, input: NewTag!): Tag!
-    deleteTag(id: Int!): Tag!
+    updateTag(id: Int, alias: String, input: NewTag!): Tag!
+    patchTag(id: Int, alias: String, input: PatchTag!): Tag!
+    deleteTag(id: Int, alias: String): Tag!
 }
 
 extend type Query {
-    tag(id: Int!): Tag!
+    tag(id: Int, alias: String): Tag!
     tags(search: String): [Tag]
 }

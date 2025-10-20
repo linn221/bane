@@ -20,7 +20,7 @@ func (r *mutationResolver) NewNote(ctx context.Context, input *models.NewNote) (
 
 // DelNote is the resolver for the delNote field.
 func (r *mutationResolver) DelNote(ctx context.Context, id int) (*models.Note, error) {
-	return services.NoteService.Delete(r.DB.WithContext(ctx), id)
+	return services.NoteService.Delete(r.DB.WithContext(ctx), &id)
 }
 
 // Match is the resolver for the match field.

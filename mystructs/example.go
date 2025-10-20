@@ -38,20 +38,21 @@ func Example() {
 
 	fmt.Println("\n=== KVGroupInput Example ===")
 
-	// Create KVGroupInput from string
-	kv, err := NewKVGroupInputFromString("name:John age:30 city:NewYork")
+	// Create KVGroup from string
+	kv, err := NewKVGroupFromString("name:John age:30 city:NewYork")
 	if err != nil {
 		fmt.Printf("Error creating KVGroupInput: %v\n", err)
 		return
 	}
 
-	fmt.Printf("KVGroupInput string: %s\n", kv.String())
+	fmt.Printf("KVGroup string: %s\n", kv.String())
 
 	// Demonstrate GraphQL marshaling
-	kvMarshaled, _ := kv.MarshalGQL()
-	fmt.Printf("GraphQL Marshal: %s\n", string(kvMarshaled))
+	var kvBuf bytes.Buffer
+	kv.MarshalGQL(&kvBuf)
+	fmt.Printf("GraphQL Marshal: %s\n", kvBuf.String())
 
-	// Demonstrate conversion to KVPairGroup
-	group := kv.ToKVPairGroup()
-	fmt.Printf("Converted to KVPairGroup: %+v\n", group)
+	// Demonstrate conversion stays as KVGroup
+	group := kv.ToKVGroup()
+	fmt.Printf("Converted to KVGroup: %+v\n", group)
 }
