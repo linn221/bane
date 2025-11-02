@@ -38,7 +38,7 @@ input PatchTag {
 }
 
 extend type Mutation {
-    createTag(input: NewTag!): Tag!
+    newTag(input: NewTag!): Tag!
     updateTag(id: Int, alias: String, input: NewTag!): Tag!
     patchTag(id: Int, alias: String, input: PatchTag!): Tag!
     deleteTag(id: Int, alias: String): Tag!

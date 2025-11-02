@@ -13,8 +13,8 @@ import (
 	"github.com/linn221/bane/services"
 )
 
-// CreateTag is the resolver for the createTag field.
-func (r *mutationResolver) CreateTag(ctx context.Context, input models.NewTag) (*models.Tag, error) {
+// NewTag is the resolver for the newTag field.
+func (r *mutationResolver) NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error) {
 	return services.TagCrud.Create(r.DB, &input)
 }
 

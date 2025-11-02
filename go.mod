@@ -6,14 +6,13 @@ toolchain go1.24.8
 
 require (
 	github.com/99designs/gqlgen v0.17.81
+	github.com/a-h/templ v0.3.960
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/vektah/gqlparser/v2 v2.5.30
-	parse-curl v0.0.0-00010101000000-000000000000
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/a-h/templ v0.3.960 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
@@ -23,8 +22,9 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/mattn/go-shellwords v1.0.12 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/urfave/cli/v2 v2.27.7 // indirect
@@ -33,6 +33,7 @@ require (
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools v0.37.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

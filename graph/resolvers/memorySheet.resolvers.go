@@ -39,8 +39,8 @@ func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet
 	// return []*model.Note{}, nil
 }
 
-// CreateMemorySheet is the resolver for the createMemorySheet field.
-func (r *mutationResolver) CreateMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error) {
+// NewMemorySheet is the resolver for the newMemorySheet field.
+func (r *mutationResolver) NewMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error) {
 	return services.MemorySheetCrud.Create(r.DB.WithContext(ctx), &input)
 }
 

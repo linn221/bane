@@ -65,15 +65,6 @@ func (r *endpointResolver) Match(ctx context.Context, obj *models.Endpoint, rege
 	return services.MatchRegex(obj, regex)
 }
 
-// Curl is the resolver for the curl field.
-func (r *endpointResolver) Curl(ctx context.Context, obj *models.Endpoint, variables *string) (string, error) {
-	var vars string
-	if variables != nil {
-		vars = *variables
-	}
-	return services.CurlServiceInstance.GenerateCurlCommand(obj, vars)
-}
-
 // Rid is the resolver for the rid field.
 func (r *endpointResolver) Rid(ctx context.Context, obj *models.Endpoint) (int, error) {
 	return loaders.GetRId(ctx, app.Reference{ReferenceId: obj.Id, ReferenceType: "endpoints"})
@@ -122,11 +113,6 @@ func (r *mutationResolver) DeleteEndpoint(ctx context.Context, id *int, alias *s
 		return services.EndpointService.DeleteEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias)
 	}
 	return nil, fmt.Errorf("either id or alias must be provided")
-}
-
-// ImportCurl is the resolver for the importCurl field.
-func (r *mutationResolver) ImportCurl(ctx context.Context, curl string) (*models.CurlImportResult, error) {
-	return services.ParseCurlCommand(curl)
 }
 
 // Endpoint is the resolver for the endpoint field.

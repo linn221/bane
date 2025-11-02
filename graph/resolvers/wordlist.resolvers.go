@@ -14,8 +14,8 @@ import (
 	"github.com/linn221/bane/utils"
 )
 
-// CreateWord is the resolver for the createWord field.
-func (r *mutationResolver) CreateWord(ctx context.Context, input models.NewWord) (*models.Word, error) {
+// NewWord is the resolver for the newWord field.
+func (r *mutationResolver) NewWord(ctx context.Context, input models.NewWord) (*models.Word, error) {
 	return services.WordCrud.Create(r.DB.WithContext(ctx), &input)
 }
 
@@ -46,8 +46,8 @@ func (r *mutationResolver) DeleteWord(ctx context.Context, id *int, alias *strin
 	return services.WordCrud.Delete(r.DB.WithContext(ctx), id)
 }
 
-// CreateWordList is the resolver for the createWordList field.
-func (r *mutationResolver) CreateWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error) {
+// NewWordList is the resolver for the newWordList field.
+func (r *mutationResolver) NewWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error) {
 	return services.WordListCrud.Create(r.DB.WithContext(ctx), &input)
 }
 
@@ -94,14 +94,14 @@ func (r *queryResolver) Words(ctx context.Context, search *string) ([]*models.Wo
 	return words, nil
 }
 
-// GetWordList is the resolver for the getWordList field.
-func (r *queryResolver) GetWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
+// WordList is the resolver for the wordList field.
+func (r *queryResolver) WordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
 	return services.WordListCrud.Get(r.DB.WithContext(ctx), id)
 }
 
-// ListWordList is the resolver for the listWordList field.
-func (r *queryResolver) ListWordList(ctx context.Context, regex *string) ([]*models.AllWordList, error) {
-	panic(fmt.Errorf("not implemented: ListWordList - listWordList"))
+// WordLists is the resolver for the wordLists field.
+func (r *queryResolver) WordLists(ctx context.Context, regex *string) ([]*models.AllWordList, error) {
+	panic(fmt.Errorf("not implemented: WordLists - wordLists"))
 }
 
 // ImportURL is the resolver for the importUrl field.

@@ -65,30 +65,12 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
-	CurlImportResult struct {
-		Description         func(childComplexity int) int
-		HttpBody            func(childComplexity int) int
-		HttpCookies         func(childComplexity int) int
-		HttpDomain          func(childComplexity int) int
-		HttpFollowRedirects func(childComplexity int) int
-		HttpHeaders         func(childComplexity int) int
-		HttpMethod          func(childComplexity int) int
-		HttpPath            func(childComplexity int) int
-		HttpPort            func(childComplexity int) int
-		HttpQueries         func(childComplexity int) int
-		HttpSchema          func(childComplexity int) int
-		HttpTimeout         func(childComplexity int) int
-		Name                func(childComplexity int) int
-		ProgramAlias        func(childComplexity int) int
-	}
-
 	Download struct {
 		URL func(childComplexity int) int
 	}
 
 	Endpoint struct {
 		Alias               func(childComplexity int) int
-		Curl                func(childComplexity int, variables *string) int
 		Description         func(childComplexity int) int
 		HTTPBodyMy          func(childComplexity int) int
 		HTTPCookiesMy       func(childComplexity int, sep *string, limit *int) int
@@ -126,10 +108,6 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateMemorySheet func(childComplexity int, input models.NewMemorySheet) int
-		CreateTag         func(childComplexity int, input models.NewTag) int
-		CreateWord        func(childComplexity int, input models.NewWord) int
-		CreateWordList    func(childComplexity int, input models.NewWordList) int
 		DelNote           func(childComplexity int, id int) int
 		DeleteEndpoint    func(childComplexity int, id *int, alias *string) int
 		DeleteMemorySheet func(childComplexity int, id *int, alias *string) int
@@ -138,10 +116,13 @@ type ComplexityRoot struct {
 		DeleteWord        func(childComplexity int, id *int, alias *string) int
 		DeleteWordList    func(childComplexity int, id *int, alias *string) int
 		Helloworld        func(childComplexity int) int
-		ImportCurl        func(childComplexity int, curl string) int
 		NewEndpoint       func(childComplexity int, input models.NewEndpoint) int
+		NewMemorySheet    func(childComplexity int, input models.NewMemorySheet) int
 		NewNote           func(childComplexity int, input *models.NewNote) int
 		NewProgram        func(childComplexity int, input *models.NewProgram) int
+		NewTag            func(childComplexity int, input models.NewTag) int
+		NewWord           func(childComplexity int, input models.NewWord) int
+		NewWordList       func(childComplexity int, input models.NewWordList) int
 		PatchEndpoint     func(childComplexity int, id *int, alias *string, input models.PatchEndpoint) int
 		PatchMemorySheet  func(childComplexity int, id *int, alias *string, input models.PatchMemorySheet) int
 		PatchProgram      func(childComplexity int, id *int, alias *string, input models.PatchProgram) int
@@ -202,23 +183,23 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Endpoint     func(childComplexity int, id *int, alias *string) int
-		Endpoints    func(childComplexity int, filter *models.EndpointFilter) int
-		GetWordList  func(childComplexity int, id *int, alias *string) int
-		Helloworld   func(childComplexity int) int
-		ListWordList func(childComplexity int, regex *string) int
-		MSheets      func(childComplexity int, date *models.MyDate) int
-		MemorySheet  func(childComplexity int, id *int, alias *string) int
-		MyRequest    func(childComplexity int, id int) int
-		MyRequests   func(childComplexity int, filter *models.MyRequestFilter) int
-		Notes        func(childComplexity int, filter *models.NoteFilter) int
-		Program      func(childComplexity int, id *int, alias *string) int
-		Programs     func(childComplexity int, search *string) int
-		Raw          func(childComplexity int, sql string) int
-		Tag          func(childComplexity int, id *int, alias *string) int
-		Tags         func(childComplexity int, search *string) int
-		Word         func(childComplexity int, id *int, alias *string) int
-		Words        func(childComplexity int, search *string) int
+		Endpoint    func(childComplexity int, id *int, alias *string) int
+		Endpoints   func(childComplexity int, filter *models.EndpointFilter) int
+		Helloworld  func(childComplexity int) int
+		MSheets     func(childComplexity int, date *models.MyDate) int
+		MemorySheet func(childComplexity int, id *int, alias *string) int
+		MyRequest   func(childComplexity int, id int) int
+		MyRequests  func(childComplexity int, filter *models.MyRequestFilter) int
+		Notes       func(childComplexity int, filter *models.NoteFilter) int
+		Program     func(childComplexity int, id *int, alias *string) int
+		Programs    func(childComplexity int, search *string) int
+		Raw         func(childComplexity int, sql string) int
+		Tag         func(childComplexity int, id *int, alias *string) int
+		Tags        func(childComplexity int, search *string) int
+		Word        func(childComplexity int, id *int, alias *string) int
+		WordList    func(childComplexity int, id *int, alias *string) int
+		WordLists   func(childComplexity int, regex *string) int
+		Words       func(childComplexity int, search *string) int
 	}
 
 	QueryResult struct {
@@ -287,7 +268,6 @@ type EndpointResolver interface {
 	HTTPCookiesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error)
 	HTTPBodyMy(ctx context.Context, obj *models.Endpoint) (string, error)
 	Match(ctx context.Context, obj *models.Endpoint, regex string) (*model.SearchResult, error)
-	Curl(ctx context.Context, obj *models.Endpoint, variables *string) (string, error)
 	Rid(ctx context.Context, obj *models.Endpoint) (int, error)
 	Notes(ctx context.Context, obj *models.Endpoint) ([]*models.Note, error)
 }
@@ -299,7 +279,7 @@ type MemorySheetResolver interface {
 }
 type MutationResolver interface {
 	Helloworld(ctx context.Context) (string, error)
-	CreateTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
+	NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
 	UpdateTag(ctx context.Context, id *int, alias *string, input models.NewTag) (*models.Tag, error)
 	PatchTag(ctx context.Context, id *int, alias *string, input models.PatchTag) (*models.Tag, error)
 	DeleteTag(ctx context.Context, id *int, alias *string) (*models.Tag, error)
@@ -307,8 +287,7 @@ type MutationResolver interface {
 	UpdateEndpoint(ctx context.Context, id *int, alias *string, input models.NewEndpoint) (*models.Endpoint, error)
 	PatchEndpoint(ctx context.Context, id *int, alias *string, input models.PatchEndpoint) (*models.Endpoint, error)
 	DeleteEndpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error)
-	ImportCurl(ctx context.Context, curl string) (*models.CurlImportResult, error)
-	CreateMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error)
+	NewMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error)
 	UpdateMemorySheet(ctx context.Context, id *int, alias *string, input models.NewMemorySheet) (*models.MemorySheet, error)
 	PatchMemorySheet(ctx context.Context, id *int, alias *string, input models.PatchMemorySheet) (*models.MemorySheet, error)
 	DeleteMemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error)
@@ -320,11 +299,11 @@ type MutationResolver interface {
 	PatchProgram(ctx context.Context, id *int, alias *string, input models.PatchProgram) (*models.Program, error)
 	DeleteProgram(ctx context.Context, id *int, alias *string) (*models.Program, error)
 	Raw(ctx context.Context, sql string) (int, error)
-	CreateWord(ctx context.Context, input models.NewWord) (*models.Word, error)
+	NewWord(ctx context.Context, input models.NewWord) (*models.Word, error)
 	UpdateWord(ctx context.Context, id *int, alias *string, input models.NewWord) (*models.Word, error)
 	PatchWord(ctx context.Context, id *int, alias *string, input models.PatchWord) (*models.Word, error)
 	DeleteWord(ctx context.Context, id *int, alias *string) (*models.Word, error)
-	CreateWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error)
+	NewWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error)
 	UpdateWordList(ctx context.Context, id *int, alias *string, input models.NewWordList) (*models.WordList, error)
 	PatchWordList(ctx context.Context, id *int, alias *string, input models.PatchWordList) (*models.WordList, error)
 	DeleteWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error)
@@ -360,8 +339,8 @@ type QueryResolver interface {
 	Raw(ctx context.Context, sql string) (*models.QueryResult, error)
 	Word(ctx context.Context, id *int, alias *string) (*models.Word, error)
 	Words(ctx context.Context, search *string) ([]*models.Word, error)
-	GetWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error)
-	ListWordList(ctx context.Context, regex *string) ([]*models.AllWordList, error)
+	WordList(ctx context.Context, id *int, alias *string) (*models.WordList, error)
+	WordLists(ctx context.Context, regex *string) ([]*models.AllWordList, error)
 }
 type QueryResultResolver interface {
 	Results(ctx context.Context, obj *models.QueryResult, sep *string, limit *int) ([]*string, error)
@@ -423,91 +402,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.AllWordList.Name(childComplexity), true
 
-	case "CurlImportResult.description":
-		if e.complexity.CurlImportResult.Description == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.Description(childComplexity), true
-	case "CurlImportResult.httpBody":
-		if e.complexity.CurlImportResult.HttpBody == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpBody(childComplexity), true
-	case "CurlImportResult.httpCookies":
-		if e.complexity.CurlImportResult.HttpCookies == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpCookies(childComplexity), true
-	case "CurlImportResult.httpDomain":
-		if e.complexity.CurlImportResult.HttpDomain == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpDomain(childComplexity), true
-	case "CurlImportResult.httpFollowRedirects":
-		if e.complexity.CurlImportResult.HttpFollowRedirects == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpFollowRedirects(childComplexity), true
-	case "CurlImportResult.httpHeaders":
-		if e.complexity.CurlImportResult.HttpHeaders == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpHeaders(childComplexity), true
-	case "CurlImportResult.httpMethod":
-		if e.complexity.CurlImportResult.HttpMethod == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpMethod(childComplexity), true
-	case "CurlImportResult.httpPath":
-		if e.complexity.CurlImportResult.HttpPath == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpPath(childComplexity), true
-	case "CurlImportResult.httpPort":
-		if e.complexity.CurlImportResult.HttpPort == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpPort(childComplexity), true
-	case "CurlImportResult.httpQueries":
-		if e.complexity.CurlImportResult.HttpQueries == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpQueries(childComplexity), true
-	case "CurlImportResult.httpSchema":
-		if e.complexity.CurlImportResult.HttpSchema == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpSchema(childComplexity), true
-	case "CurlImportResult.httpTimeout":
-		if e.complexity.CurlImportResult.HttpTimeout == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.HttpTimeout(childComplexity), true
-	case "CurlImportResult.name":
-		if e.complexity.CurlImportResult.Name == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.Name(childComplexity), true
-	case "CurlImportResult.programAlias":
-		if e.complexity.CurlImportResult.ProgramAlias == nil {
-			break
-		}
-
-		return e.complexity.CurlImportResult.ProgramAlias(childComplexity), true
-
 	case "Download.url":
 		if e.complexity.Download.URL == nil {
 			break
@@ -521,17 +415,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Endpoint.Alias(childComplexity), true
-	case "Endpoint.curl":
-		if e.complexity.Endpoint.Curl == nil {
-			break
-		}
-
-		args, err := ec.field_Endpoint_curl_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Endpoint.Curl(childComplexity, args["variables"].(*string)), true
 	case "Endpoint.description":
 		if e.complexity.Endpoint.Description == nil {
 			break
@@ -745,50 +628,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.MemorySheet.Value(childComplexity), true
 
-	case "Mutation.createMemorySheet":
-		if e.complexity.Mutation.CreateMemorySheet == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createMemorySheet_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateMemorySheet(childComplexity, args["input"].(models.NewMemorySheet)), true
-	case "Mutation.createTag":
-		if e.complexity.Mutation.CreateTag == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createTag_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateTag(childComplexity, args["input"].(models.NewTag)), true
-	case "Mutation.createWord":
-		if e.complexity.Mutation.CreateWord == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createWord_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateWord(childComplexity, args["input"].(models.NewWord)), true
-	case "Mutation.createWordList":
-		if e.complexity.Mutation.CreateWordList == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createWordList_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateWordList(childComplexity, args["input"].(models.NewWordList)), true
 	case "Mutation.delNote":
 		if e.complexity.Mutation.DelNote == nil {
 			break
@@ -872,17 +711,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.Helloworld(childComplexity), true
-	case "Mutation.importCurl":
-		if e.complexity.Mutation.ImportCurl == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_importCurl_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.ImportCurl(childComplexity, args["curl"].(string)), true
 	case "Mutation.newEndpoint":
 		if e.complexity.Mutation.NewEndpoint == nil {
 			break
@@ -894,6 +722,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.NewEndpoint(childComplexity, args["input"].(models.NewEndpoint)), true
+	case "Mutation.newMemorySheet":
+		if e.complexity.Mutation.NewMemorySheet == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newMemorySheet_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewMemorySheet(childComplexity, args["input"].(models.NewMemorySheet)), true
 	case "Mutation.newNote":
 		if e.complexity.Mutation.NewNote == nil {
 			break
@@ -916,6 +755,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.NewProgram(childComplexity, args["input"].(*models.NewProgram)), true
+	case "Mutation.newTag":
+		if e.complexity.Mutation.NewTag == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newTag_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewTag(childComplexity, args["input"].(models.NewTag)), true
+	case "Mutation.newWord":
+		if e.complexity.Mutation.NewWord == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newWord_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewWord(childComplexity, args["input"].(models.NewWord)), true
+	case "Mutation.newWordList":
+		if e.complexity.Mutation.NewWordList == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newWordList_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewWordList(childComplexity, args["input"].(models.NewWordList)), true
 	case "Mutation.patchEndpoint":
 		if e.complexity.Mutation.PatchEndpoint == nil {
 			break
@@ -1310,34 +1182,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Endpoints(childComplexity, args["filter"].(*models.EndpointFilter)), true
-	case "Query.getWordList":
-		if e.complexity.Query.GetWordList == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getWordList_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetWordList(childComplexity, args["id"].(*int), args["alias"].(*string)), true
 	case "Query.helloworld":
 		if e.complexity.Query.Helloworld == nil {
 			break
 		}
 
 		return e.complexity.Query.Helloworld(childComplexity), true
-	case "Query.listWordList":
-		if e.complexity.Query.ListWordList == nil {
-			break
-		}
-
-		args, err := ec.field_Query_listWordList_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ListWordList(childComplexity, args["regex"].(*string)), true
 	case "Query.mSheets":
 		if e.complexity.Query.MSheets == nil {
 			break
@@ -1459,6 +1309,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Word(childComplexity, args["id"].(*int), args["alias"].(*string)), true
+	case "Query.wordList":
+		if e.complexity.Query.WordList == nil {
+			break
+		}
+
+		args, err := ec.field_Query_wordList_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WordList(childComplexity, args["id"].(*int), args["alias"].(*string)), true
+	case "Query.wordLists":
+		if e.complexity.Query.WordLists == nil {
+			break
+		}
+
+		args, err := ec.field_Query_wordLists_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.WordLists(childComplexity, args["regex"].(*string)), true
 	case "Query.words":
 		if e.complexity.Query.Words == nil {
 			break
@@ -1850,17 +1722,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Endpoint_curl_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "variables", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["variables"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Endpoint_httpCookiesMy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1928,50 +1789,6 @@ func (ec *executionContext) field_Endpoint_match_args(ctx context.Context, rawAr
 		return nil, err
 	}
 	args["regex"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_createWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -2082,21 +1899,21 @@ func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_importCurl_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "curl", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["curl"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_newEndpoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewEndpoint)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_newMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet)
 	if err != nil {
 		return nil, err
 	}
@@ -2119,6 +1936,39 @@ func (ec *executionContext) field_Mutation_newProgram_args(ctx context.Context, 
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_newTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_newWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_newWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord)
 	if err != nil {
 		return nil, err
 	}
@@ -2481,33 +2331,6 @@ func (ec *executionContext) field_Query_endpoints_args(ctx context.Context, rawA
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_listWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["regex"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_mSheets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2630,6 +2453,33 @@ func (ec *executionContext) field_Query_tags_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["search"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_wordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["alias"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_wordLists_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalOString2ᚖstring)
+	if err != nil {
+		return nil, err
+	}
+	args["regex"] = arg0
 	return args, nil
 }
 
@@ -2864,412 +2714,6 @@ func (ec *executionContext) fieldContext_AllWordList_description(_ context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_name(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_name,
-		func(ctx context.Context) (any, error) {
-			return obj.Name, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_programAlias(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_programAlias,
-		func(ctx context.Context) (any, error) {
-			return obj.ProgramAlias, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_programAlias(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_description(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_description,
-		func(ctx context.Context) (any, error) {
-			return obj.Description, nil
-		},
-		nil,
-		ec.marshalOString2string,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpSchema(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpSchema,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpSchema, nil
-		},
-		nil,
-		ec.marshalNHttpSchema2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐHttpSchema,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpSchema(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type HttpSchema does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpMethod(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpMethod,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpMethod, nil
-		},
-		nil,
-		ec.marshalNHttpMethod2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐHttpMethod,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpMethod(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type HttpMethod does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpDomain(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpDomain,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpDomain, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpDomain(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpPort(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpPort,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpPort, nil
-		},
-		nil,
-		ec.marshalOInt2int,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpPort(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpPath(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpPath,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpPath, nil
-		},
-		nil,
-		ec.marshalNVarString2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpPath(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarString does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpQueries(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpQueries,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpQueries, nil
-		},
-		nil,
-		ec.marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpQueries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarKVGroup does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpHeaders(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpHeaders,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpHeaders, nil
-		},
-		nil,
-		ec.marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpHeaders(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarKVGroup does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpCookies(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpCookies,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpCookies, nil
-		},
-		nil,
-		ec.marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpCookies(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarKVGroup does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpBody(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpBody,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpBody, nil
-		},
-		nil,
-		ec.marshalNVarString2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpBody(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarString does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpTimeout(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpTimeout,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpTimeout, nil
-		},
-		nil,
-		ec.marshalOInt2int,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpTimeout(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CurlImportResult_httpFollowRedirects(ctx context.Context, field graphql.CollectedField, obj *models.CurlImportResult) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_CurlImportResult_httpFollowRedirects,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpFollowRedirects, nil
-		},
-		nil,
-		ec.marshalOBoolean2bool,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_CurlImportResult_httpFollowRedirects(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CurlImportResult",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4057,47 +3501,6 @@ func (ec *executionContext) fieldContext_Endpoint_match(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Endpoint_curl(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_curl,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Endpoint().Curl(ctx, obj, fc.Args["variables"].(*string))
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_curl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Endpoint_curl_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Endpoint_rid(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4408,15 +3811,15 @@ func (ec *executionContext) fieldContext_Mutation_helloworld(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_createTag,
+		ec.fieldContext_Mutation_newTag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateTag(ctx, fc.Args["input"].(models.NewTag))
+			return ec.resolvers.Mutation().NewTag(ctx, fc.Args["input"].(models.NewTag))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -4425,7 +3828,7 @@ func (ec *executionContext) _Mutation_createTag(ctx context.Context, field graph
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createTag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_newTag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -4454,7 +3857,7 @@ func (ec *executionContext) fieldContext_Mutation_createTag(ctx context.Context,
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createTag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_newTag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4691,8 +4094,6 @@ func (ec *executionContext) fieldContext_Mutation_newEndpoint(ctx context.Contex
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -4786,8 +4187,6 @@ func (ec *executionContext) fieldContext_Mutation_updateEndpoint(ctx context.Con
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -4881,8 +4280,6 @@ func (ec *executionContext) fieldContext_Mutation_patchEndpoint(ctx context.Cont
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -4976,8 +4373,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteEndpoint(ctx context.Con
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -5000,86 +4395,15 @@ func (ec *executionContext) fieldContext_Mutation_deleteEndpoint(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_importCurl(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_importCurl,
+		ec.fieldContext_Mutation_newMemorySheet,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().ImportCurl(ctx, fc.Args["curl"].(string))
-		},
-		nil,
-		ec.marshalNCurlImportResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐCurlImportResult,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_importCurl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_CurlImportResult_name(ctx, field)
-			case "programAlias":
-				return ec.fieldContext_CurlImportResult_programAlias(ctx, field)
-			case "description":
-				return ec.fieldContext_CurlImportResult_description(ctx, field)
-			case "httpSchema":
-				return ec.fieldContext_CurlImportResult_httpSchema(ctx, field)
-			case "httpMethod":
-				return ec.fieldContext_CurlImportResult_httpMethod(ctx, field)
-			case "httpDomain":
-				return ec.fieldContext_CurlImportResult_httpDomain(ctx, field)
-			case "httpPort":
-				return ec.fieldContext_CurlImportResult_httpPort(ctx, field)
-			case "httpPath":
-				return ec.fieldContext_CurlImportResult_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_CurlImportResult_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_CurlImportResult_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_CurlImportResult_httpCookies(ctx, field)
-			case "httpBody":
-				return ec.fieldContext_CurlImportResult_httpBody(ctx, field)
-			case "httpTimeout":
-				return ec.fieldContext_CurlImportResult_httpTimeout(ctx, field)
-			case "httpFollowRedirects":
-				return ec.fieldContext_CurlImportResult_httpFollowRedirects(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type CurlImportResult", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_importCurl_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_createMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_createMemorySheet,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateMemorySheet(ctx, fc.Args["input"].(models.NewMemorySheet))
+			return ec.resolvers.Mutation().NewMemorySheet(ctx, fc.Args["input"].(models.NewMemorySheet))
 		},
 		nil,
 		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
@@ -5088,7 +4412,7 @@ func (ec *executionContext) _Mutation_createMemorySheet(ctx context.Context, fie
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_newMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -5121,7 +4445,7 @@ func (ec *executionContext) fieldContext_Mutation_createMemorySheet(ctx context.
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_newMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5771,15 +5095,15 @@ func (ec *executionContext) fieldContext_Mutation_raw(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_createWord,
+		ec.fieldContext_Mutation_newWord,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateWord(ctx, fc.Args["input"].(models.NewWord))
+			return ec.resolvers.Mutation().NewWord(ctx, fc.Args["input"].(models.NewWord))
 		},
 		nil,
 		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
@@ -5788,7 +5112,7 @@ func (ec *executionContext) _Mutation_createWord(ctx context.Context, field grap
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_newWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -5817,7 +5141,7 @@ func (ec *executionContext) fieldContext_Mutation_createWord(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_newWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5983,15 +5307,15 @@ func (ec *executionContext) fieldContext_Mutation_deleteWord(ctx context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_createWordList,
+		ec.fieldContext_Mutation_newWordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateWordList(ctx, fc.Args["input"].(models.NewWordList))
+			return ec.resolvers.Mutation().NewWordList(ctx, fc.Args["input"].(models.NewWordList))
 		},
 		nil,
 		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
@@ -6000,7 +5324,7 @@ func (ec *executionContext) _Mutation_createWordList(ctx context.Context, field 
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_newWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -6031,7 +5355,7 @@ func (ec *executionContext) fieldContext_Mutation_createWordList(ctx context.Con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_newWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6409,8 +5733,6 @@ func (ec *executionContext) fieldContext_MyRequest_endpoint(_ context.Context, f
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -7515,8 +6837,6 @@ func (ec *executionContext) fieldContext_Query_endpoint(ctx context.Context, fie
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -7610,8 +6930,6 @@ func (ec *executionContext) fieldContext_Query_endpoints(ctx context.Context, fi
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "curl":
-				return ec.fieldContext_Endpoint_curl(ctx, field)
 			case "rid":
 				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
@@ -8244,15 +7562,15 @@ func (ec *executionContext) fieldContext_Query_words(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_getWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_wordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_getWordList,
+		ec.fieldContext_Query_wordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().GetWordList(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
+			return ec.resolvers.Query().WordList(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
 		},
 		nil,
 		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
@@ -8261,7 +7579,7 @@ func (ec *executionContext) _Query_getWordList(ctx context.Context, field graphq
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_getWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_wordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -8292,22 +7610,22 @@ func (ec *executionContext) fieldContext_Query_getWordList(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_wordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_listWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_wordLists(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_listWordList,
+		ec.fieldContext_Query_wordLists,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().ListWordList(ctx, fc.Args["regex"].(*string))
+			return ec.resolvers.Query().WordLists(ctx, fc.Args["regex"].(*string))
 		},
 		nil,
 		ec.marshalNAllWordList2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐAllWordList,
@@ -8316,7 +7634,7 @@ func (ec *executionContext) _Query_listWordList(ctx context.Context, field graph
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_listWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_wordLists(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -8341,7 +7659,7 @@ func (ec *executionContext) fieldContext_Query_listWordList(ctx context.Context,
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_listWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_wordLists_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -12000,98 +11318,6 @@ func (ec *executionContext) _AllWordList(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var curlImportResultImplementors = []string{"CurlImportResult"}
-
-func (ec *executionContext) _CurlImportResult(ctx context.Context, sel ast.SelectionSet, obj *models.CurlImportResult) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, curlImportResultImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("CurlImportResult")
-		case "name":
-			out.Values[i] = ec._CurlImportResult_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "programAlias":
-			out.Values[i] = ec._CurlImportResult_programAlias(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "description":
-			out.Values[i] = ec._CurlImportResult_description(ctx, field, obj)
-		case "httpSchema":
-			out.Values[i] = ec._CurlImportResult_httpSchema(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpMethod":
-			out.Values[i] = ec._CurlImportResult_httpMethod(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpDomain":
-			out.Values[i] = ec._CurlImportResult_httpDomain(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpPort":
-			out.Values[i] = ec._CurlImportResult_httpPort(ctx, field, obj)
-		case "httpPath":
-			out.Values[i] = ec._CurlImportResult_httpPath(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpQueries":
-			out.Values[i] = ec._CurlImportResult_httpQueries(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpHeaders":
-			out.Values[i] = ec._CurlImportResult_httpHeaders(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpCookies":
-			out.Values[i] = ec._CurlImportResult_httpCookies(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpBody":
-			out.Values[i] = ec._CurlImportResult_httpBody(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "httpTimeout":
-			out.Values[i] = ec._CurlImportResult_httpTimeout(ctx, field, obj)
-		case "httpFollowRedirects":
-			out.Values[i] = ec._CurlImportResult_httpFollowRedirects(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var downloadImplementors = []string{"Download"}
 
 func (ec *executionContext) _Download(ctx context.Context, sel ast.SelectionSet, obj *model.Download) graphql.Marshaler {
@@ -12468,42 +11694,6 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "curl":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Endpoint_curl(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "rid":
 			field := field
 
@@ -12806,9 +11996,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "createTag":
+		case "newTag":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createTag(ctx, field)
+				return ec._Mutation_newTag(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -12862,16 +12052,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "importCurl":
+		case "newMemorySheet":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_importCurl(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "createMemorySheet":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createMemorySheet(ctx, field)
+				return ec._Mutation_newMemorySheet(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -12953,9 +12136,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "createWord":
+		case "newWord":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createWord(ctx, field)
+				return ec._Mutation_newWord(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -12981,9 +12164,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "createWordList":
+		case "newWordList":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createWordList(ctx, field)
+				return ec._Mutation_newWordList(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -13822,7 +13005,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getWordList":
+		case "wordList":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -13831,7 +13014,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getWordList(ctx, field)
+				res = ec._Query_wordList(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -13844,7 +13027,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "listWordList":
+		case "wordLists":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -13853,7 +13036,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_listWordList(ctx, field)
+				res = ec._Query_wordLists(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -15018,20 +14201,6 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNCurlImportResult2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐCurlImportResult(ctx context.Context, sel ast.SelectionSet, v models.CurlImportResult) graphql.Marshaler {
-	return ec._CurlImportResult(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCurlImportResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐCurlImportResult(ctx context.Context, sel ast.SelectionSet, v *models.CurlImportResult) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._CurlImportResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpoint(ctx context.Context, sel ast.SelectionSet, v models.Endpoint) graphql.Marshaler {

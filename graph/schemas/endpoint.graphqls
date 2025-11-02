@@ -22,7 +22,7 @@ type Endpoint {
     httpCookiesMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
     httpBodyMy: MyString! @goField(forceResolver: true)
     match(regex: String!): SearchResult! @goField(forceResolver: true)
-    curl(variables: String): String! @goField(forceResolver: true)
+    # curl(variables: String): String! @goField(forceResolver: true)
     rid: Int! @goField(forceResolver: true)
     notes: [Note] @goField(forceResolver: true)
 }
@@ -53,22 +53,22 @@ input EndpointFilter {
     search: String
 }
 
-type CurlImportResult {
-    name: String!
-    programAlias: String!
-    description: String
-    httpSchema: HttpSchema!
-    httpMethod: HttpMethod!
-    httpDomain: String!
-    httpPort: Int
-    httpPath: VarString!
-    httpQueries: VarKVGroup!
-    httpHeaders: VarKVGroup!
-    httpCookies: VarKVGroup!
-    httpBody: VarString!
-    httpTimeout: Int
-    httpFollowRedirects: Boolean
-}
+# type CurlImportResult {
+#     name: String!
+#     programAlias: String!
+#     description: String
+#     httpSchema: HttpSchema!
+#     httpMethod: HttpMethod!
+#     httpDomain: String!
+#     httpPort: Int
+#     httpPath: VarString!
+#     httpQueries: VarKVGroup!
+#     httpHeaders: VarKVGroup!
+#     httpCookies: VarKVGroup!
+#     httpBody: VarString!
+#     httpTimeout: Int
+#     httpFollowRedirects: Boolean
+# }
 
 input PatchEndpoint {
     name: String
@@ -93,7 +93,7 @@ extend type Mutation {
     updateEndpoint(id: Int, alias: String, input: NewEndpoint!): Endpoint!
     patchEndpoint(id: Int, alias: String, input: PatchEndpoint!): Endpoint!
     deleteEndpoint(id: Int, alias: String): Endpoint!
-    importCurl(curl: String!): CurlImportResult! @goField(forceResolver: true)
+    # importCurl(curl: String!): CurlImportResult! @goField(forceResolver: true)
 }
 
 extend type Query {
