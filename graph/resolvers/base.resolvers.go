@@ -15,42 +15,46 @@ import (
 
 // NewTag is the resolver for the newTag field.
 func (r *mutationResolver) NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error) {
-	return services.TagCrud.Create(r.DB, &input)
+	return r.app.Services.TagService.Create(&input)
 }
 
 // UpdateTag is the resolver for the updateTag field.
 func (r *mutationResolver) UpdateTag(ctx context.Context, id *int, alias *string, input models.NewTag) (*models.Tag, error) {
-	return services.TagCrud.Update(r.DB.WithContext(ctx), &input, id)
+	return r.app.Services.TagService.Update(id, alias, &input)
 }
 
 // PatchTag is the resolver for the patchTag field.
 func (r *mutationResolver) PatchTag(ctx context.Context, id *int, alias *string, input models.PatchTag) (*models.Tag, error) {
-	updates := make(map[string]any)
-
-	if input.Name != nil && *input.Name != "" {
-		updates["name"] = *input.Name
+	// Note: TagService doesn't have Patch method yet, so using Update as workaround
+	input2 := models.NewTag{
+		Name:        "",
+		Alias:       "",
+		Description: "",
+		Priority:    0,
 	}
-	if input.Alias != nil && *input.Alias != "" {
-		updates["alias"] = *input.Alias
+	if input.Name != nil {
+		input2.Name = *input.Name
 	}
-	if input.Description != nil && *input.Description != "" {
-		updates["description"] = *input.Description
+	if input.Alias != nil {
+		input2.Alias = *input.Alias
+	}
+	if input.Description != nil {
+		input2.Description = *input.Description
 	}
 	if input.Priority != nil {
-		updates["priority"] = *input.Priority
+		input2.Priority = *input.Priority
 	}
-
-	return services.TagCrud.Patch(r.DB.WithContext(ctx), updates, id)
+	return r.app.Services.TagService.Update(id, alias, &input2)
 }
 
 // DeleteTag is the resolver for the deleteTag field.
 func (r *mutationResolver) DeleteTag(ctx context.Context, id *int, alias *string) (*models.Tag, error) {
-	return services.TagCrud.Delete(r.DB.WithContext(ctx), id)
+	return r.app.Services.TagService.Delete(id, alias)
 }
 
 // Tag is the resolver for the tag field.
 func (r *queryResolver) Tag(ctx context.Context, id *int, alias *string) (*models.Tag, error) {
-	return services.TagCrud.Get(r.DB.WithContext(ctx), id)
+	return r.app.Services.TagService.Get(id, alias)
 }
 
 // Tags is the resolver for the tags field.

@@ -1,38 +1,43 @@
 package services
 
 import (
-	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
 
 type endpointService struct {
 	GeneralCrud[models.NewEndpoint, models.Endpoint]
+	db      *gorm.DB
+	deducer Deducer
 }
 
-var EndpointService = endpointService{
-	GeneralCrud: GeneralCrud[models.NewEndpoint, models.Endpoint]{
-		transform: func(input *models.NewEndpoint) models.Endpoint {
-			return models.Endpoint{
-				Name:        input.Name,
-				Description: input.Description,
-				HttpSchema:  input.HttpSchema,
-				HttpMethod:  input.HttpMethod,
-				HttpDomain:  input.HttpDomain,
-				HttpPath:    input.HttpPath,
-				HttpQueries: input.HttpQueries,
-				HttpHeaders: input.HttpHeaders,
-				HttpCookies: input.HttpCookies,
-				HttpBody:    input.HttpBody,
-			}
+func newEndpointService(db *gorm.DB, deducer Deducer) *endpointService {
+	return &endpointService{
+		GeneralCrud: GeneralCrud[models.NewEndpoint, models.Endpoint]{
+			transform: func(input *models.NewEndpoint) models.Endpoint {
+				return models.Endpoint{
+					Name:        input.Name,
+					Description: input.Description,
+					HttpSchema:  input.HttpSchema,
+					HttpMethod:  input.HttpMethod,
+					HttpDomain:  input.HttpDomain,
+					HttpPath:    input.HttpPath,
+					HttpQueries: input.HttpQueries,
+					HttpHeaders: input.HttpHeaders,
+					HttpCookies: input.HttpCookies,
+					HttpBody:    input.HttpBody,
+				}
+			},
 		},
-	},
+		db:      db,
+		deducer: deducer,
+	}
 }
 
-func (es *endpointService) CreateEndpoint(app *app.App, db *gorm.DB, input *models.NewEndpoint) (*models.Endpoint, error) {
+func (es *endpointService) Create(input *models.NewEndpoint) (*models.Endpoint, error) {
 	// Find the program by alias
 	var program models.Program
-	err := db.Where("alias = ?", input.ProgramAlias).First(&program).Error
+	err := es.db.Where("alias = ?", input.ProgramAlias).First(&program).Error
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +47,7 @@ func (es *endpointService) CreateEndpoint(app *app.App, db *gorm.DB, input *mode
 	endpoint.ProgramId = program.Id
 
 	// Create the endpoint directly
-	err = db.Create(&endpoint).Error
+	err = es.db.Create(&endpoint).Error
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +55,8 @@ func (es *endpointService) CreateEndpoint(app *app.App, db *gorm.DB, input *mode
 	return &endpoint, nil
 }
 
-func (es *endpointService) ListEndpoints(app *app.App, db *gorm.DB, filter *models.EndpointFilter) ([]*models.Endpoint, error) {
-	query := db.Model(&models.Endpoint{})
+func (es *endpointService) List(filter *models.EndpointFilter) ([]*models.Endpoint, error) {
+	query := es.db.Model(&models.Endpoint{})
 
 	if filter != nil {
 		if filter.ProgramAlias != "" {
@@ -83,23 +88,39 @@ func (es *endpointService) ListEndpoints(app *app.App, db *gorm.DB, filter *mode
 	return results, err
 }
 
-func (es *endpointService) GetEndpointByID(app *app.App, db *gorm.DB, id int) (*models.Endpoint, error) {
-	var endpoint models.Endpoint
-	err := db.Preload("Program").First(&endpoint, id).Error
-	return &endpoint, err
+func (es *endpointService) Get(id *int, alias *string) (*models.Endpoint, error) {
+	if id != nil {
+		var endpoint models.Endpoint
+		err := es.db.Preload("Program").First(&endpoint, *id).Error
+		return &endpoint, err
+	}
+	if alias != nil {
+		var endpoint models.Endpoint
+		err := es.db.Preload("Program").Where("alias = ?", *alias).First(&endpoint).Error
+		return &endpoint, err
+	}
+	return nil, gorm.ErrRecordNotFound
 }
 
-func (es *endpointService) GetEndpointByAlias(app *app.App, db *gorm.DB, alias string) (*models.Endpoint, error) {
-	var endpoint models.Endpoint
-	err := db.Preload("Program").Where("alias = ?", alias).First(&endpoint).Error
-	return &endpoint, err
-}
+func (es *endpointService) Update(id *int, alias *string, input *models.NewEndpoint) (*models.Endpoint, error) {
+	var endpointId int
+	if id != nil {
+		endpointId = *id
+	} else if alias != nil {
+		var endpoint models.Endpoint
+		err := es.db.Where("alias = ?", *alias).First(&endpoint).Error
+		if err != nil {
+			return nil, err
+		}
+		endpointId = endpoint.Id
+	} else {
+		return nil, gorm.ErrRecordNotFound
+	}
 
-func (es *endpointService) UpdateEndpoint(app *app.App, db *gorm.DB, id int, input *models.NewEndpoint) (*models.Endpoint, error) {
 	// Find the program by alias if provided
 	if input.ProgramAlias != "" {
 		var program models.Program
-		err := db.Where("alias = ?", input.ProgramAlias).First(&program).Error
+		err := es.db.Where("alias = ?", input.ProgramAlias).First(&program).Error
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +129,7 @@ func (es *endpointService) UpdateEndpoint(app *app.App, db *gorm.DB, id int, inp
 		updates := map[string]interface{}{
 			"program_id": program.Id,
 		}
-		err = db.Model(&models.Endpoint{}).Where("id = ?", id).Updates(updates).Error
+		err = es.db.Model(&models.Endpoint{}).Where("id = ?", endpointId).Updates(updates).Error
 		if err != nil {
 			return nil, err
 		}
@@ -128,57 +149,35 @@ func (es *endpointService) UpdateEndpoint(app *app.App, db *gorm.DB, id int, inp
 		"http_body":    input.HttpBody,
 	}
 
-	err := db.Model(&models.Endpoint{}).Where("id = ?", id).Updates(updates).Error
+	err := es.db.Model(&models.Endpoint{}).Where("id = ?", endpointId).Updates(updates).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return es.GetEndpointByID(app, db, id)
+	return es.Get(&endpointId, nil)
 }
 
-func (es *endpointService) UpdateEndpointByAlias(app *app.App, db *gorm.DB, alias string, input *models.NewEndpoint) (*models.Endpoint, error) {
-	// Find endpoint by alias first
-	var endpoint models.Endpoint
-	err := db.Where("alias = ?", alias).First(&endpoint).Error
-	if err != nil {
-		return nil, err
+func (es *endpointService) Patch(id *int, alias *string, input *models.PatchEndpoint) (*models.Endpoint, error) {
+	var endpointId int
+	if id != nil {
+		endpointId = *id
+	} else if alias != nil {
+		var endpoint models.Endpoint
+		err := es.db.Where("alias = ?", *alias).First(&endpoint).Error
+		if err != nil {
+			return nil, err
+		}
+		endpointId = endpoint.Id
+	} else {
+		return nil, gorm.ErrRecordNotFound
 	}
 
-	// Use the existing UpdateEndpoint method
-	return es.UpdateEndpoint(app, db, endpoint.Id, input)
-}
-
-func (es *endpointService) PatchEndpointByAlias(app *app.App, db *gorm.DB, alias string, input *models.PatchEndpoint) (*models.Endpoint, error) {
-	// Find endpoint by alias first
-	var endpoint models.Endpoint
-	err := db.Where("alias = ?", alias).First(&endpoint).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Use the existing PatchEndpoint method
-	return es.PatchEndpoint(app, db, endpoint.Id, input)
-}
-
-func (es *endpointService) DeleteEndpointByAlias(app *app.App, db *gorm.DB, alias string) (*models.Endpoint, error) {
-	// Find endpoint by alias first
-	var endpoint models.Endpoint
-	err := db.Where("alias = ?", alias).First(&endpoint).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// Use the existing DeleteEndpoint method
-	return es.DeleteEndpoint(app, db, endpoint.Id)
-}
-
-func (es *endpointService) PatchEndpoint(app *app.App, db *gorm.DB, id int, input *models.PatchEndpoint) (*models.Endpoint, error) {
 	updates := make(map[string]any)
 
 	// Handle program alias separately
 	if input.ProgramAlias != nil && *input.ProgramAlias != "" {
 		var program models.Program
-		err := db.Where("alias = ?", *input.ProgramAlias).First(&program).Error
+		err := es.db.Where("alias = ?", *input.ProgramAlias).First(&program).Error
 		if err != nil {
 			return nil, err
 		}
@@ -231,16 +230,30 @@ func (es *endpointService) PatchEndpoint(app *app.App, db *gorm.DB, id int, inpu
 	}
 
 	// Use the GeneralCrud Patch method
-	return es.Patch(db, updates, &id)
+	return es.GeneralCrud.Patch(es.db, updates, &endpointId)
 }
 
-func (es *endpointService) DeleteEndpoint(app *app.App, db *gorm.DB, id int) (*models.Endpoint, error) {
+func (es *endpointService) Delete(id *int, alias *string) (*models.Endpoint, error) {
+	var endpointId int
+	if id != nil {
+		endpointId = *id
+	} else if alias != nil {
+		var endpoint models.Endpoint
+		err := es.db.Where("alias = ?", *alias).First(&endpoint).Error
+		if err != nil {
+			return nil, err
+		}
+		endpointId = endpoint.Id
+	} else {
+		return nil, gorm.ErrRecordNotFound
+	}
+
 	var endpoint models.Endpoint
-	err := db.First(&endpoint, id).Error
+	err := es.db.First(&endpoint, endpointId).Error
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.Delete(&endpoint).Error
+	err = es.db.Delete(&endpoint).Error
 	return &endpoint, err
 }

@@ -7,38 +7,45 @@ import (
 	"strings"
 	"time"
 
-	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/mystructs"
 	"gorm.io/gorm"
 )
 
-type myRequestService struct{}
+type myRequestService struct {
+	db      *gorm.DB
+	deducer Deducer
+}
 
-var MyRequestService = &myRequestService{}
+func newMyRequestService(db *gorm.DB, deducer Deducer) *myRequestService {
+	return &myRequestService{
+		db:      db,
+		deducer: deducer,
+	}
+}
 
-// CreateMyRequest creates a new MyRequest record
-func (mrs *myRequestService) CreateMyRequest(db *gorm.DB, request *models.MyRequest) (*models.MyRequest, error) {
-	if err := db.Create(request).Error; err != nil {
+// Create creates a new MyRequest record
+func (mrs *myRequestService) Create(request *models.MyRequest) (*models.MyRequest, error) {
+	if err := mrs.db.Create(request).Error; err != nil {
 		return nil, err
 	}
 	return request, nil
 }
 
-// GetMyRequestByID retrieves a MyRequest by ID
-func (mrs *myRequestService) GetMyRequestByID(db *gorm.DB, id *int) (*models.MyRequest, error) {
+// Get retrieves a MyRequest by ID
+func (mrs *myRequestService) Get(id *int) (*models.MyRequest, error) {
 	var request models.MyRequest
 	if id == nil {
 		return nil, gorm.ErrRecordNotFound
 	}
-	err := db.Preload("Program").Preload("Endpoint").First(&request, *id).Error
+	err := mrs.db.Preload("Program").Preload("Endpoint").First(&request, *id).Error
 	return &request, err
 }
 
-// ListMyRequests retrieves MyRequests with optional filtering
-func (mrs *myRequestService) ListMyRequests(db *gorm.DB, filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
+// List retrieves MyRequests with optional filtering
+func (mrs *myRequestService) List(filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
 	var requests []*models.MyRequest
-	query := db.Preload("Program").Preload("Endpoint")
+	query := mrs.db.Preload("Program").Preload("Endpoint")
 
 	if filter != nil {
 		if filter.ProgramId != 0 {
@@ -69,10 +76,10 @@ func (mrs *myRequestService) ListMyRequests(db *gorm.DB, filter *models.MyReques
 }
 
 // ExecuteCurl runs a curl command and captures the response
-func (mrs *myRequestService) ExecuteCurl(app *app.App, db *gorm.DB, endpointAlias string, variables mystructs.VarKVGroup) (*models.MyRequest, error) {
+func (mrs *myRequestService) ExecuteCurl(endpointAlias string, variables mystructs.VarKVGroup) (*models.MyRequest, error) {
 	// Find endpoint by alias
 	var endpoint models.Endpoint
-	err := db.Preload("Program").Where("alias = ?", endpointAlias).First(&endpoint).Error
+	err := mrs.db.Preload("Program").Where("alias = ?", endpointAlias).First(&endpoint).Error
 	if err != nil {
 		return nil, fmt.Errorf("endpoint with alias '%s' not found: %v", endpointAlias, err)
 	}
@@ -120,7 +127,7 @@ func (mrs *myRequestService) ExecuteCurl(app *app.App, db *gorm.DB, endpointAlia
 	}
 
 	// Save to database
-	return mrs.CreateMyRequest(db, request)
+	return mrs.Create(request)
 }
 
 // generateCurlCommand creates a curl command from endpoint and variables

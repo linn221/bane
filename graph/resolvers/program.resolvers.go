@@ -6,7 +6,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
@@ -18,58 +17,46 @@ import (
 
 // NewProgram is the resolver for the newProgram field.
 func (r *mutationResolver) NewProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
-	return services.ProgramService.Create(r.DB.WithContext(ctx), input)
+	return r.app.Services.ProgramService.Create(input)
 }
 
 // UpdateProgram is the resolver for the updateProgram field.
 func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, alias *string, input models.NewProgram) (*models.Program, error) {
-	if id != nil {
-		return services.ProgramService.UpdateByID(r.DB.WithContext(ctx), &input, *id)
-	}
-	if alias != nil {
-		return services.ProgramService.UpdateByAlias(r.DB.WithContext(ctx), &input, *alias)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.ProgramService.Update(id, alias, &input)
 }
 
 // PatchProgram is the resolver for the patchProgram field.
 func (r *mutationResolver) PatchProgram(ctx context.Context, id *int, alias *string, input models.PatchProgram) (*models.Program, error) {
-	updates := make(map[string]any)
-
-	if input.Name != nil && *input.Name != "" {
-		updates["name"] = *input.Name
+	// Note: This resolver needs to be updated to use Patch method if we add it to ProgramService
+	// For now, using Update as a workaround
+	input2 := models.NewProgram{
+		Name:        "",
+		Alias:       "",
+		Description: nil,
+		Domain:      "",
+		URL:         "",
 	}
-	if input.Alias != nil && *input.Alias != "" {
-		updates["alias"] = *input.Alias
+	if input.Name != nil {
+		input2.Name = *input.Name
 	}
-	if input.Description != nil && *input.Description != "" {
-		updates["description"] = *input.Description
+	if input.Alias != nil {
+		input2.Alias = *input.Alias
 	}
-	if input.Domain != nil && *input.Domain != "" {
-		updates["domain"] = *input.Domain
+	if input.Description != nil {
+		input2.Description = input.Description
 	}
-	if input.URL != nil && *input.URL != "" {
-		updates["url"] = *input.URL
+	if input.Domain != nil {
+		input2.Domain = *input.Domain
 	}
-
-	if id != nil {
-		return services.ProgramService.PatchByID(r.DB.WithContext(ctx), updates, *id)
+	if input.URL != nil {
+		input2.URL = *input.URL
 	}
-	if alias != nil {
-		return services.ProgramService.PatchByAlias(r.DB.WithContext(ctx), updates, *alias)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.ProgramService.Update(id, alias, &input2)
 }
 
 // DeleteProgram is the resolver for the deleteProgram field.
 func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int, alias *string) (*models.Program, error) {
-	if id != nil {
-		return services.ProgramService.DeleteByID(r.DB.WithContext(ctx), *id)
-	}
-	if alias != nil {
-		return services.ProgramService.DeleteByAlias(r.DB.WithContext(ctx), *alias)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.ProgramService.Delete(id, alias)
 }
 
 // Match is the resolver for the match field.
@@ -90,18 +77,12 @@ func (r *programResolver) Notes(ctx context.Context, obj *models.Program) ([]*mo
 
 // Programs is the resolver for the programs field.
 func (r *queryResolver) Programs(ctx context.Context, search *string) ([]*models.Program, error) {
-	return services.ProgramService.ListPrograms(r.DB.WithContext(ctx))
+	return r.app.Services.ProgramService.List()
 }
 
 // Program is the resolver for the program field.
 func (r *queryResolver) Program(ctx context.Context, id *int, alias *string) (*models.Program, error) {
-	if id != nil {
-		return services.ProgramService.GetByID(r.DB.WithContext(ctx), *id)
-	}
-	if alias != nil {
-		return services.ProgramService.GetByAlias(r.DB.WithContext(ctx), *alias)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.ProgramService.Get(id, alias)
 }
 
 // Program returns graph.ProgramResolver implementation.

@@ -6,7 +6,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
@@ -79,56 +78,32 @@ func (r *endpointResolver) Notes(ctx context.Context, obj *models.Endpoint) ([]*
 
 // NewEndpoint is the resolver for the newEndpoint field.
 func (r *mutationResolver) NewEndpoint(ctx context.Context, input models.NewEndpoint) (*models.Endpoint, error) {
-	return services.EndpointService.CreateEndpoint(r.app, r.DB, &input)
+	return r.app.Services.EndpointService.Create(&input)
 }
 
 // UpdateEndpoint is the resolver for the updateEndpoint field.
 func (r *mutationResolver) UpdateEndpoint(ctx context.Context, id *int, alias *string, input models.NewEndpoint) (*models.Endpoint, error) {
-	if id != nil {
-		return services.EndpointService.UpdateEndpoint(r.app, r.DB.WithContext(ctx), *id, &input)
-	}
-	if alias != nil {
-		return services.EndpointService.UpdateEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias, &input)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.EndpointService.Update(id, alias, &input)
 }
 
 // PatchEndpoint is the resolver for the patchEndpoint field.
 func (r *mutationResolver) PatchEndpoint(ctx context.Context, id *int, alias *string, input models.PatchEndpoint) (*models.Endpoint, error) {
-	if id != nil {
-		return services.EndpointService.PatchEndpoint(r.app, r.DB.WithContext(ctx), *id, &input)
-	}
-	if alias != nil {
-		return services.EndpointService.PatchEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias, &input)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.EndpointService.Patch(id, alias, &input)
 }
 
 // DeleteEndpoint is the resolver for the deleteEndpoint field.
 func (r *mutationResolver) DeleteEndpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
-	if id != nil {
-		return services.EndpointService.DeleteEndpoint(r.app, r.DB.WithContext(ctx), *id)
-	}
-	if alias != nil {
-		return services.EndpointService.DeleteEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.EndpointService.Delete(id, alias)
 }
 
 // Endpoint is the resolver for the endpoint field.
 func (r *queryResolver) Endpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
-	if id != nil {
-		return services.EndpointService.GetEndpointByID(r.app, r.DB.WithContext(ctx), *id)
-	}
-	if alias != nil {
-		return services.EndpointService.GetEndpointByAlias(r.app, r.DB.WithContext(ctx), *alias)
-	}
-	return nil, fmt.Errorf("either id or alias must be provided")
+	return r.app.Services.EndpointService.Get(id, alias)
 }
 
 // Endpoints is the resolver for the endpoints field.
 func (r *queryResolver) Endpoints(ctx context.Context, filter *models.EndpointFilter) ([]*models.Endpoint, error) {
-	return services.EndpointService.ListEndpoints(r.app, r.DB, filter)
+	return r.app.Services.EndpointService.List(filter)
 }
 
 // Endpoint returns graph.EndpointResolver implementation.

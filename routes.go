@@ -12,7 +12,6 @@ import (
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/resolvers"
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/services"
 	"github.com/linn221/bane/utils"
 	"github.com/linn221/bane/views"
 )
@@ -92,7 +91,7 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 			}
 
 			// Add words to wordlist
-			err = services.AddWordsToWordList(app.DB, wordListId, words)
+			err = app.Services.WordService.AddWordsToWordList(wordListId, words)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Failed to add words: %v", err), http.StatusInternalServerError)
 				return
@@ -112,7 +111,7 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 	mux.HandleFunc("GET /memory-sheets", func(w http.ResponseWriter, r *http.Request) {
 		// Get all memory sheets for today
 		today := utils.Today()
-		memorySheets, err := services.GetTodayNotes(app.DB, today)
+		memorySheets, err := app.Services.MemorySheetService.GetTodayNotes(today)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to get memory sheets: %v", err), http.StatusInternalServerError)
 			return
@@ -171,7 +170,7 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 		}
 
 		// Save to database
-		_, err = services.MemorySheetCrud.Create(app.DB, newMemorySheet)
+		_, err = app.Services.MemorySheetService.Create(newMemorySheet)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to create memory sheet: %v", err), http.StatusInternalServerError)
 			return

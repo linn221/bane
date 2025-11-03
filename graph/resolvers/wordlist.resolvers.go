@@ -10,18 +10,17 @@ import (
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/services"
 	"github.com/linn221/bane/utils"
 )
 
 // NewWord is the resolver for the newWord field.
 func (r *mutationResolver) NewWord(ctx context.Context, input models.NewWord) (*models.Word, error) {
-	return services.WordCrud.Create(r.DB.WithContext(ctx), &input)
+	return r.app.Services.WordService.CreateWord(&input)
 }
 
 // UpdateWord is the resolver for the updateWord field.
 func (r *mutationResolver) UpdateWord(ctx context.Context, id *int, alias *string, input models.NewWord) (*models.Word, error) {
-	return services.WordCrud.Update(r.DB.WithContext(ctx), &input, id)
+	return r.app.Services.WordService.UpdateWord(id, alias, &input)
 }
 
 // PatchWord is the resolver for the patchWord field.
@@ -38,22 +37,22 @@ func (r *mutationResolver) PatchWord(ctx context.Context, id *int, alias *string
 		updates["description"] = *input.Description
 	}
 
-	return services.WordCrud.Patch(r.DB.WithContext(ctx), updates, id)
+	return r.app.Services.WordService.PatchWord(id, alias, updates)
 }
 
 // DeleteWord is the resolver for the deleteWord field.
 func (r *mutationResolver) DeleteWord(ctx context.Context, id *int, alias *string) (*models.Word, error) {
-	return services.WordCrud.Delete(r.DB.WithContext(ctx), id)
+	return r.app.Services.WordService.DeleteWord(id, alias)
 }
 
 // NewWordList is the resolver for the newWordList field.
 func (r *mutationResolver) NewWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error) {
-	return services.WordListCrud.Create(r.DB.WithContext(ctx), &input)
+	return r.app.Services.WordService.CreateWordList(&input)
 }
 
 // UpdateWordList is the resolver for the updateWordList field.
 func (r *mutationResolver) UpdateWordList(ctx context.Context, id *int, alias *string, input models.NewWordList) (*models.WordList, error) {
-	return services.WordListCrud.Update(r.DB.WithContext(ctx), &input, id)
+	return r.app.Services.WordService.UpdateWordList(id, alias, &input)
 }
 
 // PatchWordList is the resolver for the patchWordList field.
@@ -67,17 +66,17 @@ func (r *mutationResolver) PatchWordList(ctx context.Context, id *int, alias *st
 		updates["description"] = *input.Description
 	}
 
-	return services.WordListCrud.Patch(r.DB.WithContext(ctx), updates, id)
+	return r.app.Services.WordService.PatchWordList(id, alias, updates)
 }
 
 // DeleteWordList is the resolver for the deleteWordList field.
 func (r *mutationResolver) DeleteWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
-	return services.WordListCrud.Delete(r.DB.WithContext(ctx), id)
+	return r.app.Services.WordService.DeleteWordList(id, alias)
 }
 
 // Word is the resolver for the word field.
 func (r *queryResolver) Word(ctx context.Context, id *int, alias *string) (*models.Word, error) {
-	return services.WordCrud.Get(r.DB.WithContext(ctx), id)
+	return r.app.Services.WordService.GetWord(id, alias)
 }
 
 // Words is the resolver for the words field.
@@ -96,7 +95,7 @@ func (r *queryResolver) Words(ctx context.Context, search *string) ([]*models.Wo
 
 // WordList is the resolver for the wordList field.
 func (r *queryResolver) WordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
-	return services.WordListCrud.Get(r.DB.WithContext(ctx), id)
+	return r.app.Services.WordService.GetWordList(id, alias)
 }
 
 // WordLists is the resolver for the wordLists field.

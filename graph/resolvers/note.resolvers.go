@@ -15,12 +15,12 @@ import (
 
 // NewNote is the resolver for the newNote field.
 func (r *mutationResolver) NewNote(ctx context.Context, input *models.NewNote) (*models.Note, error) {
-	return services.NoteService.CreateNote(r.app, r.DB.WithContext(ctx), input)
+	return r.app.Services.NoteService.Create(input)
 }
 
 // DelNote is the resolver for the delNote field.
 func (r *mutationResolver) DelNote(ctx context.Context, id int) (*models.Note, error) {
-	return services.NoteService.Delete(r.DB.WithContext(ctx), &id)
+	return r.app.Services.NoteService.Delete(&id)
 }
 
 // Match is the resolver for the match field.
@@ -30,7 +30,7 @@ func (r *noteResolver) Match(ctx context.Context, obj *models.Note, regex string
 
 // Notes is the resolver for the notes field.
 func (r *queryResolver) Notes(ctx context.Context, filter *models.NoteFilter) ([]*models.Note, error) {
-	return services.NoteService.ListNotes(r.app, r.DB.WithContext(ctx), filter)
+	return r.app.Services.NoteService.List(filter)
 }
 
 // Note returns graph.NoteResolver implementation.

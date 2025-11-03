@@ -39,60 +39,82 @@ func ListPrograms(db *gorm.DB, search *string) ([]*models.AllProgram, error) {
 
 type programService struct {
 	GeneralCrud[models.NewProgram, models.Program]
+	db *gorm.DB
 }
 
-var ProgramService = programService{
-	GeneralCrud: GeneralCrud[models.NewProgram, models.Program]{
-		transform: func(input *models.NewProgram) models.Program {
-			return models.Program{
-				Alias:       input.Alias,
-				Name:        input.Name,
-				Url:         input.URL,
-				Description: utils.SafeDeref(input.Description),
-				Domain:      input.Domain,
-			}
+func newProgramService(db *gorm.DB) *programService {
+	return &programService{
+		GeneralCrud: GeneralCrud[models.NewProgram, models.Program]{
+			transform: func(input *models.NewProgram) models.Program {
+				return models.Program{
+					Alias:       input.Alias,
+					Name:        input.Name,
+					Url:         input.URL,
+					Description: utils.SafeDeref(input.Description),
+					Domain:      input.Domain,
+				}
+			},
+			updates: func(existing models.Program, input *models.NewProgram) map[string]any {
+				return map[string]any{
+					"Alias":       input.Alias,
+					"Name":        input.Name,
+					"Url":         input.URL,
+					"Description": utils.SafeDeref(input.Description),
+					"Domain":      input.Domain,
+				}
+			},
+			validateWrite: func(db *gorm.DB, input *models.NewProgram, id int) error {
+				return validate.Validate(db,
+					validate.NewUniqueRule("programs", "name", input.Name, nil).Except(id).Say("duplicate program name"),
+					validate.NewUniqueRule("programs", "alias", input.Alias, nil).Except(id).Say("duplicate program alias"))
+			},
+			validateDelete: func(db *gorm.DB, existing models.Program) error {
+				return nil
+			},
 		},
-		updates: func(existing models.Program, input *models.NewProgram) map[string]any {
-			return map[string]any{
-				"Alias":       input.Alias,
-				"Name":        input.Name,
-				"Url":         input.URL,
-				"Description": utils.SafeDeref(input.Description),
-				"Domain":      input.Domain,
-			}
-		},
-		validateWrite: func(db *gorm.DB, input *models.NewProgram, id int) error {
-			return validate.Validate(db,
-				validate.NewUniqueRule("programs", "name", input.Name, nil).Except(id).Say("duplicate program name"),
-				validate.NewUniqueRule("programs", "alias", input.Alias, nil).Except(id).Say("duplicate program alias"))
-		},
-		validateDelete: func(db *gorm.DB, existing models.Program) error {
-			return nil
-		},
-	},
+		db: db,
+	}
 }
 
-func (crud *programService) ListPrograms(db *gorm.DB) ([]*models.Program, error) {
+func (ps *programService) Create(input *models.NewProgram) (*models.Program, error) {
+	return ps.GeneralCrud.Create(ps.db, input)
+}
+
+func (ps *programService) Get(id *int, alias *string) (*models.Program, error) {
+	if id != nil {
+		return ps.GeneralCrud.Get(ps.db, id)
+	}
+	if alias != nil {
+		return ps.GeneralCrud.GetByAlias(ps.db, *alias)
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+
+func (ps *programService) List() ([]*models.Program, error) {
 	var results []*models.Program
-	if err := db.Find(&results).Error; err != nil {
+	if err := ps.db.Find(&results).Error; err != nil {
 		return nil, err
 	}
 
 	return results, nil
 }
 
-func (crud *programService) UpdateByID(tx *gorm.DB, input *models.NewProgram, id int) (*models.Program, error) {
-	return crud.Update(tx, input, &id)
+func (ps *programService) Update(id *int, alias *string, input *models.NewProgram) (*models.Program, error) {
+	if id != nil {
+		return ps.GeneralCrud.Update(ps.db, input, id)
+	}
+	if alias != nil {
+		return ps.GeneralCrud.UpdateByAlias(ps.db, input, *alias)
+	}
+	return nil, gorm.ErrRecordNotFound
 }
 
-func (crud *programService) PatchByID(tx *gorm.DB, updates map[string]any, id int) (*models.Program, error) {
-	return crud.Patch(tx, updates, &id)
-}
-
-func (crud *programService) DeleteByID(tx *gorm.DB, id int) (*models.Program, error) {
-	return crud.Delete(tx, &id)
-}
-
-func (crud *programService) GetByID(db *gorm.DB, id int) (*models.Program, error) {
-	return crud.Get(db, &id)
+func (ps *programService) Delete(id *int, alias *string) (*models.Program, error) {
+	if id != nil {
+		return ps.GeneralCrud.Delete(ps.db, id)
+	}
+	if alias != nil {
+		return ps.GeneralCrud.DeleteByAlias(ps.db, *alias)
+	}
+	return nil, gorm.ErrRecordNotFound
 }

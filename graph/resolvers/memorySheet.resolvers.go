@@ -6,11 +6,11 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/services"
 	"github.com/linn221/bane/utils"
 )
 
@@ -41,12 +41,12 @@ func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet
 
 // NewMemorySheet is the resolver for the newMemorySheet field.
 func (r *mutationResolver) NewMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error) {
-	return services.MemorySheetCrud.Create(r.DB.WithContext(ctx), &input)
+	return r.app.Services.MemorySheetService.Create(&input)
 }
 
 // UpdateMemorySheet is the resolver for the updateMemorySheet field.
 func (r *mutationResolver) UpdateMemorySheet(ctx context.Context, id *int, alias *string, input models.NewMemorySheet) (*models.MemorySheet, error) {
-	return services.MemorySheetCrud.Update(r.DB.WithContext(ctx), &input, id)
+	return r.app.Services.MemorySheetService.Update(id, alias, &input)
 }
 
 // PatchMemorySheet is the resolver for the patchMemorySheet field.
@@ -60,17 +60,23 @@ func (r *mutationResolver) PatchMemorySheet(ctx context.Context, id *int, alias 
 		updates["current_date"] = input.Date.Time
 	}
 
-	return services.MemorySheetCrud.Patch(r.DB.WithContext(ctx), updates, id)
+	return r.app.Services.MemorySheetService.Patch(id, alias, updates)
 }
 
 // DeleteMemorySheet is the resolver for the deleteMemorySheet field.
 func (r *mutationResolver) DeleteMemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error) {
-	return services.MemorySheetCrud.Delete(r.DB.WithContext(ctx), id)
+	return r.app.Services.MemorySheetService.Delete(id, alias)
 }
 
 // MemorySheet is the resolver for the memorySheet field.
 func (r *queryResolver) MemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error) {
-	return services.MemorySheetCrud.Get(r.DB.WithContext(ctx), id)
+	if id == nil && alias == nil {
+		return nil, fmt.Errorf("either id or alias must be provided")
+	}
+	if id != nil {
+		return r.app.Services.MemorySheetService.Get(id)
+	}
+	return nil, fmt.Errorf("alias lookup not yet implemented for MemorySheetService")
 }
 
 // MSheets is the resolver for the mSheets field.
@@ -81,29 +87,7 @@ func (r *queryResolver) MSheets(ctx context.Context, date *models.MyDate) ([]*mo
 		date = &v
 	}
 
-	nextSheets, err := getMemorySheetsByNextDate(r.DB.WithContext(ctx), date.Time)
-	if err != nil {
-		return nil, err
-	}
-	if len(nextSheets) > 0 {
-		tx := r.DB.WithContext(ctx).Begin()
-		defer tx.Rollback()
-		for _, nSheet := range nextSheets {
-			id := nSheet.Id
-			_, err := services.MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, &id)
-			if err != nil {
-				return nil, err
-			}
-		}
-		if err := tx.Commit().Error; err != nil {
-			return nil, err
-		}
-	}
-	currentSheets, err := getMemorySheetsByCurrentDate(r.DB.WithContext(ctx), date.Time)
-	if err != nil {
-		return nil, err
-	}
-	return currentSheets, err
+	return r.app.Services.MemorySheetService.GetTodayNotes(date.Time)
 }
 
 // NextDay is the resolver for the nextDay field.

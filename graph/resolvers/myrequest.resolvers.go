@@ -10,7 +10,6 @@ import (
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/mystructs"
-	"github.com/linn221/bane/services"
 )
 
 // RunCurl is the resolver for the runCurl field.
@@ -25,7 +24,7 @@ func (r *mutationResolver) RunCurl(ctx context.Context, endpointAlias string, va
 		valVS, _ := mystructs.NewVarString(p.Value)
 		vkg.VarKVs = append(vkg.VarKVs, mystructs.VarKV{Key: *keyVS, Value: *valVS})
 	}
-	return services.MyRequestService.ExecuteCurl(r.app, r.DB.WithContext(ctx), endpointAlias, vkg)
+	return r.app.Services.MyRequestService.ExecuteCurl(endpointAlias, vkg)
 }
 
 // Program is the resolver for the program field.
@@ -49,12 +48,12 @@ func (r *myRequestResolver) ExecutedAt(ctx context.Context, obj *models.MyReques
 
 // MyRequests is the resolver for the myRequests field.
 func (r *queryResolver) MyRequests(ctx context.Context, filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
-	return services.MyRequestService.ListMyRequests(r.DB.WithContext(ctx), filter)
+	return r.app.Services.MyRequestService.List(filter)
 }
 
 // MyRequest is the resolver for the myRequest field.
 func (r *queryResolver) MyRequest(ctx context.Context, id int) (*models.MyRequest, error) {
-	return services.MyRequestService.GetMyRequestByID(r.DB.WithContext(ctx), &id)
+	return r.app.Services.MyRequestService.Get(&id)
 }
 
 // MyRequest returns graph.MyRequestResolver implementation.

@@ -13,16 +13,97 @@ func GetNextDate(currentDate time.Time, index int) time.Time {
 	i := min(index, len(intervals)-1)
 	return currentDate.AddDate(0, 0, intervals[i])
 }
-func GetTodayNotes(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, error) {
-	nextSheets, err := getMemorySheetsByNextDate(db, currentDate)
+
+type memorySheetService struct {
+	GeneralCrud[models.NewMemorySheet, models.MemorySheet]
+	db *gorm.DB
+}
+
+func newMemorySheetService(db *gorm.DB) *memorySheetService {
+	return &memorySheetService{
+		GeneralCrud: GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
+			transform: func(input *models.NewMemorySheet) models.MemorySheet {
+				result := models.MemorySheet{
+					Value: input.Value,
+				}
+				result.CreateDate = utils.Today()
+				result.CurrentDate = result.CreateDate
+				result.NextDate = result.CurrentDate.AddDate(0, 0, 1)
+				return result
+			},
+			updates: func(existing models.MemorySheet, input *models.NewMemorySheet) map[string]any {
+				updates := map[string]any{}
+
+				if input.UpdateNextDate {
+					currentDate := existing.NextDate
+					nextDate := GetNextDate(currentDate, existing.Index+1)
+					// NextDate has moved for the note
+					updates["CurrentDate"] = currentDate
+					updates["NextDate"] = nextDate
+					updates["Index"] = existing.Index + 1
+				} else { // normal update coming from graphql
+					if input.Value != "" {
+						updates["Value"] = input.Value
+					}
+				}
+				return updates
+			},
+		},
+		db: db,
+	}
+}
+
+func (mss *memorySheetService) Create(input *models.NewMemorySheet) (*models.MemorySheet, error) {
+	return mss.GeneralCrud.Create(mss.db, input)
+}
+
+func (mss *memorySheetService) Get(id *int) (*models.MemorySheet, error) {
+	if id == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return mss.GeneralCrud.Get(mss.db, id)
+}
+
+func (mss *memorySheetService) Update(id *int, alias *string, input *models.NewMemorySheet) (*models.MemorySheet, error) {
+	if id != nil {
+		return mss.GeneralCrud.Update(mss.db, input, id)
+	}
+	if alias != nil {
+		return mss.GeneralCrud.UpdateByAlias(mss.db, input, *alias)
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+
+func (mss *memorySheetService) Patch(id *int, alias *string, updates map[string]any) (*models.MemorySheet, error) {
+	if id != nil {
+		return mss.GeneralCrud.Patch(mss.db, updates, id)
+	}
+	if alias != nil {
+		return mss.GeneralCrud.PatchByAlias(mss.db, updates, *alias)
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+
+func (mss *memorySheetService) Delete(id *int, alias *string) (*models.MemorySheet, error) {
+	if id != nil {
+		return mss.GeneralCrud.Delete(mss.db, id)
+	}
+	if alias != nil {
+		return mss.GeneralCrud.DeleteByAlias(mss.db, *alias)
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+
+func (mss *memorySheetService) GetTodayNotes(currentDate time.Time) ([]*models.MemorySheet, error) {
+	nextSheets, err := getMemorySheetsByNextDate(mss.db, currentDate)
 	if err != nil {
 		return nil, err
 	}
-	tx := db.Begin()
+	tx := mss.db.Begin()
 	defer tx.Rollback()
 	for _, nSheet := range nextSheets {
 		id := nSheet.Id
-		_, err := MemorySheetCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, &id)
+		_, err := mss.GeneralCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, &id)
 		if err != nil {
 			return nil, err
 		}
@@ -35,38 +116,6 @@ func GetTodayNotes(db *gorm.DB, currentDate time.Time) ([]*models.MemorySheet, e
 		return nil, err
 	}
 	return currentSheets, err
-}
-
-var MemorySheetCrud = GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
-	transform: func(input *models.NewMemorySheet) models.MemorySheet {
-		result := models.MemorySheet{
-			Value: input.Value,
-		}
-		result.CreateDate = utils.Today()
-		result.CurrentDate = result.CreateDate
-		result.NextDate = result.CurrentDate.AddDate(0, 0, 1)
-		return result
-	},
-	updates: func(existing models.MemorySheet, input *models.NewMemorySheet) map[string]any {
-		updates := map[string]any{}
-
-		if input.UpdateNextDate {
-			currentDate := existing.NextDate
-			nextDate := GetNextDate(currentDate, existing.Index+1)
-			// NextDate has moved for the note
-			updates["CurrentDate"] = currentDate
-			updates["NextDate"] = nextDate
-			updates["Index"] = existing.Index + 1
-		} else { // normal update coming from graphql
-			if input.Value != "" {
-				updates["Value"] = input.Value
-			}
-		}
-		return updates
-	},
-	// ValidateWrite: func(db *gorm.DB, input models.NewMemorySheet, id int) error {
-	// 	return input.Validate(db, id)
-	// },
 }
 
 func getMemorySheetsByNextDate(db *gorm.DB, nextDate time.Time) ([]*models.MemorySheet, error) {
