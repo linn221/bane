@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -240,4 +241,65 @@ func (t *TaggableType) UnmarshalGQL(i interface{}) error {
 		return errors.New("invalid taggable type")
 	}
 	return nil
+}
+
+type KVString struct {
+	Key   string
+	Value string
+}
+
+// TaggableType GraphQL methods
+func (t KVString) MarshalGQL(w io.Writer) {
+	w.Write([]byte(strconv.Quote(fmt.Sprintf("%s:%v", t.Key, t.Value))))
+}
+
+func (t *KVString) UnmarshalGQL(i interface{}) error {
+	str, ok := i.(string)
+	if !ok {
+		return errors.New("kvstring type must be string")
+	}
+	sepIndex := strings.Index(str, ":")
+	if sepIndex == -1 {
+		return errors.New("invalid string")
+	}
+	key := str[:sepIndex]
+	value := str[sepIndex:]
+	t.Key = key
+	t.Value = value
+	return nil
+}
+
+type KVInt struct {
+	Key   string
+	Value int
+}
+
+// TaggableType GraphQL methods
+func (t KVInt) MarshalGQL(w io.Writer) {
+	w.Write([]byte(strconv.Quote(fmt.Sprintf("%s:%v", t.Key, t.Value))))
+}
+
+func (t *KVInt) UnmarshalGQL(i interface{}) error {
+	str, ok := i.(string)
+	if !ok {
+		return errors.New("kvstring type must be string")
+	}
+	sepIndex := strings.Index(str, ":")
+	if sepIndex == -1 {
+		return errors.New("invalid string")
+	}
+	key := str[:sepIndex]
+	value := str[sepIndex:]
+	valueInt, err := strconv.Atoi(value)
+	if err != nil {
+		return errors.New("error converting the int")
+	}
+	t.Key = key
+	t.Value = valueInt
+	return nil
+}
+
+type PatchInput struct {
+	Values    []KVString `json:"values,omitempty"`
+	ValuesInt []KVInt    `json:"valuesInt,omitempty"`
 }

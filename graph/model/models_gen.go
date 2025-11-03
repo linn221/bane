@@ -6,10 +6,6 @@ import (
 	"github.com/linn221/bane/models"
 )
 
-type Download struct {
-	URL string `json:"url"`
-}
-
 type Mutation struct {
 }
 

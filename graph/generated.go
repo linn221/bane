@@ -50,9 +50,9 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	QueryResult() QueryResultResolver
 	SQL() SQLResolver
-	Tag() TagResolver
 	TodayMemorySheet() TodayMemorySheetResolver
 	WordList() WordListResolver
+	NewProgram() NewProgramResolver
 }
 
 type DirectiveRoot struct {
@@ -65,10 +65,6 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
-	Download struct {
-		URL func(childComplexity int) int
-	}
-
 	Endpoint struct {
 		Alias               func(childComplexity int) int
 		Description         func(childComplexity int) int
@@ -78,14 +74,11 @@ type ComplexityRoot struct {
 		HTTPPathMy          func(childComplexity int, sep *string) int
 		HTTPQueriesMy       func(childComplexity int, sep *string, limit *int) int
 		HttpBody            func(childComplexity int) int
-		HttpCookies         func(childComplexity int) int
 		HttpDomain          func(childComplexity int) int
 		HttpFollowRedirects func(childComplexity int) int
-		HttpHeaders         func(childComplexity int) int
 		HttpMethod          func(childComplexity int) int
 		HttpPath            func(childComplexity int) int
 		HttpPort            func(childComplexity int) int
-		HttpQueries         func(childComplexity int) int
 		HttpSchema          func(childComplexity int) int
 		HttpTimeout         func(childComplexity int) int
 		Id                  func(childComplexity int) int
@@ -112,7 +105,7 @@ type ComplexityRoot struct {
 		DeleteEndpoint    func(childComplexity int, id *int, alias *string) int
 		DeleteMemorySheet func(childComplexity int, id *int, alias *string) int
 		DeleteProgram     func(childComplexity int, id *int, alias *string) int
-		DeleteTag         func(childComplexity int, id *int, alias *string) int
+		DeleteTag         func(childComplexity int, a string) int
 		DeleteWord        func(childComplexity int, id *int, alias *string) int
 		DeleteWordList    func(childComplexity int, id *int, alias *string) int
 		Helloworld        func(childComplexity int) int
@@ -126,7 +119,7 @@ type ComplexityRoot struct {
 		PatchEndpoint     func(childComplexity int, id *int, alias *string, input models.PatchEndpoint) int
 		PatchMemorySheet  func(childComplexity int, id *int, alias *string, input models.PatchMemorySheet) int
 		PatchProgram      func(childComplexity int, id *int, alias *string, input models.PatchProgram) int
-		PatchTag          func(childComplexity int, id *int, alias *string, input models.PatchTag) int
+		PatchTag          func(childComplexity int, a string, patch models.PatchInput) int
 		PatchWord         func(childComplexity int, id *int, alias *string, input models.PatchWord) int
 		PatchWordList     func(childComplexity int, id *int, alias *string, input models.PatchWordList) int
 		Raw               func(childComplexity int, sql string) int
@@ -134,7 +127,6 @@ type ComplexityRoot struct {
 		UpdateEndpoint    func(childComplexity int, id *int, alias *string, input models.NewEndpoint) int
 		UpdateMemorySheet func(childComplexity int, id *int, alias *string, input models.NewMemorySheet) int
 		UpdateProgram     func(childComplexity int, id *int, alias *string, input models.NewProgram) int
-		UpdateTag         func(childComplexity int, id *int, alias *string, input models.NewTag) int
 		UpdateWord        func(childComplexity int, id *int, alias *string, input models.NewWord) int
 		UpdateWordList    func(childComplexity int, id *int, alias *string, input models.NewWordList) int
 	}
@@ -175,7 +167,6 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		Domain      func(childComplexity int) int
 		Id          func(childComplexity int) int
-		Match       func(childComplexity int, regex string) int
 		Name        func(childComplexity int) int
 		Notes       func(childComplexity int) int
 		Rid         func(childComplexity int) int
@@ -194,7 +185,7 @@ type ComplexityRoot struct {
 		Program     func(childComplexity int, id *int, alias *string) int
 		Programs    func(childComplexity int, search *string) int
 		Raw         func(childComplexity int, sql string) int
-		Tag         func(childComplexity int, id *int, alias *string) int
+		Tag         func(childComplexity int, a string) int
 		Tags        func(childComplexity int, search *string) int
 		Word        func(childComplexity int, id *int, alias *string) int
 		WordList    func(childComplexity int, id *int, alias *string) int
@@ -228,7 +219,6 @@ type ComplexityRoot struct {
 		Alias       func(childComplexity int) int
 		Description func(childComplexity int) int
 		Id          func(childComplexity int) int
-		Match       func(childComplexity int, regex string) int
 		Name        func(childComplexity int) int
 	}
 
@@ -280,9 +270,8 @@ type MemorySheetResolver interface {
 type MutationResolver interface {
 	Helloworld(ctx context.Context) (string, error)
 	NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
-	UpdateTag(ctx context.Context, id *int, alias *string, input models.NewTag) (*models.Tag, error)
-	PatchTag(ctx context.Context, id *int, alias *string, input models.PatchTag) (*models.Tag, error)
-	DeleteTag(ctx context.Context, id *int, alias *string) (*models.Tag, error)
+	PatchTag(ctx context.Context, a string, patch models.PatchInput) (*models.Tag, error)
+	DeleteTag(ctx context.Context, a string) (*models.Tag, error)
 	NewEndpoint(ctx context.Context, input models.NewEndpoint) (*models.Endpoint, error)
 	UpdateEndpoint(ctx context.Context, id *int, alias *string, input models.NewEndpoint) (*models.Endpoint, error)
 	PatchEndpoint(ctx context.Context, id *int, alias *string, input models.PatchEndpoint) (*models.Endpoint, error)
@@ -319,13 +308,12 @@ type NoteResolver interface {
 	Match(ctx context.Context, obj *models.Note, regex string) (*model.SearchResult, error)
 }
 type ProgramResolver interface {
-	Match(ctx context.Context, obj *models.Program, regex string) (*model.SearchResult, error)
 	Rid(ctx context.Context, obj *models.Program) (int, error)
 	Notes(ctx context.Context, obj *models.Program) ([]*models.Note, error)
 }
 type QueryResolver interface {
 	Helloworld(ctx context.Context) (string, error)
-	Tag(ctx context.Context, id *int, alias *string) (*models.Tag, error)
+	Tag(ctx context.Context, a string) (*models.Tag, error)
 	Tags(ctx context.Context, search *string) ([]*models.Tag, error)
 	Endpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error)
 	Endpoints(ctx context.Context, filter *models.EndpointFilter) ([]*models.Endpoint, error)
@@ -351,9 +339,6 @@ type SQLResolver interface {
 	Del(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 	Count(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 }
-type TagResolver interface {
-	Match(ctx context.Context, obj *models.Tag, regex string) (*model.SearchResult, error)
-}
 type TodayMemorySheetResolver interface {
 	NextDay(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 	NextMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
@@ -362,6 +347,10 @@ type TodayMemorySheetResolver interface {
 }
 type WordListResolver interface {
 	ImportURL(ctx context.Context, obj *models.WordList) (*string, error)
+}
+
+type NewProgramResolver interface {
+	Tags(ctx context.Context, obj *models.NewProgram, data []string) error
 }
 
 type executableSchema struct {
@@ -401,13 +390,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AllWordList.Name(childComplexity), true
-
-	case "Download.url":
-		if e.complexity.Download.URL == nil {
-			break
-		}
-
-		return e.complexity.Download.URL(childComplexity), true
 
 	case "Endpoint.alias":
 		if e.complexity.Endpoint.Alias == nil {
@@ -477,12 +459,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Endpoint.HttpBody(childComplexity), true
-	case "Endpoint.httpCookies":
-		if e.complexity.Endpoint.HttpCookies == nil {
-			break
-		}
-
-		return e.complexity.Endpoint.HttpCookies(childComplexity), true
 	case "Endpoint.httpDomain":
 		if e.complexity.Endpoint.HttpDomain == nil {
 			break
@@ -495,12 +471,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Endpoint.HttpFollowRedirects(childComplexity), true
-	case "Endpoint.httpHeaders":
-		if e.complexity.Endpoint.HttpHeaders == nil {
-			break
-		}
-
-		return e.complexity.Endpoint.HttpHeaders(childComplexity), true
 	case "Endpoint.httpMethod":
 		if e.complexity.Endpoint.HttpMethod == nil {
 			break
@@ -519,12 +489,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Endpoint.HttpPort(childComplexity), true
-	case "Endpoint.httpQueries":
-		if e.complexity.Endpoint.HttpQueries == nil {
-			break
-		}
-
-		return e.complexity.Endpoint.HttpQueries(childComplexity), true
 	case "Endpoint.httpSchema":
 		if e.complexity.Endpoint.HttpSchema == nil {
 			break
@@ -682,7 +646,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTag(childComplexity, args["id"].(*int), args["alias"].(*string)), true
+		return e.complexity.Mutation.DeleteTag(childComplexity, args["a"].(string)), true
 	case "Mutation.deleteWord":
 		if e.complexity.Mutation.DeleteWord == nil {
 			break
@@ -831,7 +795,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PatchTag(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.PatchTag)), true
+		return e.complexity.Mutation.PatchTag(childComplexity, args["a"].(string), args["patch"].(models.PatchInput)), true
 	case "Mutation.patchWord":
 		if e.complexity.Mutation.PatchWord == nil {
 			break
@@ -909,17 +873,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateProgram(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewProgram)), true
-	case "Mutation.updateTag":
-		if e.complexity.Mutation.UpdateTag == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateTag_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateTag(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewTag)), true
 	case "Mutation.updateWord":
 		if e.complexity.Mutation.UpdateWord == nil {
 			break
@@ -1124,17 +1077,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Program.Id(childComplexity), true
-	case "Program.match":
-		if e.complexity.Program.Match == nil {
-			break
-		}
-
-		args, err := ec.field_Program_match_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Program.Match(childComplexity, args["regex"].(string)), true
 	case "Program.name":
 		if e.complexity.Program.Name == nil {
 			break
@@ -1286,7 +1228,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.Tag(childComplexity, args["id"].(*int), args["alias"].(*string)), true
+		return e.complexity.Query.Tag(childComplexity, args["a"].(string)), true
 	case "Query.tags":
 		if e.complexity.Query.Tags == nil {
 			break
@@ -1450,17 +1392,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Tag.Id(childComplexity), true
-	case "Tag.match":
-		if e.complexity.Tag.Match == nil {
-			break
-		}
-
-		args, err := ec.field_Tag_match_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Tag.Match(childComplexity, args["regex"].(string)), true
 	case "Tag.name":
 		if e.complexity.Tag.Name == nil {
 			break
@@ -1592,9 +1523,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewWordList,
 		ec.unmarshalInputNoteFilter,
 		ec.unmarshalInputPatchEndpoint,
+		ec.unmarshalInputPatchInput,
 		ec.unmarshalInputPatchMemorySheet,
 		ec.unmarshalInputPatchProgram,
-		ec.unmarshalInputPatchTag,
 		ec.unmarshalInputPatchWord,
 		ec.unmarshalInputPatchWordList,
 	)
@@ -1854,16 +1785,11 @@ func (ec *executionContext) field_Mutation_deleteProgram_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_deleteTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
+	args["a"] = arg0
 	return args, nil
 }
 
@@ -2042,21 +1968,16 @@ func (ec *executionContext) field_Mutation_patchProgram_args(ctx context.Context
 func (ec *executionContext) field_Mutation_patchTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
+	args["a"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "patch", ec.unmarshalNPatchInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchInput)
 	if err != nil {
 		return nil, err
 	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPatchTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchTag)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
+	args["patch"] = arg1
 	return args, nil
 }
 
@@ -2192,27 +2113,6 @@ func (ec *executionContext) field_Mutation_updateProgram_args(ctx context.Contex
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2256,17 +2156,6 @@ func (ec *executionContext) field_Mutation_updateWord_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Note_match_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["regex"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Program_match_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalNString2string)
@@ -2432,16 +2321,11 @@ func (ec *executionContext) field_Query_raw_args(ctx context.Context, rawArgs ma
 func (ec *executionContext) field_Query_tag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
+	args["a"] = arg0
 	return args, nil
 }
 
@@ -2566,17 +2450,6 @@ func (ec *executionContext) field_SQL_del_args(ctx context.Context, rawArgs map[
 		return nil, err
 	}
 	args["where"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Tag_match_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "regex", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["regex"] = arg0
 	return args, nil
 }
 
@@ -2719,35 +2592,6 @@ func (ec *executionContext) fieldContext_AllWordList_description(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Download_url(ctx context.Context, field graphql.CollectedField, obj *model.Download) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Download_url,
-		func(ctx context.Context) (any, error) {
-			return obj.URL, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Download_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Download",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Endpoint_id(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2842,8 +2686,6 @@ func (ec *executionContext) fieldContext_Endpoint_program(_ context.Context, fie
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -3082,93 +2924,6 @@ func (ec *executionContext) fieldContext_Endpoint_httpPath(_ context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type VarString does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Endpoint_httpQueries(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_httpQueries,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpQueries, nil
-		},
-		nil,
-		ec.marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_httpQueries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarKVGroup does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Endpoint_httpHeaders(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_httpHeaders,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpHeaders, nil
-		},
-		nil,
-		ec.marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_httpHeaders(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarKVGroup does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Endpoint_httpCookies(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_httpCookies,
-		func(ctx context.Context) (any, error) {
-			return obj.HttpCookies, nil
-		},
-		nil,
-		ec.marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_httpCookies(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type VarKVGroup does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3842,8 +3597,6 @@ func (ec *executionContext) fieldContext_Mutation_newTag(ctx context.Context, fi
 				return ec.fieldContext_Tag_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Tag_name(ctx, field)
-			case "match":
-				return ec.fieldContext_Tag_match(ctx, field)
 			case "description":
 				return ec.fieldContext_Tag_description(ctx, field)
 			}
@@ -3864,59 +3617,6 @@ func (ec *executionContext) fieldContext_Mutation_newTag(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_updateTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_updateTag,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateTag(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.NewTag))
-		},
-		nil,
-		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateTag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tag_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Tag_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Tag_name(ctx, field)
-			case "match":
-				return ec.fieldContext_Tag_match(ctx, field)
-			case "description":
-				return ec.fieldContext_Tag_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tag", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateTag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_patchTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3925,7 +3625,7 @@ func (ec *executionContext) _Mutation_patchTag(ctx context.Context, field graphq
 		ec.fieldContext_Mutation_patchTag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchTag(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.PatchTag))
+			return ec.resolvers.Mutation().PatchTag(ctx, fc.Args["a"].(string), fc.Args["patch"].(models.PatchInput))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -3948,8 +3648,6 @@ func (ec *executionContext) fieldContext_Mutation_patchTag(ctx context.Context, 
 				return ec.fieldContext_Tag_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Tag_name(ctx, field)
-			case "match":
-				return ec.fieldContext_Tag_match(ctx, field)
 			case "description":
 				return ec.fieldContext_Tag_description(ctx, field)
 			}
@@ -3978,7 +3676,7 @@ func (ec *executionContext) _Mutation_deleteTag(ctx context.Context, field graph
 		ec.fieldContext_Mutation_deleteTag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteTag(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
+			return ec.resolvers.Mutation().DeleteTag(ctx, fc.Args["a"].(string))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -4001,8 +3699,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteTag(ctx context.Context,
 				return ec.fieldContext_Tag_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Tag_name(ctx, field)
-			case "match":
-				return ec.fieldContext_Tag_match(ctx, field)
 			case "description":
 				return ec.fieldContext_Tag_description(ctx, field)
 			}
@@ -4070,12 +3766,6 @@ func (ec *executionContext) fieldContext_Mutation_newEndpoint(ctx context.Contex
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -4163,12 +3853,6 @@ func (ec *executionContext) fieldContext_Mutation_updateEndpoint(ctx context.Con
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -4256,12 +3940,6 @@ func (ec *executionContext) fieldContext_Mutation_patchEndpoint(ctx context.Cont
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -4349,12 +4027,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteEndpoint(ctx context.Con
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -4847,8 +4519,6 @@ func (ec *executionContext) fieldContext_Mutation_newProgram(ctx context.Context
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -4908,8 +4578,6 @@ func (ec *executionContext) fieldContext_Mutation_updateProgram(ctx context.Cont
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -4969,8 +4637,6 @@ func (ec *executionContext) fieldContext_Mutation_patchProgram(ctx context.Conte
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -5030,8 +4696,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteProgram(ctx context.Cont
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -5621,8 +5285,6 @@ func (ec *executionContext) fieldContext_MyRequest_program(_ context.Context, fi
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -5709,12 +5371,6 @@ func (ec *executionContext) fieldContext_MyRequest_endpoint(_ context.Context, f
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -6516,53 +6172,6 @@ func (ec *executionContext) fieldContext_Program_url(_ context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Program_match(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_match,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Program().Match(ctx, obj, fc.Args["regex"].(string))
-		},
-		nil,
-		ec.marshalNSearchResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐSearchResult,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_match(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "results":
-				return ec.fieldContext_SearchResult_results(ctx, field)
-			case "count":
-				return ec.fieldContext_SearchResult_count(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SearchResult", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Program_match_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Program_rid(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -6668,7 +6277,7 @@ func (ec *executionContext) _Query_tag(ctx context.Context, field graphql.Collec
 		ec.fieldContext_Query_tag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Tag(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
+			return ec.resolvers.Query().Tag(ctx, fc.Args["a"].(string))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -6691,8 +6300,6 @@ func (ec *executionContext) fieldContext_Query_tag(ctx context.Context, field gr
 				return ec.fieldContext_Tag_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Tag_name(ctx, field)
-			case "match":
-				return ec.fieldContext_Tag_match(ctx, field)
 			case "description":
 				return ec.fieldContext_Tag_description(ctx, field)
 			}
@@ -6744,8 +6351,6 @@ func (ec *executionContext) fieldContext_Query_tags(ctx context.Context, field g
 				return ec.fieldContext_Tag_alias(ctx, field)
 			case "name":
 				return ec.fieldContext_Tag_name(ctx, field)
-			case "match":
-				return ec.fieldContext_Tag_match(ctx, field)
 			case "description":
 				return ec.fieldContext_Tag_description(ctx, field)
 			}
@@ -6813,12 +6418,6 @@ func (ec *executionContext) fieldContext_Query_endpoint(ctx context.Context, fie
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -6906,12 +6505,6 @@ func (ec *executionContext) fieldContext_Query_endpoints(ctx context.Context, fi
 				return ec.fieldContext_Endpoint_httpPort(ctx, field)
 			case "httpPath":
 				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpQueries":
-				return ec.fieldContext_Endpoint_httpQueries(ctx, field)
-			case "httpHeaders":
-				return ec.fieldContext_Endpoint_httpHeaders(ctx, field)
-			case "httpCookies":
-				return ec.fieldContext_Endpoint_httpCookies(ctx, field)
 			case "httpBody":
 				return ec.fieldContext_Endpoint_httpBody(ctx, field)
 			case "httpTimeout":
@@ -7324,8 +6917,6 @@ func (ec *executionContext) fieldContext_Query_programs(ctx context.Context, fie
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -7385,8 +6976,6 @@ func (ec *executionContext) fieldContext_Query_program(ctx context.Context, fiel
 				return ec.fieldContext_Program_domain(ctx, field)
 			case "url":
 				return ec.fieldContext_Program_url(ctx, field)
-			case "match":
-				return ec.fieldContext_Program_match(ctx, field)
 			case "rid":
 				return ec.fieldContext_Program_rid(ctx, field)
 			case "notes":
@@ -8231,53 +7820,6 @@ func (ec *executionContext) fieldContext_Tag_name(_ context.Context, field graph
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Tag_match(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Tag_match,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Tag().Match(ctx, obj, fc.Args["regex"].(string))
-		},
-		nil,
-		ec.marshalNSearchResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐSearchResult,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Tag_match(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tag",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "results":
-				return ec.fieldContext_SearchResult_results(ctx, field)
-			case "count":
-				return ec.fieldContext_SearchResult_count(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SearchResult", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Tag_match_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -10473,7 +10015,7 @@ func (ec *executionContext) unmarshalInputNewEndpoint(ctx context.Context, obj a
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "alias", "programAlias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpQueries", "httpHeaders", "httpCookies", "httpBody", "httpTimeout", "httpFollowRedirects"}
+	fieldsInOrder := [...]string{"name", "alias", "programAlias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpBody", "httpTimeout", "httpFollowRedirects"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10543,27 +10085,6 @@ func (ec *executionContext) unmarshalInputNewEndpoint(ctx context.Context, obj a
 				return it, err
 			}
 			it.HttpPath = data
-		case "httpQueries":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpQueries"))
-			data, err := ec.unmarshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HttpQueries = data
-		case "httpHeaders":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpHeaders"))
-			data, err := ec.unmarshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HttpHeaders = data
-		case "httpCookies":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpCookies"))
-			data, err := ec.unmarshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HttpCookies = data
 		case "httpBody":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpBody"))
 			data, err := ec.unmarshalNVarString2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString(ctx, v)
@@ -10687,7 +10208,7 @@ func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url"}
+	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url", "tags"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10729,6 +10250,15 @@ func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj an
 				return it, err
 			}
 			it.URL = data
+		case "tags":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.NewProgram().Tags(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -10934,7 +10464,7 @@ func (ec *executionContext) unmarshalInputPatchEndpoint(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "alias", "programAlias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpQueries", "httpHeaders", "httpCookies", "httpBody", "httpTimeout", "httpFollowRedirects"}
+	fieldsInOrder := [...]string{"name", "alias", "programAlias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpBody", "httpTimeout", "httpFollowRedirects"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11004,27 +10534,6 @@ func (ec *executionContext) unmarshalInputPatchEndpoint(ctx context.Context, obj
 				return it, err
 			}
 			it.HttpPath = data
-		case "httpQueries":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpQueries"))
-			data, err := ec.unmarshalOVarKVGroup2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HttpQueries = data
-		case "httpHeaders":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpHeaders"))
-			data, err := ec.unmarshalOVarKVGroup2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HttpHeaders = data
-		case "httpCookies":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpCookies"))
-			data, err := ec.unmarshalOVarKVGroup2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HttpCookies = data
 		case "httpBody":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpBody"))
 			data, err := ec.unmarshalOVarString2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString(ctx, v)
@@ -11046,6 +10555,40 @@ func (ec *executionContext) unmarshalInputPatchEndpoint(ctx context.Context, obj
 				return it, err
 			}
 			it.HttpFollowRedirects = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPatchInput(ctx context.Context, obj any) (models.PatchInput, error) {
+	var it models.PatchInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"values", "valuesInt"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "values":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("values"))
+			data, err := ec.unmarshalOKVString2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVStringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Values = data
+		case "valuesInt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("valuesInt"))
+			data, err := ec.unmarshalOKVInt2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVIntᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ValuesInt = data
 		}
 	}
 
@@ -11135,54 +10678,6 @@ func (ec *executionContext) unmarshalInputPatchProgram(ctx context.Context, obj 
 				return it, err
 			}
 			it.URL = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputPatchTag(ctx context.Context, obj any) (models.PatchTag, error) {
-	var it models.PatchTag
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "alias", "description", "priority"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		case "priority":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Priority = data
 		}
 	}
 
@@ -11318,45 +10813,6 @@ func (ec *executionContext) _AllWordList(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var downloadImplementors = []string{"Download"}
-
-func (ec *executionContext) _Download(ctx context.Context, sel ast.SelectionSet, obj *model.Download) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, downloadImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Download")
-		case "url":
-			out.Values[i] = ec._Download_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var endpointImplementors = []string{"Endpoint"}
 
 func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet, obj *models.Endpoint) graphql.Marshaler {
@@ -11445,21 +10901,6 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "httpPath":
 			out.Values[i] = ec._Endpoint_httpPath(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "httpQueries":
-			out.Values[i] = ec._Endpoint_httpQueries(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "httpHeaders":
-			out.Values[i] = ec._Endpoint_httpHeaders(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "httpCookies":
-			out.Values[i] = ec._Endpoint_httpCookies(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
@@ -12003,13 +11444,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "updateTag":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateTag(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "patchTag":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_patchTag(ctx, field)
@@ -12546,42 +11980,6 @@ func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "match":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Program_match(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "rid":
 			field := field
 
@@ -13417,54 +12815,18 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 		case "id":
 			out.Values[i] = ec._Tag_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "alias":
 			out.Values[i] = ec._Tag_alias(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
 		case "name":
 			out.Values[i] = ec._Tag_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+				out.Invalids++
 			}
-		case "match":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Tag_match(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "description":
 			out.Values[i] = ec._Tag_description(ctx, field, obj)
 		default:
@@ -14285,6 +13647,26 @@ func (ec *executionContext) marshalNKVGroup2string(ctx context.Context, sel ast.
 	return res
 }
 
+func (ec *executionContext) unmarshalNKVInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVInt(ctx context.Context, v any) (models.KVInt, error) {
+	var res models.KVInt
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNKVInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVInt(ctx context.Context, sel ast.SelectionSet, v models.KVInt) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNKVString2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVString(ctx context.Context, v any) (models.KVString, error) {
+	var res models.KVString
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNKVString2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVString(ctx context.Context, sel ast.SelectionSet, v models.KVString) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx context.Context, sel ast.SelectionSet, v models.MemorySheet) graphql.Marshaler {
 	return ec._MemorySheet(ctx, sel, &v)
 }
@@ -14516,6 +13898,11 @@ func (ec *executionContext) unmarshalNPatchEndpoint2githubᚗcomᚋlinn221ᚋban
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNPatchInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchInput(ctx context.Context, v any) (models.PatchInput, error) {
+	res, err := ec.unmarshalInputPatchInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNPatchMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchMemorySheet(ctx context.Context, v any) (models.PatchMemorySheet, error) {
 	res, err := ec.unmarshalInputPatchMemorySheet(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -14523,11 +13910,6 @@ func (ec *executionContext) unmarshalNPatchMemorySheet2githubᚗcomᚋlinn221ᚋ
 
 func (ec *executionContext) unmarshalNPatchProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchProgram(ctx context.Context, v any) (models.PatchProgram, error) {
 	res, err := ec.unmarshalInputPatchProgram(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPatchTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchTag(ctx context.Context, v any) (models.PatchTag, error) {
-	res, err := ec.unmarshalInputPatchTag(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -14611,16 +13993,6 @@ func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 		return graphql.Null
 	}
 	return ec._Tag(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx context.Context, v any) (mystructs.VarKVGroup, error) {
-	var res mystructs.VarKVGroup
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNVarKVGroup2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx context.Context, sel ast.SelectionSet, v mystructs.VarKVGroup) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNVarString2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString(ctx context.Context, v any) (mystructs.VarString, error) {
@@ -15099,6 +14471,78 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) unmarshalOKVInt2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVIntᚄ(ctx context.Context, v any) ([]models.KVInt, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]models.KVInt, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNKVInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVInt(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOKVInt2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVIntᚄ(ctx context.Context, sel ast.SelectionSet, v []models.KVInt) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNKVInt2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVInt(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOKVString2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVStringᚄ(ctx context.Context, v any) ([]models.KVString, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]models.KVString, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNKVString2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVString(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOKVString2ᚕgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVStringᚄ(ctx context.Context, sel ast.SelectionSet, v []models.KVString) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNKVString2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐKVString(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, v any) (models.MyDate, error) {
 	var res models.MyDate
 	err := res.UnmarshalGQL(v)
@@ -15438,22 +14882,6 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 		return graphql.Null
 	}
 	return ec._Tag(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOVarKVGroup2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx context.Context, v any) (*mystructs.VarKVGroup, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(mystructs.VarKVGroup)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOVarKVGroup2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarKVGroup(ctx context.Context, sel ast.SelectionSet, v *mystructs.VarKVGroup) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOVarString2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString(ctx context.Context, v any) (*mystructs.VarString, error) {

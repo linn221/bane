@@ -26,7 +26,7 @@ type MyServices struct {
 func NewMyServices(db *gorm.DB, cache config.CacheService, deducer Deducer) *MyServices {
 	return &MyServices{
 		EndpointService:       newEndpointService(db, deducer),
-		TagService:            newTagService(db),
+		TagService:            &tagService{db: db},
 		NoteService:           newNoteService(db, deducer),
 		ProgramService:        newProgramService(db),
 		MyRequestService:      newMyRequestService(db, deducer),

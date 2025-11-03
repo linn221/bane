@@ -10,9 +10,9 @@ type Endpoint {
     httpDomain: String!
     httpPort: Int!
     httpPath: VarString!
-    httpQueries: VarKVGroup!
-    httpHeaders: VarKVGroup!
-    httpCookies: VarKVGroup!
+    # httpQueries: VarKVGroup!
+    # httpHeaders: VarKVGroup!
+    # httpCookies: VarKVGroup!
     httpBody: VarString!
     httpTimeout: Int!
     httpFollowRedirects: Boolean!
@@ -37,9 +37,9 @@ input NewEndpoint {
     httpDomain: String!
     httpPort: Int
     httpPath: VarString!
-    httpQueries: VarKVGroup!
-    httpHeaders: VarKVGroup!
-    httpCookies: VarKVGroup!
+    # httpQueries: VarKVGroup!
+    # httpHeaders: VarKVGroup!
+    # httpCookies: VarKVGroup!
     httpBody: VarString!
     httpTimeout: Int
     httpFollowRedirects: Boolean
@@ -80,9 +80,9 @@ input PatchEndpoint {
     httpDomain: String
     httpPort: Int
     httpPath: VarString
-    httpQueries: VarKVGroup
-    httpHeaders: VarKVGroup
-    httpCookies: VarKVGroup
+    # httpQueries: VarKVGroup
+    # httpHeaders: VarKVGroup
+    # httpCookies: VarKVGroup
     httpBody: VarString
     httpTimeout: Int
     httpFollowRedirects: Boolean

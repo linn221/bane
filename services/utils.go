@@ -2,9 +2,18 @@ package services
 
 import "gorm.io/gorm"
 
-func first[T any](db *gorm.DB, id any) (*T, error) {
+func firstById[T any](db *gorm.DB, id any) (*T, error) {
 	var v T
 	if err := db.First(&v, id).Error; err != nil {
+		return nil, err
+	}
+
+	return &v, nil
+}
+
+func first[T any](db *gorm.DB, alias string) (*T, error) {
+	var v T
+	if err := db.Where("alias = ?", alias).First(&v).Error; err != nil {
 		return nil, err
 	}
 

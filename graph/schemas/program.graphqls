@@ -7,7 +7,7 @@ type Program {
   description: String
   domain: String!
   url: String!
-  match(regex: String!): SearchResult! @goField(forceResolver: true)
+  # match(regex: String!): SearchResult! @goField(forceResolver: true)
   rid: Int! @goField(forceResolver: true)
   notes: [Note] @goField(forceResolver: true)
   # technologies: [Tag]
@@ -21,6 +21,7 @@ input NewProgram {
   description: String
   domain: String!
   url: String!
+  tags: [String!]
   # technologies: [Tag]
   # tags: [Tag]
   # notes: [Note]

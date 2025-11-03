@@ -7,54 +7,28 @@ package resolvers
 import (
 	"context"
 
-	"github.com/linn221/bane/graph"
-	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
 )
 
 // NewTag is the resolver for the newTag field.
 func (r *mutationResolver) NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error) {
-	return r.app.Services.TagService.Create(&input)
-}
-
-// UpdateTag is the resolver for the updateTag field.
-func (r *mutationResolver) UpdateTag(ctx context.Context, id *int, alias *string, input models.NewTag) (*models.Tag, error) {
-	return r.app.Services.TagService.Update(id, alias, &input)
+	return r.app.Services.TagService.Create(ctx, &input)
 }
 
 // PatchTag is the resolver for the patchTag field.
-func (r *mutationResolver) PatchTag(ctx context.Context, id *int, alias *string, input models.PatchTag) (*models.Tag, error) {
-	// Note: TagService doesn't have Patch method yet, so using Update as workaround
-	input2 := models.NewTag{
-		Name:        "",
-		Alias:       "",
-		Description: "",
-		Priority:    0,
-	}
-	if input.Name != nil {
-		input2.Name = *input.Name
-	}
-	if input.Alias != nil {
-		input2.Alias = *input.Alias
-	}
-	if input.Description != nil {
-		input2.Description = *input.Description
-	}
-	if input.Priority != nil {
-		input2.Priority = *input.Priority
-	}
-	return r.app.Services.TagService.Update(id, alias, &input2)
+func (r *mutationResolver) PatchTag(ctx context.Context, a string, patch models.PatchInput) (*models.Tag, error) {
+	return services.PatchModel[models.Tag](r.DB.WithContext(ctx), a, patch)
 }
 
 // DeleteTag is the resolver for the deleteTag field.
-func (r *mutationResolver) DeleteTag(ctx context.Context, id *int, alias *string) (*models.Tag, error) {
-	return r.app.Services.TagService.Delete(id, alias)
+func (r *mutationResolver) DeleteTag(ctx context.Context, a string) (*models.Tag, error) {
+	return r.app.Services.TagService.Delete(ctx, a)
 }
 
 // Tag is the resolver for the tag field.
-func (r *queryResolver) Tag(ctx context.Context, id *int, alias *string) (*models.Tag, error) {
-	return r.app.Services.TagService.Get(id, alias)
+func (r *queryResolver) Tag(ctx context.Context, a string) (*models.Tag, error) {
+	return r.app.Services.TagService.Get(ctx, a)
 }
 
 // Tags is the resolver for the tags field.
@@ -64,13 +38,3 @@ func (r *queryResolver) Tags(ctx context.Context, search *string) ([]*models.Tag
 	err := dbctx.Find(&results).Error
 	return results, err
 }
-
-// Match is the resolver for the match field.
-func (r *tagResolver) Match(ctx context.Context, obj *models.Tag, regex string) (*model.SearchResult, error) {
-	return services.MatchRegex(obj, regex)
-}
-
-// Tag returns graph.TagResolver implementation.
-func (r *Resolver) Tag() graph.TagResolver { return &tagResolver{r} }
-
-type tagResolver struct{ *Resolver }

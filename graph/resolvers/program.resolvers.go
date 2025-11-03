@@ -6,13 +6,12 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
-	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/services"
 )
 
 // NewProgram is the resolver for the newProgram field.
@@ -59,11 +58,6 @@ func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int, alias *st
 	return r.app.Services.ProgramService.Delete(id, alias)
 }
 
-// Match is the resolver for the match field.
-func (r *programResolver) Match(ctx context.Context, obj *models.Program, regex string) (*model.SearchResult, error) {
-	return services.MatchRegex(obj, regex)
-}
-
 // Rid is the resolver for the rid field.
 func (r *programResolver) Rid(ctx context.Context, obj *models.Program) (int, error) {
 	return loaders.GetRId(ctx, app.Reference{ReferenceId: obj.Id, ReferenceType: "programs"})
@@ -85,7 +79,16 @@ func (r *queryResolver) Program(ctx context.Context, id *int, alias *string) (*m
 	return r.app.Services.ProgramService.Get(id, alias)
 }
 
+// Tags is the resolver for the tags field.
+func (r *newProgramResolver) Tags(ctx context.Context, obj *models.NewProgram, data []string) error {
+	panic(fmt.Errorf("not implemented: Tags - tags"))
+}
+
 // Program returns graph.ProgramResolver implementation.
 func (r *Resolver) Program() graph.ProgramResolver { return &programResolver{r} }
 
+// NewProgram returns graph.NewProgramResolver implementation.
+func (r *Resolver) NewProgram() graph.NewProgramResolver { return &newProgramResolver{r} }
+
 type programResolver struct{ *Resolver }
+type newProgramResolver struct{ *Resolver }

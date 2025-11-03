@@ -1,7 +1,8 @@
 scalar MyTime
 scalar VarString
-scalar VarKVGroup
 scalar MyString
+scalar KVString
+scalar KVInt
 scalar HttpSchema
 scalar HttpMethod
 
@@ -10,16 +11,10 @@ type SearchResult {
     count: Int
 }
 
-type Download {
-    url: String!
-}
-
-
 type Tag {
     id: Int!
     alias: String!
     name: String!
-    match(regex: String!): SearchResult! @goField(forceResolver: true)
     description: String
 }
 
@@ -30,21 +25,19 @@ input NewTag {
     priority: Int
 }
 
-input PatchTag {
-    name: String
-    alias: String
-    description: String
-    priority: Int
+input PatchInput {
+    values: [KVString!]
+    valuesInt: [KVInt!]
 }
+
 
 extend type Mutation {
     newTag(input: NewTag!): Tag!
-    updateTag(id: Int, alias: String, input: NewTag!): Tag!
-    patchTag(id: Int, alias: String, input: PatchTag!): Tag!
-    deleteTag(id: Int, alias: String): Tag!
+    patchTag(a: String!, patch: PatchInput!): Tag!
+    deleteTag(a: String!): Tag!
 }
 
 extend type Query {
-    tag(id: Int, alias: String): Tag!
+    tag(a: String!): Tag!
     tags(search: String): [Tag]
 }
