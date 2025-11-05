@@ -31,13 +31,7 @@ templ MemorySheetList(memorySheets []*models.MemorySheet) {
 					for _, sheet := range memorySheets {
 						<article>
 							<header>
-								<h2>
-									if sheet.Alias != "" {
-										{ sheet.Alias }
-									} else {
-										Memory Sheet #{ sheet.Id }
-									}
-								</h2>
+								<h2>Memory Sheet #{ sheet.Id }</h2>
 							</header>
 							<p>{ sheet.Value }</p>
 							<footer>

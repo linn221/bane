@@ -10,9 +10,22 @@ import (
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
+	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/utils"
 )
+
+// Alias is the resolver for the alias field.
+func (r *memorySheetResolver) Alias(ctx context.Context, obj *models.MemorySheet) (*string, error) {
+	alias, err := loaders.GetMemorySheetAlias(ctx, obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	if alias == "" {
+		return nil, nil
+	}
+	return &alias, nil
+}
 
 // CreateDate is the resolver for the createDate field.
 func (r *memorySheetResolver) CreateDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error) {

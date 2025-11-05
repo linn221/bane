@@ -20,18 +20,21 @@ type MyServices struct {
 	MemorySheetService    *memorySheetService
 	WordService           *wordService
 	VulnConnectionService *vulnConnectionService
+	AliasService          *aliasService
 }
 
 // NewMyServices creates a new MyServices instance with all services initialized
 func NewMyServices(db *gorm.DB, cache config.CacheService, deducer Deducer) *MyServices {
+	aliasService := newAliasService(db)
 	return &MyServices{
-		EndpointService:       newEndpointService(db, deducer),
-		TagService:            &tagService{db: db},
+		EndpointService:       newEndpointService(db, deducer, aliasService),
+		TagService:            newTagService(db, aliasService),
 		NoteService:           newNoteService(db, deducer),
-		ProgramService:        newProgramService(db),
+		ProgramService:        newProgramService(db, aliasService),
 		MyRequestService:      newMyRequestService(db, deducer),
-		MemorySheetService:    newMemorySheetService(db),
-		WordService:           newWordService(db),
+		MemorySheetService:    newMemorySheetService(db, aliasService),
+		WordService:           newWordService(db, aliasService),
 		VulnConnectionService: newVulnConnectionService(db),
+		AliasService:          aliasService,
 	}
 }

@@ -6,11 +6,12 @@ import (
 )
 
 type wordService struct {
-	db *gorm.DB
+	db           *gorm.DB
+	aliasService *aliasService
 }
 
-func newWordService(db *gorm.DB) *wordService {
-	return &wordService{db: db}
+func newWordService(db *gorm.DB, aliasService *aliasService) *wordService {
+	return &wordService{db: db, aliasService: aliasService}
 }
 
 func (ws *wordService) CreateWord(input *models.NewWord) (*models.Word, error) {
@@ -34,7 +35,17 @@ func (ws *wordService) CreateWord(input *models.NewWord) (*models.Word, error) {
 			return input.Validate(db, id)
 		},
 	}
-	return wordCrud.Create(ws.db, input)
+	result, err := wordCrud.Create(ws.db, input)
+	if err != nil {
+		return nil, err
+	}
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ws.aliasService.SetAlias(string(models.AliasReferenceTypeWord), result.Id, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 func (ws *wordService) CreateWordList(input *models.NewWordList) (*models.WordList, error) {
@@ -56,7 +67,17 @@ func (ws *wordService) CreateWordList(input *models.NewWordList) (*models.WordLi
 			return input.Validate(db, id)
 		},
 	}
-	return wordListCrud.Create(ws.db, input)
+	result, err := wordListCrud.Create(ws.db, input)
+	if err != nil {
+		return nil, err
+	}
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ws.aliasService.SetAlias(string(models.AliasReferenceTypeWordList), result.Id, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 func (ws *wordService) GetWord(id *int, alias *string) (*models.Word, error) {
@@ -84,7 +105,7 @@ func (ws *wordService) GetWord(id *int, alias *string) (*models.Word, error) {
 		return wordCrud.Get(ws.db, id)
 	}
 	if alias != nil {
-		return wordCrud.GetByAlias(ws.db, *alias)
+		return wordCrud.GetByAlias(ws.db, ws.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -110,13 +131,32 @@ func (ws *wordService) UpdateWord(id *int, alias *string, input *models.NewWord)
 			return input.Validate(db, id)
 		},
 	}
+	var wordId int
+	var result *models.Word
+	var err error
 	if id != nil {
-		return wordCrud.Update(ws.db, input, id)
+		wordId = *id
+		result, err = wordCrud.Update(ws.db, input, id)
+	} else if alias != nil {
+		wordId, err = ws.aliasService.GetId(*alias)
+		if err != nil {
+			return nil, err
+		}
+		idPtr := &wordId
+		result, err = wordCrud.Update(ws.db, input, idPtr)
+	} else {
+		return nil, gorm.ErrRecordNotFound
 	}
-	if alias != nil {
-		return wordCrud.UpdateByAlias(ws.db, input, *alias)
+	if err != nil {
+		return nil, err
 	}
-	return nil, gorm.ErrRecordNotFound
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ws.aliasService.SetAlias(string(models.AliasReferenceTypeWord), wordId, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 func (ws *wordService) PatchWord(id *int, alias *string, updates map[string]any) (*models.Word, error) {
@@ -126,7 +166,7 @@ func (ws *wordService) PatchWord(id *int, alias *string, updates map[string]any)
 	}
 	if alias != nil {
 		wordCrud := GeneralCrud[models.NewWord, models.Word]{}
-		return wordCrud.PatchByAlias(ws.db, updates, *alias)
+		return wordCrud.PatchByAlias(ws.db, ws.aliasService, updates, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -141,7 +181,7 @@ func (ws *wordService) DeleteWord(id *int, alias *string) (*models.Word, error) 
 		return wordCrud.Delete(ws.db, id)
 	}
 	if alias != nil {
-		return wordCrud.DeleteByAlias(ws.db, *alias)
+		return wordCrud.DeleteByAlias(ws.db, ws.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -169,7 +209,7 @@ func (ws *wordService) GetWordList(id *int, alias *string) (*models.WordList, er
 		return wordListCrud.Get(ws.db, id)
 	}
 	if alias != nil {
-		return wordListCrud.GetByAlias(ws.db, *alias)
+		return wordListCrud.GetByAlias(ws.db, ws.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -193,13 +233,32 @@ func (ws *wordService) UpdateWordList(id *int, alias *string, input *models.NewW
 			return input.Validate(db, id)
 		},
 	}
+	var wordListId int
+	var result *models.WordList
+	var err error
 	if id != nil {
-		return wordListCrud.Update(ws.db, input, id)
+		wordListId = *id
+		result, err = wordListCrud.Update(ws.db, input, id)
+	} else if alias != nil {
+		wordListId, err = ws.aliasService.GetId(*alias)
+		if err != nil {
+			return nil, err
+		}
+		idPtr := &wordListId
+		result, err = wordListCrud.Update(ws.db, input, idPtr)
+	} else {
+		return nil, gorm.ErrRecordNotFound
 	}
-	if alias != nil {
-		return wordListCrud.UpdateByAlias(ws.db, input, *alias)
+	if err != nil {
+		return nil, err
 	}
-	return nil, gorm.ErrRecordNotFound
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ws.aliasService.SetAlias(string(models.AliasReferenceTypeWordList), wordListId, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 func (ws *wordService) PatchWordList(id *int, alias *string, updates map[string]any) (*models.WordList, error) {
@@ -209,7 +268,7 @@ func (ws *wordService) PatchWordList(id *int, alias *string, updates map[string]
 	}
 	if alias != nil {
 		wordListCrud := GeneralCrud[models.NewWordList, models.WordList]{}
-		return wordListCrud.PatchByAlias(ws.db, updates, *alias)
+		return wordListCrud.PatchByAlias(ws.db, ws.aliasService, updates, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -224,7 +283,7 @@ func (ws *wordService) DeleteWordList(id *int, alias *string) (*models.WordList,
 		return wordListCrud.Delete(ws.db, id)
 	}
 	if alias != nil {
-		return wordListCrud.DeleteByAlias(ws.db, *alias)
+		return wordListCrud.DeleteByAlias(ws.db, ws.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

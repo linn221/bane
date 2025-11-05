@@ -13,7 +13,7 @@ type SearchResult {
 
 type Tag {
     id: Int!
-    alias: String!
+    alias: String! @goField(forceResolver: true)
     name: String!
     description: String
 }

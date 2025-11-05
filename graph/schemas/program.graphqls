@@ -2,7 +2,7 @@ scalar ProgramType
 
 type Program {
   id: Int!
-  alias: String!
+  alias: String! @goField(forceResolver: true)
   name: String!
   description: String
   domain: String!

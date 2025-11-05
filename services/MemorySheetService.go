@@ -16,10 +16,11 @@ func GetNextDate(currentDate time.Time, index int) time.Time {
 
 type memorySheetService struct {
 	GeneralCrud[models.NewMemorySheet, models.MemorySheet]
-	db *gorm.DB
+	db           *gorm.DB
+	aliasService *aliasService
 }
 
-func newMemorySheetService(db *gorm.DB) *memorySheetService {
+func newMemorySheetService(db *gorm.DB, aliasService *aliasService) *memorySheetService {
 	return &memorySheetService{
 		GeneralCrud: GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
 			transform: func(input *models.NewMemorySheet) models.MemorySheet {
@@ -49,12 +50,23 @@ func newMemorySheetService(db *gorm.DB) *memorySheetService {
 				return updates
 			},
 		},
-		db: db,
+		db:           db,
+		aliasService: aliasService,
 	}
 }
 
 func (mss *memorySheetService) Create(input *models.NewMemorySheet) (*models.MemorySheet, error) {
-	return mss.GeneralCrud.Create(mss.db, input)
+	result, err := mss.GeneralCrud.Create(mss.db, input)
+	if err != nil {
+		return nil, err
+	}
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMemorySheet), result.Id, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 func (mss *memorySheetService) Get(id *int) (*models.MemorySheet, error) {
@@ -69,7 +81,21 @@ func (mss *memorySheetService) Update(id *int, alias *string, input *models.NewM
 		return mss.GeneralCrud.Update(mss.db, input, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.UpdateByAlias(mss.db, input, *alias)
+		memorySheetId, err := mss.aliasService.GetId(*alias)
+		if err != nil {
+			return nil, err
+		}
+		result, err := mss.GeneralCrud.Update(mss.db, input, &memorySheetId)
+		if err != nil {
+			return nil, err
+		}
+		// Set alias if provided
+		if input.Alias != "" {
+			if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMemorySheet), memorySheetId, input.Alias); err != nil {
+				return nil, err
+			}
+		}
+		return result, nil
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -79,7 +105,7 @@ func (mss *memorySheetService) Patch(id *int, alias *string, updates map[string]
 		return mss.GeneralCrud.Patch(mss.db, updates, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.PatchByAlias(mss.db, updates, *alias)
+		return mss.GeneralCrud.PatchByAlias(mss.db, mss.aliasService, updates, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -89,7 +115,7 @@ func (mss *memorySheetService) Delete(id *int, alias *string) (*models.MemoryShe
 		return mss.GeneralCrud.Delete(mss.db, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.DeleteByAlias(mss.db, *alias)
+		return mss.GeneralCrud.DeleteByAlias(mss.db, mss.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

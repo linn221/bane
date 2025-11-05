@@ -12,7 +12,6 @@ import (
 type Word struct {
 	Id          int        `gorm:"primaryKey"`
 	Word        string     `gorm:"size:255;not null;index"`
-	Alias       string     `gorm:"size:255;index;default:null"`
 	WordType    WordType   `gorm:"not null;index"`
 	Description string     `gorm:"text;default:null"`
 	WordLists   []WordList `gorm:"many2many:word_list_words"`

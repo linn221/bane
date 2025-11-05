@@ -5,8 +5,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func PatchModel[T any](db *gorm.DB, alias string, patches models.PatchInput) (*T, error) {
-	result, err := first[T](db, alias)
+func PatchModel[T any](db *gorm.DB, aliasService *aliasService, alias string, patches models.PatchInput) (*T, error) {
+	result, err := first[T](db, aliasService, alias)
 	if err != nil {
 		return nil, err
 	}

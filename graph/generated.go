@@ -50,7 +50,9 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	QueryResult() QueryResultResolver
 	SQL() SQLResolver
+	Tag() TagResolver
 	TodayMemorySheet() TodayMemorySheetResolver
+	Word() WordResolver
 	WordList() WordListResolver
 	NewProgram() NewProgramResolver
 }
@@ -252,6 +254,8 @@ type ComplexityRoot struct {
 type EndpointResolver interface {
 	Program(ctx context.Context, obj *models.Endpoint) (*models.Program, error)
 
+	Alias(ctx context.Context, obj *models.Endpoint) (*string, error)
+
 	HTTPPathMy(ctx context.Context, obj *models.Endpoint, sep *string) (string, error)
 	HTTPQueriesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error)
 	HTTPHeadersMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error)
@@ -262,6 +266,7 @@ type EndpointResolver interface {
 	Notes(ctx context.Context, obj *models.Endpoint) ([]*models.Note, error)
 }
 type MemorySheetResolver interface {
+	Alias(ctx context.Context, obj *models.MemorySheet) (*string, error)
 	CreateDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error)
 	CurrentDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error)
 	NextDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error)
@@ -308,6 +313,8 @@ type NoteResolver interface {
 	Match(ctx context.Context, obj *models.Note, regex string) (*model.SearchResult, error)
 }
 type ProgramResolver interface {
+	Alias(ctx context.Context, obj *models.Program) (string, error)
+
 	Rid(ctx context.Context, obj *models.Program) (int, error)
 	Notes(ctx context.Context, obj *models.Program) ([]*models.Note, error)
 }
@@ -339,13 +346,21 @@ type SQLResolver interface {
 	Del(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 	Count(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 }
+type TagResolver interface {
+	Alias(ctx context.Context, obj *models.Tag) (string, error)
+}
 type TodayMemorySheetResolver interface {
 	NextDay(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 	NextMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 	ThisWeek(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 	ThisMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
 }
+type WordResolver interface {
+	Alias(ctx context.Context, obj *models.Word) (*string, error)
+}
 type WordListResolver interface {
+	Alias(ctx context.Context, obj *models.WordList) (*string, error)
+
 	ImportURL(ctx context.Context, obj *models.WordList) (*string, error)
 }
 
@@ -2733,10 +2748,10 @@ func (ec *executionContext) _Endpoint_alias(ctx context.Context, field graphql.C
 		field,
 		ec.fieldContext_Endpoint_alias,
 		func(ctx context.Context) (any, error) {
-			return obj.Alias, nil
+			return ec.resolvers.Endpoint().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2string,
+		ec.marshalOString2ᚖstring,
 		true,
 		false,
 	)
@@ -2746,8 +2761,8 @@ func (ec *executionContext) fieldContext_Endpoint_alias(_ context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "Endpoint",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -3389,10 +3404,10 @@ func (ec *executionContext) _MemorySheet_alias(ctx context.Context, field graphq
 		field,
 		ec.fieldContext_MemorySheet_alias,
 		func(ctx context.Context) (any, error) {
-			return obj.Alias, nil
+			return ec.resolvers.MemorySheet().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2string,
+		ec.marshalOString2ᚖstring,
 		true,
 		false,
 	)
@@ -3402,8 +3417,8 @@ func (ec *executionContext) fieldContext_MemorySheet_alias(_ context.Context, fi
 	fc = &graphql.FieldContext{
 		Object:     "MemorySheet",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -6034,7 +6049,7 @@ func (ec *executionContext) _Program_alias(ctx context.Context, field graphql.Co
 		field,
 		ec.fieldContext_Program_alias,
 		func(ctx context.Context) (any, error) {
-			return obj.Alias, nil
+			return ec.resolvers.Program().Alias(ctx, obj)
 		},
 		nil,
 		ec.marshalNString2string,
@@ -6047,8 +6062,8 @@ func (ec *executionContext) fieldContext_Program_alias(_ context.Context, field 
 	fc = &graphql.FieldContext{
 		Object:     "Program",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -7773,7 +7788,7 @@ func (ec *executionContext) _Tag_alias(ctx context.Context, field graphql.Collec
 		field,
 		ec.fieldContext_Tag_alias,
 		func(ctx context.Context) (any, error) {
-			return obj.Alias, nil
+			return ec.resolvers.Tag().Alias(ctx, obj)
 		},
 		nil,
 		ec.marshalNString2string,
@@ -7786,8 +7801,8 @@ func (ec *executionContext) fieldContext_Tag_alias(_ context.Context, field grap
 	fc = &graphql.FieldContext{
 		Object:     "Tag",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -8172,10 +8187,10 @@ func (ec *executionContext) _Word_alias(ctx context.Context, field graphql.Colle
 		field,
 		ec.fieldContext_Word_alias,
 		func(ctx context.Context) (any, error) {
-			return obj.Alias, nil
+			return ec.resolvers.Word().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2string,
+		ec.marshalOString2ᚖstring,
 		true,
 		false,
 	)
@@ -8185,8 +8200,8 @@ func (ec *executionContext) fieldContext_Word_alias(_ context.Context, field gra
 	fc = &graphql.FieldContext{
 		Object:     "Word",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -8317,10 +8332,10 @@ func (ec *executionContext) _WordList_alias(ctx context.Context, field graphql.C
 		field,
 		ec.fieldContext_WordList_alias,
 		func(ctx context.Context) (any, error) {
-			return obj.Alias, nil
+			return ec.resolvers.WordList().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2string,
+		ec.marshalOString2ᚖstring,
 		true,
 		false,
 	)
@@ -8330,8 +8345,8 @@ func (ec *executionContext) fieldContext_WordList_alias(_ context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "WordList",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -10876,7 +10891,38 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "alias":
-			out.Values[i] = ec._Endpoint_alias(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Endpoint_alias(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "description":
 			out.Values[i] = ec._Endpoint_description(ctx, field, obj)
 		case "httpSchema":
@@ -11249,7 +11295,38 @@ func (ec *executionContext) _MemorySheet(ctx context.Context, sel ast.SelectionS
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "alias":
-			out.Values[i] = ec._MemorySheet_alias(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MemorySheet_alias(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "createDate":
 			field := field
 
@@ -11959,10 +12036,41 @@ func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, 
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "alias":
-			out.Values[i] = ec._Program_alias(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Program_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._Program_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -12815,17 +12923,48 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 		case "id":
 			out.Values[i] = ec._Tag_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "alias":
-			out.Values[i] = ec._Tag_alias(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tag_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._Tag_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "description":
 			out.Values[i] = ec._Tag_description(ctx, field, obj)
@@ -13054,19 +13193,50 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._Word_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "word":
 			out.Values[i] = ec._Word_word(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "alias":
-			out.Values[i] = ec._Word_alias(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Word_alias(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "wordType":
 			out.Values[i] = ec._Word_wordType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "description":
 			out.Values[i] = ec._Word_description(ctx, field, obj)
@@ -13115,7 +13285,38 @@ func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet,
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "alias":
-			out.Values[i] = ec._WordList_alias(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WordList_alias(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "description":
 			out.Values[i] = ec._WordList_description(ctx, field, obj)
 		case "words":

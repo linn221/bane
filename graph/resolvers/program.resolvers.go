@@ -58,6 +58,11 @@ func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int, alias *st
 	return r.app.Services.ProgramService.Delete(id, alias)
 }
 
+// Alias is the resolver for the alias field.
+func (r *programResolver) Alias(ctx context.Context, obj *models.Program) (string, error) {
+	return loaders.GetProgramAlias(ctx, obj.Id)
+}
+
 // Rid is the resolver for the rid field.
 func (r *programResolver) Rid(ctx context.Context, obj *models.Program) (int, error) {
 	return loaders.GetRId(ctx, app.Reference{ReferenceId: obj.Id, ReferenceType: "programs"})

@@ -33,7 +33,6 @@ type Endpoint struct {
 	ProgramId           int                  `gorm:"not null;index"`
 	Program             Program              `gorm:"foreignKey:ProgramId"`
 	Name                string               `gorm:"size:255;not null"`
-	Alias               string               `gorm:"size:255;index;default:null"`
 	Description         string               `gorm:"default:null"`
 	HttpSchema          HttpSchema           `gorm:"size:10;not null"`
 	HttpMethod          HttpMethod           `gorm:"size:10;not null"`

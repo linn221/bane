@@ -13,7 +13,6 @@ type Tag struct {
 	Id          int       `gorm:"primaryKey"`
 	Name        string    `gorm:"size:100;not null;index"`
 	Description string    `gorm:"text;default:null"`
-	Alias       string    `gorm:"index;default:null"`
 	Priority    int       `gorm:"default:0"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
@@ -37,7 +36,7 @@ func (input *NewTag) Validate(db *gorm.DB, id int) error {
 }
 
 func (tag Tag) Text() string {
-	return strings.Join([]string{tag.Name, tag.Alias, tag.Description}, "\n")
+	return strings.Join([]string{tag.Name, tag.Description}, "\n")
 }
 
 // PatchTag represents partial updates for Tag

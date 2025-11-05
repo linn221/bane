@@ -23,9 +23,15 @@ func LoadersKey() ctxKey {
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	ProgramLoader         *dataloader.Loader[int, *models.Program]
-	NotesLoaderForProgram *dataloader.Loader[int, []*models.Note]
-	RIdLoader             *dataloader.Loader[app.Reference, int]
+	ProgramLoader          *dataloader.Loader[int, *models.Program]
+	NotesLoaderForProgram  *dataloader.Loader[int, []*models.Note]
+	RIdLoader              *dataloader.Loader[app.Reference, int]
+	TagAliasLoader         *dataloader.Loader[int, string]
+	ProgramAliasLoader     *dataloader.Loader[int, string]
+	WordAliasLoader        *dataloader.Loader[int, string]
+	WordListAliasLoader    *dataloader.Loader[int, string]
+	EndpointAliasLoader    *dataloader.Loader[int, string]
+	MemorySheetAliasLoader *dataloader.Loader[int, string]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -35,10 +41,24 @@ func NewLoaders(conn *gorm.DB, deducer *app.Deducer) *Loaders {
 	notesReader := &NotesReader{db: conn, referenceType: "programs"}
 	ridReader := &RIdReader{deducer: deducer}
 
+	// Create Alias readers for each reference type
+	tagAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeTag}
+	programAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeProgram}
+	wordAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeWord}
+	wordListAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeWordList}
+	endpointAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeEndpoint}
+	memorySheetAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeMemorySheet}
+
 	return &Loaders{
-		ProgramLoader:         dataloader.NewBatchedLoader(programReader.GetPrograms, dataloader.WithWait[int, *models.Program](time.Millisecond)),
-		NotesLoaderForProgram: dataloader.NewBatchedLoader(notesReader.GetNotes, dataloader.WithWait[int, []*models.Note](time.Millisecond)),
-		RIdLoader:             dataloader.NewBatchedLoader(ridReader.GetRIds, dataloader.WithWait[app.Reference, int](time.Millisecond)),
+		ProgramLoader:          dataloader.NewBatchedLoader(programReader.GetPrograms, dataloader.WithWait[int, *models.Program](time.Millisecond)),
+		NotesLoaderForProgram:  dataloader.NewBatchedLoader(notesReader.GetNotes, dataloader.WithWait[int, []*models.Note](time.Millisecond)),
+		RIdLoader:              dataloader.NewBatchedLoader(ridReader.GetRIds, dataloader.WithWait[app.Reference, int](time.Millisecond)),
+		TagAliasLoader:         dataloader.NewBatchedLoader(tagAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		ProgramAliasLoader:     dataloader.NewBatchedLoader(programAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		WordAliasLoader:        dataloader.NewBatchedLoader(wordAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		WordListAliasLoader:    dataloader.NewBatchedLoader(wordListAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		EndpointAliasLoader:    dataloader.NewBatchedLoader(endpointAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		MemorySheetAliasLoader: dataloader.NewBatchedLoader(memorySheetAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 	}
 }
 

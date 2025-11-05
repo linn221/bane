@@ -3,7 +3,7 @@ scalar MyDate
 type MemorySheet {
     id: Int!
     value: String!
-    alias: String
+    alias: String @goField(forceResolver: true)
     createDate: MyDate!
     currentDate: MyDate
     nextDate: MyDate

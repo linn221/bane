@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/linn221/bane/graph"
+	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/utils"
 )
@@ -103,13 +104,41 @@ func (r *queryResolver) WordLists(ctx context.Context, regex *string) ([]*models
 	panic(fmt.Errorf("not implemented: WordLists - wordLists"))
 }
 
+// Alias is the resolver for the alias field.
+func (r *wordResolver) Alias(ctx context.Context, obj *models.Word) (*string, error) {
+	alias, err := loaders.GetWordAlias(ctx, obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	if alias == "" {
+		return nil, nil
+	}
+	return &alias, nil
+}
+
+// Alias is the resolver for the alias field.
+func (r *wordListResolver) Alias(ctx context.Context, obj *models.WordList) (*string, error) {
+	alias, err := loaders.GetWordListAlias(ctx, obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	if alias == "" {
+		return nil, nil
+	}
+	return &alias, nil
+}
+
 // ImportURL is the resolver for the importUrl field.
 func (r *wordListResolver) ImportURL(ctx context.Context, obj *models.WordList) (*string, error) {
 	url := fmt.Sprintf("/importWordlist/%d", obj.Id)
 	return &url, nil
 }
 
+// Word returns graph.WordResolver implementation.
+func (r *Resolver) Word() graph.WordResolver { return &wordResolver{r} }
+
 // WordList returns graph.WordListResolver implementation.
 func (r *Resolver) WordList() graph.WordListResolver { return &wordListResolver{r} }
 
+type wordResolver struct{ *Resolver }
 type wordListResolver struct{ *Resolver }

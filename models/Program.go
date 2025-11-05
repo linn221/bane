@@ -9,7 +9,6 @@ import (
 
 type Program struct {
 	Id          int    `gorm:"primaryKey"`
-	Alias       string `gorm:"size:255;not null;unique"`
 	Name        string `gorm:"size:255;not null"`
 	Url         string `gorm:"not null;index"`
 	Domain      string `gorm:"index;not null"` // Store as JSON string
@@ -46,7 +45,6 @@ type AllProgram struct {
 
 func (p *Program) Text() string {
 	return strings.Join([]string{p.Name,
-		p.Alias,
 		p.Domain,
 		p.Url,
 		p.Description,

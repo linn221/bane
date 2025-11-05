@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/utils"
 	"github.com/linn221/bane/validate"
@@ -22,11 +24,13 @@ func ListPrograms(db *gorm.DB, search *string) ([]*models.AllProgram, error) {
 	}
 
 	// Convert to AllProgram type
+	// Note: Alias needs to be fetched from AliasService - this function needs to be updated
+	// For now, we'll leave it empty or fetch aliases separately
 	var allPrograms []*models.AllProgram
 	for _, program := range programs {
 		allPrograms = append(allPrograms, &models.AllProgram{
 			ID:          program.Id,
-			Alias:       program.Alias,
+			Alias:       "", // TODO: Fetch from AliasService
 			Name:        program.Name,
 			Description: &program.Description,
 			Domain:      program.Domain,
@@ -39,15 +43,15 @@ func ListPrograms(db *gorm.DB, search *string) ([]*models.AllProgram, error) {
 
 type programService struct {
 	GeneralCrud[models.NewProgram, models.Program]
-	db *gorm.DB
+	db           *gorm.DB
+	aliasService *aliasService
 }
 
-func newProgramService(db *gorm.DB) *programService {
+func newProgramService(db *gorm.DB, aliasService *aliasService) *programService {
 	return &programService{
 		GeneralCrud: GeneralCrud[models.NewProgram, models.Program]{
 			transform: func(input *models.NewProgram) models.Program {
 				return models.Program{
-					Alias:       input.Alias,
 					Name:        input.Name,
 					Url:         input.URL,
 					Description: utils.SafeDeref(input.Description),
@@ -56,7 +60,6 @@ func newProgramService(db *gorm.DB) *programService {
 			},
 			updates: func(existing models.Program, input *models.NewProgram) map[string]any {
 				return map[string]any{
-					"Alias":       input.Alias,
 					"Name":        input.Name,
 					"Url":         input.URL,
 					"Description": utils.SafeDeref(input.Description),
@@ -64,20 +67,38 @@ func newProgramService(db *gorm.DB) *programService {
 				}
 			},
 			validateWrite: func(db *gorm.DB, input *models.NewProgram, id int) error {
+				// Check alias uniqueness using AliasService
+				if input.Alias != "" {
+					existingId, err := aliasService.GetId(input.Alias)
+					if err == nil && existingId != id {
+						return errors.New("duplicate program alias")
+					}
+					// If err is gorm.ErrRecordNotFound, alias doesn't exist - that's fine
+				}
 				return validate.Validate(db,
-					validate.NewUniqueRule("programs", "name", input.Name, nil).Except(id).Say("duplicate program name"),
-					validate.NewUniqueRule("programs", "alias", input.Alias, nil).Except(id).Say("duplicate program alias"))
+					validate.NewUniqueRule("programs", "name", input.Name, nil).Except(id).Say("duplicate program name"))
 			},
 			validateDelete: func(db *gorm.DB, existing models.Program) error {
 				return nil
 			},
 		},
-		db: db,
+		db:           db,
+		aliasService: aliasService,
 	}
 }
 
 func (ps *programService) Create(input *models.NewProgram) (*models.Program, error) {
-	return ps.GeneralCrud.Create(ps.db, input)
+	result, err := ps.GeneralCrud.Create(ps.db, input)
+	if err != nil {
+		return nil, err
+	}
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ps.aliasService.SetAlias(string(models.AliasReferenceTypeProgram), result.Id, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 func (ps *programService) Get(id *int, alias *string) (*models.Program, error) {
@@ -85,7 +106,7 @@ func (ps *programService) Get(id *int, alias *string) (*models.Program, error) {
 		return ps.GeneralCrud.Get(ps.db, id)
 	}
 	if alias != nil {
-		return ps.GeneralCrud.GetByAlias(ps.db, *alias)
+		return ps.GeneralCrud.GetByAlias(ps.db, ps.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -100,13 +121,36 @@ func (ps *programService) List() ([]*models.Program, error) {
 }
 
 func (ps *programService) Update(id *int, alias *string, input *models.NewProgram) (*models.Program, error) {
+	var result *models.Program
+	var err error
+	var programId int
+
 	if id != nil {
-		return ps.GeneralCrud.Update(ps.db, input, id)
+		programId = *id
+		result, err = ps.GeneralCrud.Update(ps.db, input, id)
+	} else if alias != nil {
+		programId, err = ps.aliasService.GetId(*alias)
+		if err != nil {
+			return nil, err
+		}
+		idPtr := &programId
+		result, err = ps.GeneralCrud.Update(ps.db, input, idPtr)
+	} else {
+		return nil, gorm.ErrRecordNotFound
 	}
-	if alias != nil {
-		return ps.GeneralCrud.UpdateByAlias(ps.db, input, *alias)
+
+	if err != nil {
+		return nil, err
 	}
-	return nil, gorm.ErrRecordNotFound
+
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ps.aliasService.SetAlias(string(models.AliasReferenceTypeProgram), programId, input.Alias); err != nil {
+			return nil, err
+		}
+	}
+
+	return result, nil
 }
 
 func (ps *programService) Delete(id *int, alias *string) (*models.Program, error) {
@@ -114,7 +158,7 @@ func (ps *programService) Delete(id *int, alias *string) (*models.Program, error
 		return ps.GeneralCrud.Delete(ps.db, id)
 	}
 	if alias != nil {
-		return ps.GeneralCrud.DeleteByAlias(ps.db, *alias)
+		return ps.GeneralCrud.DeleteByAlias(ps.db, ps.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

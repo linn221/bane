@@ -3,7 +3,7 @@ type Endpoint {
     programId: Int!
     program: Program! @goField(forceResolver: true)
     name: String!
-    alias: String
+    alias: String @goField(forceResolver: true)
     description: String
     httpSchema: HttpSchema!
     httpMethod: HttpMethod!

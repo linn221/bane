@@ -9,7 +9,6 @@ import (
 type MemorySheet struct {
 	Id          int       `gorm:"primaryKey"`
 	Value       string    `gorm:"text;not null"`
-	Alias       string    `gorm:"size:255;index;default:null"`
 	CreateDate  time.Time `gorm:"not null"`
 	CurrentDate time.Time `gorm:"index;not null"`
 	NextDate    time.Time `gorm:"index;not null"`

@@ -7,6 +7,8 @@ package resolvers
 import (
 	"context"
 
+	"github.com/linn221/bane/graph"
+	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
 )
@@ -18,7 +20,7 @@ func (r *mutationResolver) NewTag(ctx context.Context, input models.NewTag) (*mo
 
 // PatchTag is the resolver for the patchTag field.
 func (r *mutationResolver) PatchTag(ctx context.Context, a string, patch models.PatchInput) (*models.Tag, error) {
-	return services.PatchModel[models.Tag](r.DB.WithContext(ctx), a, patch)
+	return services.PatchModel[models.Tag](r.DB.WithContext(ctx), r.app.Services.AliasService, a, patch)
 }
 
 // DeleteTag is the resolver for the deleteTag field.
@@ -38,3 +40,13 @@ func (r *queryResolver) Tags(ctx context.Context, search *string) ([]*models.Tag
 	err := dbctx.Find(&results).Error
 	return results, err
 }
+
+// Alias is the resolver for the alias field.
+func (r *tagResolver) Alias(ctx context.Context, obj *models.Tag) (string, error) {
+	return loaders.GetTagAlias(ctx, obj.Id)
+}
+
+// Tag returns graph.TagResolver implementation.
+func (r *Resolver) Tag() graph.TagResolver { return &tagResolver{r} }
+
+type tagResolver struct{ *Resolver }

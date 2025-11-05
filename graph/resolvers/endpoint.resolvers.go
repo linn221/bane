@@ -26,6 +26,18 @@ func (r *endpointResolver) Program(ctx context.Context, obj *models.Endpoint) (*
 	return &program, nil
 }
 
+// Alias is the resolver for the alias field.
+func (r *endpointResolver) Alias(ctx context.Context, obj *models.Endpoint) (*string, error) {
+	alias, err := loaders.GetEndpointAlias(ctx, obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	if alias == "" {
+		return nil, nil
+	}
+	return &alias, nil
+}
+
 // HTTPPathMy is the resolver for the httpPathMy field.
 func (r *endpointResolver) HTTPPathMy(ctx context.Context, obj *models.Endpoint, sep *string) (string, error) {
 	myString := mystructs.NewMyStringFromVarString(obj.HttpPath)

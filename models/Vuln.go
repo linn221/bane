@@ -3,7 +3,6 @@ package models
 type Vuln struct {
 	Id          int    `gorm:"primaryKey"`
 	Name        string `gorm:"size:255;not null"`
-	Alias       string `gorm:"index;default:null"`
 	Description string `gorm:"default:null"`
 	// Notes relationship is handled through polymorphic pattern in Note model
 	// Notes can be linked via ReferenceType="vulns" and ReferenceID=Id

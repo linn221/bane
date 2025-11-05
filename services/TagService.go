@@ -8,7 +8,12 @@ import (
 )
 
 type tagService struct {
-	db *gorm.DB
+	db           *gorm.DB
+	aliasService *aliasService
+}
+
+func newTagService(db *gorm.DB, aliasService *aliasService) *tagService {
+	return &tagService{db: db, aliasService: aliasService}
 }
 
 func (ts *tagService) Validate(ctx context.Context, input *models.NewTag) error {
@@ -22,18 +27,22 @@ func (ts *tagService) Create(ctx context.Context, input *models.NewTag) (*models
 	tag := models.Tag{
 		Name:        input.Name,
 		Description: input.Description,
-		Alias:       input.Alias,
 		Priority:    input.Priority,
 	}
 	if err := ts.db.WithContext(ctx).Create(&tag).Error; err != nil {
 		return nil, err
 	}
-
+	// Set alias if provided
+	if input.Alias != "" {
+		if err := ts.aliasService.SetAlias(string(models.AliasReferenceTypeTag), tag.Id, input.Alias); err != nil {
+			return nil, err
+		}
+	}
 	return &tag, nil
 }
 
 func (ts *tagService) Get(ctx context.Context, alias string) (*models.Tag, error) {
-	return first[models.Tag](ts.db.WithContext(ctx), alias)
+	return first[models.Tag](ts.db.WithContext(ctx), ts.aliasService, alias)
 }
 
 // func (ts *tagService) Update(id *int, alias *string, input *models.NewTag) (*models.Tag, error) {
