@@ -33,8 +33,11 @@ input PatchInput {
 
 extend type Mutation {
     newTag(input: NewTag!): Tag!
-    patchTag(a: String!, patch: PatchInput!): Tag!
-    deleteTag(a: String!): Tag!
+    newAlias(refType: String!, refId: Int!, alias: String!): Boolean!
+    renameAlias(old: String!, new: String!): Boolean!
+    removeAlias(alias: String!): Boolean!
+    patch(a: String!, patch: PatchInput!): Boolean!
+    destroy(a: String!): Boolean!
 }
 
 extend type Query {

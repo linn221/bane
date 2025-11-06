@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/validate"
 	"gorm.io/gorm"
 )
 
@@ -15,13 +16,27 @@ func newAliasService(db *gorm.DB) *aliasService {
 	return &aliasService{db: db}
 }
 
+func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceId int, alias string) error {
+	if alias == "" {
+		return nil
+	}
+	if err := validate.Validate(tx, validate.NewExistsRule(referenceType, referenceId, errors.New("referencenot found"), nil)); err != nil {
+		return err
+	}
+
+	// Create new alias
+	aliasRecord := models.Alias{
+		Name:          alias,
+		ReferenceId:   referenceId,
+		ReferenceType: models.AliasReferenceType(referenceType),
+	}
+	return tx.Create(&aliasRecord).Error
+}
+
 func (s *aliasService) SetAlias(referenceType string, referenceId int, alias string) error {
 	if alias == "" {
 		return nil
 	}
-
-	// Delete existing alias for this reference if it exists
-	s.db.Where("reference_type = ? AND reference_id = ?", referenceType, referenceId).Delete(&models.Alias{})
 
 	// Create new alias
 	aliasRecord := models.Alias{

@@ -90,9 +90,6 @@ input PatchEndpoint {
 
 extend type Mutation {
     newEndpoint(input: NewEndpoint!): Endpoint!
-    updateEndpoint(id: Int, alias: String, input: NewEndpoint!): Endpoint!
-    patchEndpoint(id: Int, alias: String, input: PatchEndpoint!): Endpoint!
-    deleteEndpoint(id: Int, alias: String): Endpoint!
     # importCurl(curl: String!): CurlImportResult! @goField(forceResolver: true)
 }
 

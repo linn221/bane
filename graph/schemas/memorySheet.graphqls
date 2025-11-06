@@ -34,9 +34,6 @@ input PatchMemorySheet {
 
 extend type Mutation {
     newMemorySheet(input: NewMemorySheet!): MemorySheet!
-    updateMemorySheet(id: Int, alias: String, input: NewMemorySheet!): MemorySheet!
-    patchMemorySheet(id: Int, alias: String, input: PatchMemorySheet!): MemorySheet!
-    deleteMemorySheet(id: Int, alias: String): MemorySheet!
 }
 
 extend type Query {
