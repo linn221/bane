@@ -6,7 +6,7 @@ import (
 )
 
 type endpointService struct {
-	GeneralCrud[models.NewEndpoint, models.Endpoint]
+	GeneralCrud[models.EndpointInput, models.Endpoint]
 	db           *gorm.DB
 	deducer      Deducer
 	aliasService *aliasService
@@ -14,8 +14,8 @@ type endpointService struct {
 
 func newEndpointService(db *gorm.DB, deducer Deducer, aliasService *aliasService) *endpointService {
 	return &endpointService{
-		GeneralCrud: GeneralCrud[models.NewEndpoint, models.Endpoint]{
-			transform: func(input *models.NewEndpoint) models.Endpoint {
+		GeneralCrud: GeneralCrud[models.EndpointInput, models.Endpoint]{
+			transform: func(input *models.EndpointInput) models.Endpoint {
 				return models.Endpoint{
 					Name:        input.Name,
 					Description: input.Description,
@@ -36,7 +36,7 @@ func newEndpointService(db *gorm.DB, deducer Deducer, aliasService *aliasService
 	}
 }
 
-func (es *endpointService) Create(input *models.NewEndpoint) (*models.Endpoint, error) {
+func (es *endpointService) Create(input *models.EndpointInput) (*models.Endpoint, error) {
 	// Find the program by alias using AliasService
 	programId, err := es.aliasService.GetId(input.ProgramAlias)
 	if err != nil {
@@ -53,11 +53,9 @@ func (es *endpointService) Create(input *models.NewEndpoint) (*models.Endpoint, 
 		return nil, err
 	}
 
-	// Set alias if provided
-	if input.Alias != "" {
-		if err := es.aliasService.SetAlias(string(models.AliasReferenceTypeEndpoint), endpoint.Id, input.Alias); err != nil {
-			return nil, err
-		}
+	// Set alias (will be auto-generated if not provided)
+	if err := es.aliasService.SetAlias(string(models.AliasReferenceTypeEndpoint), endpoint.Id, input.Alias); err != nil {
+		return nil, err
 	}
 
 	return &endpoint, nil
@@ -112,172 +110,4 @@ func (es *endpointService) Get(id *int, alias *string) (*models.Endpoint, error)
 		return &endpoint, err
 	}
 	return nil, gorm.ErrRecordNotFound
-}
-
-func (es *endpointService) Update(id *int, alias *string, input *models.NewEndpoint) (*models.Endpoint, error) {
-	var endpointId int
-	if id != nil {
-		endpointId = *id
-	} else if alias != nil {
-		var err error
-		endpointId, err = es.aliasService.GetId(*alias)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, gorm.ErrRecordNotFound
-	}
-
-	// Find the program by alias if provided
-	if input.ProgramAlias != "" {
-		programId, err := es.aliasService.GetId(input.ProgramAlias)
-		if err != nil {
-			return nil, err
-		}
-
-		// Update the program ID
-		updates := map[string]interface{}{
-			"program_id": programId,
-		}
-		err = es.db.Model(&models.Endpoint{}).Where("id = ?", endpointId).Updates(updates).Error
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Set alias if provided
-	if input.Alias != "" {
-		if err := es.aliasService.SetAlias(string(models.AliasReferenceTypeEndpoint), endpointId, input.Alias); err != nil {
-			return nil, err
-		}
-	}
-
-	// Update other fields
-	updates := map[string]interface{}{
-		"name":         input.Name,
-		"description":  input.Description,
-		"http_schema":  input.HttpSchema,
-		"http_method":  input.HttpMethod,
-		"http_domain":  input.HttpDomain,
-		"http_path":    input.HttpPath,
-		"http_queries": input.HttpQueries,
-		"http_headers": input.HttpHeaders,
-		"http_cookies": input.HttpCookies,
-		"http_body":    input.HttpBody,
-	}
-
-	err := es.db.Model(&models.Endpoint{}).Where("id = ?", endpointId).Updates(updates).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return es.Get(&endpointId, nil)
-}
-
-func (es *endpointService) Patch(id *int, alias *string, input *models.PatchEndpoint) (*models.Endpoint, error) {
-	var endpointId int
-	if id != nil {
-		endpointId = *id
-	} else if alias != nil {
-		var err error
-		endpointId, err = es.aliasService.GetId(*alias)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, gorm.ErrRecordNotFound
-	}
-
-	updates := make(map[string]any)
-
-	// Handle program alias separately
-	if input.ProgramAlias != nil && *input.ProgramAlias != "" {
-		programId, err := es.aliasService.GetId(*input.ProgramAlias)
-		if err != nil {
-			return nil, err
-		}
-		updates["program_id"] = programId
-	}
-
-	// Add other fields if they are provided
-	if input.Name != nil && *input.Name != "" {
-		updates["name"] = *input.Name
-	}
-	// Note: Alias is handled separately via AliasService after patch
-	if input.Description != nil && *input.Description != "" {
-		updates["description"] = *input.Description
-	}
-	if input.HttpSchema != nil {
-		updates["http_schema"] = *input.HttpSchema
-	}
-	if input.HttpMethod != nil {
-		updates["http_method"] = *input.HttpMethod
-	}
-	if input.HttpDomain != nil && *input.HttpDomain != "" {
-		updates["http_domain"] = *input.HttpDomain
-	}
-	if input.HttpPort != nil {
-		updates["http_port"] = *input.HttpPort
-	}
-	if input.HttpTimeout != nil {
-		updates["http_timeout"] = *input.HttpTimeout
-	}
-	if input.HttpFollowRedirects != nil {
-		updates["http_follow_redirects"] = *input.HttpFollowRedirects
-	}
-	// Check custom types using their IsZero methods
-	if input.HttpPath != nil && !input.HttpPath.IsZero() {
-		updates["http_path"] = *input.HttpPath
-	}
-	if input.HttpQueries != nil && !input.HttpQueries.IsZero() {
-		updates["http_queries"] = *input.HttpQueries
-	}
-	if input.HttpHeaders != nil && !input.HttpHeaders.IsZero() {
-		updates["http_headers"] = *input.HttpHeaders
-	}
-	if input.HttpCookies != nil && !input.HttpCookies.IsZero() {
-		updates["http_cookies"] = *input.HttpCookies
-	}
-	if input.HttpBody != nil && !input.HttpBody.IsZero() {
-		updates["http_body"] = *input.HttpBody
-	}
-
-	// Use the GeneralCrud Patch method
-	result, err := es.GeneralCrud.Patch(es.db, updates, &endpointId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Set alias if provided
-	if input.Alias != nil && *input.Alias != "" {
-		if err := es.aliasService.SetAlias(string(models.AliasReferenceTypeEndpoint), endpointId, *input.Alias); err != nil {
-			return nil, err
-		}
-	}
-
-	return result, nil
-}
-
-func (es *endpointService) Delete(id *int, alias *string) (*models.Endpoint, error) {
-	var endpointId int
-	if id != nil {
-		endpointId = *id
-	} else if alias != nil {
-		var err error
-		endpointId, err = es.aliasService.GetId(*alias)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, gorm.ErrRecordNotFound
-	}
-
-	var endpoint models.Endpoint
-	err := es.db.First(&endpoint, endpointId).Error
-	if err != nil {
-		return nil, err
-	}
-
-	err = es.db.Delete(&endpoint).Error
-	return &endpoint, err
 }

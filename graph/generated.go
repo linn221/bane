@@ -54,7 +54,7 @@ type ResolverRoot interface {
 	TodayMemorySheet() TodayMemorySheetResolver
 	Word() WordResolver
 	WordList() WordListResolver
-	NewProgram() NewProgramResolver
+	ProgramInput() ProgramInputResolver
 }
 
 type DirectiveRoot struct {
@@ -103,34 +103,22 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		DelNote           func(childComplexity int, id int) int
-		DeleteEndpoint    func(childComplexity int, id *int, alias *string) int
-		DeleteMemorySheet func(childComplexity int, id *int, alias *string) int
-		DeleteProgram     func(childComplexity int, id *int, alias *string) int
-		DeleteTag         func(childComplexity int, a string) int
-		DeleteWord        func(childComplexity int, id *int, alias *string) int
-		DeleteWordList    func(childComplexity int, id *int, alias *string) int
-		Helloworld        func(childComplexity int) int
-		NewEndpoint       func(childComplexity int, input models.NewEndpoint) int
-		NewMemorySheet    func(childComplexity int, input models.NewMemorySheet) int
-		NewNote           func(childComplexity int, input *models.NewNote) int
-		NewProgram        func(childComplexity int, input *models.NewProgram) int
-		NewTag            func(childComplexity int, input models.NewTag) int
-		NewWord           func(childComplexity int, input models.NewWord) int
-		NewWordList       func(childComplexity int, input models.NewWordList) int
-		PatchEndpoint     func(childComplexity int, id *int, alias *string, input models.PatchEndpoint) int
-		PatchMemorySheet  func(childComplexity int, id *int, alias *string, input models.PatchMemorySheet) int
-		PatchProgram      func(childComplexity int, id *int, alias *string, input models.PatchProgram) int
-		PatchTag          func(childComplexity int, a string, patch models.PatchInput) int
-		PatchWord         func(childComplexity int, id *int, alias *string, input models.PatchWord) int
-		PatchWordList     func(childComplexity int, id *int, alias *string, input models.PatchWordList) int
-		Raw               func(childComplexity int, sql string) int
-		RunCurl           func(childComplexity int, endpointAlias string, variables string) int
-		UpdateEndpoint    func(childComplexity int, id *int, alias *string, input models.NewEndpoint) int
-		UpdateMemorySheet func(childComplexity int, id *int, alias *string, input models.NewMemorySheet) int
-		UpdateProgram     func(childComplexity int, id *int, alias *string, input models.NewProgram) int
-		UpdateWord        func(childComplexity int, id *int, alias *string, input models.NewWord) int
-		UpdateWordList    func(childComplexity int, id *int, alias *string, input models.NewWordList) int
+		DelNote        func(childComplexity int, id int) int
+		Destroy        func(childComplexity int, a string) int
+		Helloworld     func(childComplexity int) int
+		NewAlias       func(childComplexity int, refType string, refID int, alias string) int
+		NewEndpoint    func(childComplexity int, input models.EndpointInput) int
+		NewMemorySheet func(childComplexity int, input models.MemorySheetInput) int
+		NewNote        func(childComplexity int, input *models.NoteInput) int
+		NewProgram     func(childComplexity int, input *models.ProgramInput) int
+		NewTag         func(childComplexity int, input models.TagInput) int
+		NewWord        func(childComplexity int, input models.WordInput) int
+		NewWordList    func(childComplexity int, input models.WordListInput) int
+		Patch          func(childComplexity int, a string, patch models.PatchInput) int
+		Raw            func(childComplexity int, sql string) int
+		RemoveAlias    func(childComplexity int, alias string) int
+		RenameAlias    func(childComplexity int, old string, new string) int
+		RunCurl        func(childComplexity int, endpointAlias string, variables string) int
 	}
 
 	MyRequest struct {
@@ -274,33 +262,21 @@ type MemorySheetResolver interface {
 }
 type MutationResolver interface {
 	Helloworld(ctx context.Context) (string, error)
-	NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error)
-	PatchTag(ctx context.Context, a string, patch models.PatchInput) (*models.Tag, error)
-	DeleteTag(ctx context.Context, a string) (*models.Tag, error)
-	NewEndpoint(ctx context.Context, input models.NewEndpoint) (*models.Endpoint, error)
-	UpdateEndpoint(ctx context.Context, id *int, alias *string, input models.NewEndpoint) (*models.Endpoint, error)
-	PatchEndpoint(ctx context.Context, id *int, alias *string, input models.PatchEndpoint) (*models.Endpoint, error)
-	DeleteEndpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error)
-	NewMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error)
-	UpdateMemorySheet(ctx context.Context, id *int, alias *string, input models.NewMemorySheet) (*models.MemorySheet, error)
-	PatchMemorySheet(ctx context.Context, id *int, alias *string, input models.PatchMemorySheet) (*models.MemorySheet, error)
-	DeleteMemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error)
+	NewTag(ctx context.Context, input models.TagInput) (*models.Tag, error)
+	NewAlias(ctx context.Context, refType string, refID int, alias string) (bool, error)
+	RenameAlias(ctx context.Context, old string, new string) (bool, error)
+	RemoveAlias(ctx context.Context, alias string) (bool, error)
+	Patch(ctx context.Context, a string, patch models.PatchInput) (bool, error)
+	Destroy(ctx context.Context, a string) (bool, error)
+	NewEndpoint(ctx context.Context, input models.EndpointInput) (*models.Endpoint, error)
+	NewMemorySheet(ctx context.Context, input models.MemorySheetInput) (*models.MemorySheet, error)
 	RunCurl(ctx context.Context, endpointAlias string, variables string) (*models.MyRequest, error)
-	NewNote(ctx context.Context, input *models.NewNote) (*models.Note, error)
+	NewNote(ctx context.Context, input *models.NoteInput) (*models.Note, error)
 	DelNote(ctx context.Context, id int) (*models.Note, error)
-	NewProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error)
-	UpdateProgram(ctx context.Context, id *int, alias *string, input models.NewProgram) (*models.Program, error)
-	PatchProgram(ctx context.Context, id *int, alias *string, input models.PatchProgram) (*models.Program, error)
-	DeleteProgram(ctx context.Context, id *int, alias *string) (*models.Program, error)
+	NewProgram(ctx context.Context, input *models.ProgramInput) (*models.Program, error)
 	Raw(ctx context.Context, sql string) (int, error)
-	NewWord(ctx context.Context, input models.NewWord) (*models.Word, error)
-	UpdateWord(ctx context.Context, id *int, alias *string, input models.NewWord) (*models.Word, error)
-	PatchWord(ctx context.Context, id *int, alias *string, input models.PatchWord) (*models.Word, error)
-	DeleteWord(ctx context.Context, id *int, alias *string) (*models.Word, error)
-	NewWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error)
-	UpdateWordList(ctx context.Context, id *int, alias *string, input models.NewWordList) (*models.WordList, error)
-	PatchWordList(ctx context.Context, id *int, alias *string, input models.PatchWordList) (*models.WordList, error)
-	DeleteWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error)
+	NewWord(ctx context.Context, input models.WordInput) (*models.Word, error)
+	NewWordList(ctx context.Context, input models.WordListInput) (*models.WordList, error)
 }
 type MyRequestResolver interface {
 	Program(ctx context.Context, obj *models.MyRequest) (*models.Program, error)
@@ -364,8 +340,8 @@ type WordListResolver interface {
 	ImportURL(ctx context.Context, obj *models.WordList) (*string, error)
 }
 
-type NewProgramResolver interface {
-	Tags(ctx context.Context, obj *models.NewProgram, data []string) error
+type ProgramInputResolver interface {
+	Tags(ctx context.Context, obj *models.ProgramInput, data []string) error
 }
 
 type executableSchema struct {
@@ -618,78 +594,34 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DelNote(childComplexity, args["id"].(int)), true
-	case "Mutation.deleteEndpoint":
-		if e.complexity.Mutation.DeleteEndpoint == nil {
+	case "Mutation.destroy":
+		if e.complexity.Mutation.Destroy == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteEndpoint_args(ctx, rawArgs)
+		args, err := ec.field_Mutation_destroy_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteEndpoint(childComplexity, args["id"].(*int), args["alias"].(*string)), true
-	case "Mutation.deleteMemorySheet":
-		if e.complexity.Mutation.DeleteMemorySheet == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteMemorySheet_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteMemorySheet(childComplexity, args["id"].(*int), args["alias"].(*string)), true
-	case "Mutation.deleteProgram":
-		if e.complexity.Mutation.DeleteProgram == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteProgram_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteProgram(childComplexity, args["id"].(*int), args["alias"].(*string)), true
-	case "Mutation.deleteTag":
-		if e.complexity.Mutation.DeleteTag == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteTag_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteTag(childComplexity, args["a"].(string)), true
-	case "Mutation.deleteWord":
-		if e.complexity.Mutation.DeleteWord == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteWord_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteWord(childComplexity, args["id"].(*int), args["alias"].(*string)), true
-	case "Mutation.deleteWordList":
-		if e.complexity.Mutation.DeleteWordList == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteWordList_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteWordList(childComplexity, args["id"].(*int), args["alias"].(*string)), true
+		return e.complexity.Mutation.Destroy(childComplexity, args["a"].(string)), true
 	case "Mutation.helloworld":
 		if e.complexity.Mutation.Helloworld == nil {
 			break
 		}
 
 		return e.complexity.Mutation.Helloworld(childComplexity), true
+	case "Mutation.newAlias":
+		if e.complexity.Mutation.NewAlias == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newAlias_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewAlias(childComplexity, args["refType"].(string), args["refId"].(int), args["alias"].(string)), true
 	case "Mutation.newEndpoint":
 		if e.complexity.Mutation.NewEndpoint == nil {
 			break
@@ -700,7 +632,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewEndpoint(childComplexity, args["input"].(models.NewEndpoint)), true
+		return e.complexity.Mutation.NewEndpoint(childComplexity, args["input"].(models.EndpointInput)), true
 	case "Mutation.newMemorySheet":
 		if e.complexity.Mutation.NewMemorySheet == nil {
 			break
@@ -711,7 +643,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewMemorySheet(childComplexity, args["input"].(models.NewMemorySheet)), true
+		return e.complexity.Mutation.NewMemorySheet(childComplexity, args["input"].(models.MemorySheetInput)), true
 	case "Mutation.newNote":
 		if e.complexity.Mutation.NewNote == nil {
 			break
@@ -722,7 +654,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewNote(childComplexity, args["input"].(*models.NewNote)), true
+		return e.complexity.Mutation.NewNote(childComplexity, args["input"].(*models.NoteInput)), true
 	case "Mutation.newProgram":
 		if e.complexity.Mutation.NewProgram == nil {
 			break
@@ -733,7 +665,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewProgram(childComplexity, args["input"].(*models.NewProgram)), true
+		return e.complexity.Mutation.NewProgram(childComplexity, args["input"].(*models.ProgramInput)), true
 	case "Mutation.newTag":
 		if e.complexity.Mutation.NewTag == nil {
 			break
@@ -744,7 +676,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewTag(childComplexity, args["input"].(models.NewTag)), true
+		return e.complexity.Mutation.NewTag(childComplexity, args["input"].(models.TagInput)), true
 	case "Mutation.newWord":
 		if e.complexity.Mutation.NewWord == nil {
 			break
@@ -755,7 +687,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewWord(childComplexity, args["input"].(models.NewWord)), true
+		return e.complexity.Mutation.NewWord(childComplexity, args["input"].(models.WordInput)), true
 	case "Mutation.newWordList":
 		if e.complexity.Mutation.NewWordList == nil {
 			break
@@ -766,73 +698,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewWordList(childComplexity, args["input"].(models.NewWordList)), true
-	case "Mutation.patchEndpoint":
-		if e.complexity.Mutation.PatchEndpoint == nil {
+		return e.complexity.Mutation.NewWordList(childComplexity, args["input"].(models.WordListInput)), true
+	case "Mutation.patch":
+		if e.complexity.Mutation.Patch == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_patchEndpoint_args(ctx, rawArgs)
+		args, err := ec.field_Mutation_patch_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PatchEndpoint(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.PatchEndpoint)), true
-	case "Mutation.patchMemorySheet":
-		if e.complexity.Mutation.PatchMemorySheet == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_patchMemorySheet_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PatchMemorySheet(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.PatchMemorySheet)), true
-	case "Mutation.patchProgram":
-		if e.complexity.Mutation.PatchProgram == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_patchProgram_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PatchProgram(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.PatchProgram)), true
-	case "Mutation.patchTag":
-		if e.complexity.Mutation.PatchTag == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_patchTag_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PatchTag(childComplexity, args["a"].(string), args["patch"].(models.PatchInput)), true
-	case "Mutation.patchWord":
-		if e.complexity.Mutation.PatchWord == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_patchWord_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PatchWord(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.PatchWord)), true
-	case "Mutation.patchWordList":
-		if e.complexity.Mutation.PatchWordList == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_patchWordList_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.PatchWordList(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.PatchWordList)), true
+		return e.complexity.Mutation.Patch(childComplexity, args["a"].(string), args["patch"].(models.PatchInput)), true
 	case "Mutation.raw":
 		if e.complexity.Mutation.Raw == nil {
 			break
@@ -844,6 +721,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.Raw(childComplexity, args["sql"].(string)), true
+	case "Mutation.removeAlias":
+		if e.complexity.Mutation.RemoveAlias == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeAlias_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveAlias(childComplexity, args["alias"].(string)), true
+	case "Mutation.renameAlias":
+		if e.complexity.Mutation.RenameAlias == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_renameAlias_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RenameAlias(childComplexity, args["old"].(string), args["new"].(string)), true
 	case "Mutation.runCurl":
 		if e.complexity.Mutation.RunCurl == nil {
 			break
@@ -855,61 +754,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RunCurl(childComplexity, args["endpointAlias"].(string), args["variables"].(string)), true
-	case "Mutation.updateEndpoint":
-		if e.complexity.Mutation.UpdateEndpoint == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateEndpoint_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateEndpoint(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewEndpoint)), true
-	case "Mutation.updateMemorySheet":
-		if e.complexity.Mutation.UpdateMemorySheet == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateMemorySheet_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateMemorySheet(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewMemorySheet)), true
-	case "Mutation.updateProgram":
-		if e.complexity.Mutation.UpdateProgram == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateProgram_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateProgram(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewProgram)), true
-	case "Mutation.updateWord":
-		if e.complexity.Mutation.UpdateWord == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateWord_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateWord(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewWord)), true
-	case "Mutation.updateWordList":
-		if e.complexity.Mutation.UpdateWordList == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateWordList_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateWordList(childComplexity, args["id"].(*int), args["alias"].(*string), args["input"].(models.NewWordList)), true
 
 	case "MyRequest.contentLength":
 		if e.complexity.MyRequest.ContentLength == nil {
@@ -1528,21 +1372,21 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputEndpointFilter,
+		ec.unmarshalInputEndpointInput,
+		ec.unmarshalInputMemorySheetInput,
 		ec.unmarshalInputMyRequestFilter,
-		ec.unmarshalInputNewEndpoint,
-		ec.unmarshalInputNewMemorySheet,
-		ec.unmarshalInputNewNote,
-		ec.unmarshalInputNewProgram,
-		ec.unmarshalInputNewTag,
-		ec.unmarshalInputNewWord,
-		ec.unmarshalInputNewWordList,
 		ec.unmarshalInputNoteFilter,
+		ec.unmarshalInputNoteInput,
 		ec.unmarshalInputPatchEndpoint,
 		ec.unmarshalInputPatchInput,
 		ec.unmarshalInputPatchMemorySheet,
 		ec.unmarshalInputPatchProgram,
 		ec.unmarshalInputPatchWord,
 		ec.unmarshalInputPatchWordList,
+		ec.unmarshalInputProgramInput,
+		ec.unmarshalInputTagInput,
+		ec.unmarshalInputWordInput,
+		ec.unmarshalInputWordListInput,
 	)
 	first := true
 
@@ -1749,55 +1593,7 @@ func (ec *executionContext) field_Mutation_delNote_args(ctx context.Context, raw
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteEndpoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_destroy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
@@ -1808,42 +1604,31 @@ func (ec *executionContext) field_Mutation_deleteTag_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_newAlias_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "refType", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
+	args["refType"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "refId", ec.unmarshalNInt2int)
 	if err != nil {
 		return nil, err
 	}
-	args["alias"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
+	args["refId"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
+	args["alias"] = arg2
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_newEndpoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewEndpoint)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNEndpointInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpointInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1854,7 +1639,7 @@ func (ec *executionContext) field_Mutation_newEndpoint_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_newMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNMemorySheetInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1865,7 +1650,7 @@ func (ec *executionContext) field_Mutation_newMemorySheet_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_newNote_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewNote)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONoteInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1876,7 +1661,7 @@ func (ec *executionContext) field_Mutation_newNote_args(ctx context.Context, raw
 func (ec *executionContext) field_Mutation_newProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOProgramInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgramInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1887,7 +1672,7 @@ func (ec *executionContext) field_Mutation_newProgram_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_newTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTagInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTagInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1898,7 +1683,7 @@ func (ec *executionContext) field_Mutation_newTag_args(ctx context.Context, rawA
 func (ec *executionContext) field_Mutation_newWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNWordListInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordListInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1909,7 +1694,7 @@ func (ec *executionContext) field_Mutation_newWordList_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_newWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNWordInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1917,70 +1702,7 @@ func (ec *executionContext) field_Mutation_newWord_args(ctx context.Context, raw
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_patchEndpoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPatchEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_patchMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPatchMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchMemorySheet)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_patchProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPatchProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchProgram)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_patchTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_patch_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
@@ -1996,48 +1718,6 @@ func (ec *executionContext) field_Mutation_patchTag_args(ctx context.Context, ra
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_patchWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPatchWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchWordList)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_patchWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPatchWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchWord)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_raw_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2046,6 +1726,33 @@ func (ec *executionContext) field_Mutation_raw_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["sql"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeAlias_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["alias"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_renameAlias_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "old", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["old"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "new", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["new"] = arg1
 	return args, nil
 }
 
@@ -2062,111 +1769,6 @@ func (ec *executionContext) field_Mutation_runCurl_args(ctx context.Context, raw
 		return nil, err
 	}
 	args["variables"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateEndpoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateWordList_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateWord_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg2
 	return args, nil
 }
 
@@ -3589,7 +3191,7 @@ func (ec *executionContext) _Mutation_newTag(ctx context.Context, field graphql.
 		ec.fieldContext_Mutation_newTag,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewTag(ctx, fc.Args["input"].(models.NewTag))
+			return ec.resolvers.Mutation().NewTag(ctx, fc.Args["input"].(models.TagInput))
 		},
 		nil,
 		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
@@ -3632,41 +3234,31 @@ func (ec *executionContext) fieldContext_Mutation_newTag(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_patchTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newAlias(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_patchTag,
+		ec.fieldContext_Mutation_newAlias,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchTag(ctx, fc.Args["a"].(string), fc.Args["patch"].(models.PatchInput))
+			return ec.resolvers.Mutation().NewAlias(ctx, fc.Args["refType"].(string), fc.Args["refId"].(int), fc.Args["alias"].(string))
 		},
 		nil,
-		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
+		ec.marshalNBoolean2bool,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_patchTag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_newAlias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tag_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Tag_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Tag_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Tag_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tag", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -3676,48 +3268,38 @@ func (ec *executionContext) fieldContext_Mutation_patchTag(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_patchTag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_newAlias_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_deleteTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_renameAlias(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_deleteTag,
+		ec.fieldContext_Mutation_renameAlias,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteTag(ctx, fc.Args["a"].(string))
+			return ec.resolvers.Mutation().RenameAlias(ctx, fc.Args["old"].(string), fc.Args["new"].(string))
 		},
 		nil,
-		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
+		ec.marshalNBoolean2bool,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_deleteTag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_renameAlias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tag_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Tag_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Tag_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Tag_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tag", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -3727,7 +3309,130 @@ func (ec *executionContext) fieldContext_Mutation_deleteTag(ctx context.Context,
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteTag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_renameAlias_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeAlias(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_removeAlias,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().RemoveAlias(ctx, fc.Args["alias"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeAlias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeAlias_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_patch(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_patch,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().Patch(ctx, fc.Args["a"].(string), fc.Args["patch"].(models.PatchInput))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_patch(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_patch_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_destroy(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_destroy,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().Destroy(ctx, fc.Args["a"].(string))
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_destroy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_destroy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3742,7 +3447,7 @@ func (ec *executionContext) _Mutation_newEndpoint(ctx context.Context, field gra
 		ec.fieldContext_Mutation_newEndpoint,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewEndpoint(ctx, fc.Args["input"].(models.NewEndpoint))
+			return ec.resolvers.Mutation().NewEndpoint(ctx, fc.Args["input"].(models.EndpointInput))
 		},
 		nil,
 		ec.marshalNEndpoint2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpoint,
@@ -3821,267 +3526,6 @@ func (ec *executionContext) fieldContext_Mutation_newEndpoint(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_updateEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_updateEndpoint,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateEndpoint(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.NewEndpoint))
-		},
-		nil,
-		ec.marshalNEndpoint2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpoint,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateEndpoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
-			case "name":
-				return ec.fieldContext_Endpoint_name(ctx, field)
-			case "alias":
-				return ec.fieldContext_Endpoint_alias(ctx, field)
-			case "description":
-				return ec.fieldContext_Endpoint_description(ctx, field)
-			case "httpSchema":
-				return ec.fieldContext_Endpoint_httpSchema(ctx, field)
-			case "httpMethod":
-				return ec.fieldContext_Endpoint_httpMethod(ctx, field)
-			case "httpDomain":
-				return ec.fieldContext_Endpoint_httpDomain(ctx, field)
-			case "httpPort":
-				return ec.fieldContext_Endpoint_httpPort(ctx, field)
-			case "httpPath":
-				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpBody":
-				return ec.fieldContext_Endpoint_httpBody(ctx, field)
-			case "httpTimeout":
-				return ec.fieldContext_Endpoint_httpTimeout(ctx, field)
-			case "httpFollowRedirects":
-				return ec.fieldContext_Endpoint_httpFollowRedirects(ctx, field)
-			case "httpPathMy":
-				return ec.fieldContext_Endpoint_httpPathMy(ctx, field)
-			case "httpQueriesMy":
-				return ec.fieldContext_Endpoint_httpQueriesMy(ctx, field)
-			case "httpHeadersMy":
-				return ec.fieldContext_Endpoint_httpHeadersMy(ctx, field)
-			case "httpCookiesMy":
-				return ec.fieldContext_Endpoint_httpCookiesMy(ctx, field)
-			case "httpBodyMy":
-				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
-			case "match":
-				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Endpoint_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Endpoint", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateEndpoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_patchEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_patchEndpoint,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchEndpoint(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.PatchEndpoint))
-		},
-		nil,
-		ec.marshalNEndpoint2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpoint,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_patchEndpoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
-			case "name":
-				return ec.fieldContext_Endpoint_name(ctx, field)
-			case "alias":
-				return ec.fieldContext_Endpoint_alias(ctx, field)
-			case "description":
-				return ec.fieldContext_Endpoint_description(ctx, field)
-			case "httpSchema":
-				return ec.fieldContext_Endpoint_httpSchema(ctx, field)
-			case "httpMethod":
-				return ec.fieldContext_Endpoint_httpMethod(ctx, field)
-			case "httpDomain":
-				return ec.fieldContext_Endpoint_httpDomain(ctx, field)
-			case "httpPort":
-				return ec.fieldContext_Endpoint_httpPort(ctx, field)
-			case "httpPath":
-				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpBody":
-				return ec.fieldContext_Endpoint_httpBody(ctx, field)
-			case "httpTimeout":
-				return ec.fieldContext_Endpoint_httpTimeout(ctx, field)
-			case "httpFollowRedirects":
-				return ec.fieldContext_Endpoint_httpFollowRedirects(ctx, field)
-			case "httpPathMy":
-				return ec.fieldContext_Endpoint_httpPathMy(ctx, field)
-			case "httpQueriesMy":
-				return ec.fieldContext_Endpoint_httpQueriesMy(ctx, field)
-			case "httpHeadersMy":
-				return ec.fieldContext_Endpoint_httpHeadersMy(ctx, field)
-			case "httpCookiesMy":
-				return ec.fieldContext_Endpoint_httpCookiesMy(ctx, field)
-			case "httpBodyMy":
-				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
-			case "match":
-				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Endpoint_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Endpoint", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_patchEndpoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteEndpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_deleteEndpoint,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteEndpoint(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNEndpoint2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpoint,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteEndpoint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
-			case "name":
-				return ec.fieldContext_Endpoint_name(ctx, field)
-			case "alias":
-				return ec.fieldContext_Endpoint_alias(ctx, field)
-			case "description":
-				return ec.fieldContext_Endpoint_description(ctx, field)
-			case "httpSchema":
-				return ec.fieldContext_Endpoint_httpSchema(ctx, field)
-			case "httpMethod":
-				return ec.fieldContext_Endpoint_httpMethod(ctx, field)
-			case "httpDomain":
-				return ec.fieldContext_Endpoint_httpDomain(ctx, field)
-			case "httpPort":
-				return ec.fieldContext_Endpoint_httpPort(ctx, field)
-			case "httpPath":
-				return ec.fieldContext_Endpoint_httpPath(ctx, field)
-			case "httpBody":
-				return ec.fieldContext_Endpoint_httpBody(ctx, field)
-			case "httpTimeout":
-				return ec.fieldContext_Endpoint_httpTimeout(ctx, field)
-			case "httpFollowRedirects":
-				return ec.fieldContext_Endpoint_httpFollowRedirects(ctx, field)
-			case "httpPathMy":
-				return ec.fieldContext_Endpoint_httpPathMy(ctx, field)
-			case "httpQueriesMy":
-				return ec.fieldContext_Endpoint_httpQueriesMy(ctx, field)
-			case "httpHeadersMy":
-				return ec.fieldContext_Endpoint_httpHeadersMy(ctx, field)
-			case "httpCookiesMy":
-				return ec.fieldContext_Endpoint_httpCookiesMy(ctx, field)
-			case "httpBodyMy":
-				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
-			case "match":
-				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Endpoint_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Endpoint", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteEndpoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_newMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4090,7 +3534,7 @@ func (ec *executionContext) _Mutation_newMemorySheet(ctx context.Context, field 
 		ec.fieldContext_Mutation_newMemorySheet,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewMemorySheet(ctx, fc.Args["input"].(models.NewMemorySheet))
+			return ec.resolvers.Mutation().NewMemorySheet(ctx, fc.Args["input"].(models.MemorySheetInput))
 		},
 		nil,
 		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
@@ -4133,177 +3577,6 @@ func (ec *executionContext) fieldContext_Mutation_newMemorySheet(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_newMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_updateMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_updateMemorySheet,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateMemorySheet(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.NewMemorySheet))
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_patchMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_patchMemorySheet,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchMemorySheet(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.PatchMemorySheet))
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_patchMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_patchMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_deleteMemorySheet,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteMemorySheet(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4403,7 +3676,7 @@ func (ec *executionContext) _Mutation_newNote(ctx context.Context, field graphql
 		ec.fieldContext_Mutation_newNote,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewNote(ctx, fc.Args["input"].(*models.NewNote))
+			return ec.resolvers.Mutation().NewNote(ctx, fc.Args["input"].(*models.NoteInput))
 		},
 		nil,
 		ec.marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote,
@@ -4505,7 +3778,7 @@ func (ec *executionContext) _Mutation_newProgram(ctx context.Context, field grap
 		ec.fieldContext_Mutation_newProgram,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewProgram(ctx, fc.Args["input"].(*models.NewProgram))
+			return ec.resolvers.Mutation().NewProgram(ctx, fc.Args["input"].(*models.ProgramInput))
 		},
 		nil,
 		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
@@ -4550,183 +3823,6 @@ func (ec *executionContext) fieldContext_Mutation_newProgram(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_newProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_updateProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_updateProgram,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateProgram(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.NewProgram))
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_patchProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_patchProgram,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchProgram(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.PatchProgram))
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_patchProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_patchProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_deleteProgram,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteProgram(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4782,7 +3878,7 @@ func (ec *executionContext) _Mutation_newWord(ctx context.Context, field graphql
 		ec.fieldContext_Mutation_newWord,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewWord(ctx, fc.Args["input"].(models.NewWord))
+			return ec.resolvers.Mutation().NewWord(ctx, fc.Args["input"].(models.WordInput))
 		},
 		nil,
 		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
@@ -4827,165 +3923,6 @@ func (ec *executionContext) fieldContext_Mutation_newWord(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_updateWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_updateWord,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateWord(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.NewWord))
-		},
-		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Word_id(ctx, field)
-			case "word":
-				return ec.fieldContext_Word_word(ctx, field)
-			case "alias":
-				return ec.fieldContext_Word_alias(ctx, field)
-			case "wordType":
-				return ec.fieldContext_Word_wordType(ctx, field)
-			case "description":
-				return ec.fieldContext_Word_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_patchWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_patchWord,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchWord(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.PatchWord))
-		},
-		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_patchWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Word_id(ctx, field)
-			case "word":
-				return ec.fieldContext_Word_word(ctx, field)
-			case "alias":
-				return ec.fieldContext_Word_alias(ctx, field)
-			case "wordType":
-				return ec.fieldContext_Word_wordType(ctx, field)
-			case "description":
-				return ec.fieldContext_Word_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_patchWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteWord(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_deleteWord,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteWord(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWord,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteWord(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Word_id(ctx, field)
-			case "word":
-				return ec.fieldContext_Word_word(ctx, field)
-			case "alias":
-				return ec.fieldContext_Word_alias(ctx, field)
-			case "wordType":
-				return ec.fieldContext_Word_wordType(ctx, field)
-			case "description":
-				return ec.fieldContext_Word_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Word", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteWord_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_newWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4994,7 +3931,7 @@ func (ec *executionContext) _Mutation_newWordList(ctx context.Context, field gra
 		ec.fieldContext_Mutation_newWordList,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewWordList(ctx, fc.Args["input"].(models.NewWordList))
+			return ec.resolvers.Mutation().NewWordList(ctx, fc.Args["input"].(models.WordListInput))
 		},
 		nil,
 		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
@@ -5035,171 +3972,6 @@ func (ec *executionContext) fieldContext_Mutation_newWordList(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_newWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_updateWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_updateWordList,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateWordList(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.NewWordList))
-		},
-		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_updateWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_WordList_id(ctx, field)
-			case "name":
-				return ec.fieldContext_WordList_name(ctx, field)
-			case "alias":
-				return ec.fieldContext_WordList_alias(ctx, field)
-			case "description":
-				return ec.fieldContext_WordList_description(ctx, field)
-			case "words":
-				return ec.fieldContext_WordList_words(ctx, field)
-			case "importUrl":
-				return ec.fieldContext_WordList_importUrl(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_patchWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_patchWordList,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().PatchWordList(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string), fc.Args["input"].(models.PatchWordList))
-		},
-		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_patchWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_WordList_id(ctx, field)
-			case "name":
-				return ec.fieldContext_WordList_name(ctx, field)
-			case "alias":
-				return ec.fieldContext_WordList_alias(ctx, field)
-			case "description":
-				return ec.fieldContext_WordList_description(ctx, field)
-			case "words":
-				return ec.fieldContext_WordList_words(ctx, field)
-			case "importUrl":
-				return ec.fieldContext_WordList_importUrl(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_patchWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_deleteWordList(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_deleteWordList,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteWordList(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_deleteWordList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_WordList_id(ctx, field)
-			case "name":
-				return ec.fieldContext_WordList_name(ctx, field)
-			case "alias":
-				return ec.fieldContext_WordList_alias(ctx, field)
-			case "description":
-				return ec.fieldContext_WordList_description(ctx, field)
-			case "words":
-				return ec.fieldContext_WordList_words(ctx, field)
-			case "importUrl":
-				return ec.fieldContext_WordList_importUrl(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type WordList", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteWordList_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -9954,77 +8726,8 @@ func (ec *executionContext) unmarshalInputEndpointFilter(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputMyRequestFilter(ctx context.Context, obj any) (models.MyRequestFilter, error) {
-	var it models.MyRequestFilter
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"programId", "endpointId", "success", "statusMin", "statusMax", "dateFrom", "dateTo"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "programId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programId"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ProgramId = data
-		case "endpointId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endpointId"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.EndpointId = data
-		case "success":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Success = data
-		case "statusMin":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusMin"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.StatusMin = data
-		case "statusMax":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusMax"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.StatusMax = data
-		case "dateFrom":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateFrom"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DateFrom = data
-		case "dateTo":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateTo"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DateTo = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewEndpoint(ctx context.Context, obj any) (models.NewEndpoint, error) {
-	var it models.NewEndpoint
+func (ec *executionContext) unmarshalInputEndpointInput(ctx context.Context, obj any) (models.EndpointInput, error) {
+	var it models.EndpointInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -10127,8 +8830,8 @@ func (ec *executionContext) unmarshalInputNewEndpoint(ctx context.Context, obj a
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewMemorySheet(ctx context.Context, obj any) (models.NewMemorySheet, error) {
-	var it models.NewMemorySheet
+func (ec *executionContext) unmarshalInputMemorySheetInput(ctx context.Context, obj any) (models.MemorySheetInput, error) {
+	var it models.MemorySheetInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -10168,249 +8871,69 @@ func (ec *executionContext) unmarshalInputNewMemorySheet(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewNote(ctx context.Context, obj any) (models.NewNote, error) {
-	var it models.NewNote
+func (ec *executionContext) unmarshalInputMyRequestFilter(ctx context.Context, obj any) (models.MyRequestFilter, error) {
+	var it models.MyRequestFilter
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"value", "rId", "referenceId", "referenceType"}
+	fieldsInOrder := [...]string{"programId", "endpointId", "success", "statusMin", "statusMax", "dateFrom", "dateTo"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "value":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Value = data
-		case "rId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rId"))
+		case "programId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programId"))
 			data, err := ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.RId = data
-		case "referenceId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceId"))
+			it.ProgramId = data
+		case "endpointId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endpointId"))
 			data, err := ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ReferenceId = data
-		case "referenceType":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceType"))
-			data, err := ec.unmarshalOString2string(ctx, v)
+			it.EndpointId = data
+		case "success":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("success"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.ReferenceType = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewProgram(ctx context.Context, obj any) (models.NewProgram, error) {
-	var it models.NewProgram
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url", "tags"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		case "domain":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Domain = data
-		case "url":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.URL = data
-		case "tags":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			if err = ec.resolvers.NewProgram().Tags(ctx, &it, data); err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewTag(ctx context.Context, obj any) (models.NewTag, error) {
-	var it models.NewTag
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "alias", "description", "priority"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		case "priority":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			it.Success = data
+		case "statusMin":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusMin"))
 			data, err := ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Priority = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewWord(ctx context.Context, obj any) (models.NewWord, error) {
-	var it models.NewWord
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"word", "alias", "wordType", "description"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "word":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("word"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			it.StatusMin = data
+		case "statusMax":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusMax"))
+			data, err := ec.unmarshalOInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Word = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			it.StatusMax = data
+		case "dateFrom":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateFrom"))
 			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Alias = data
-		case "wordType":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordType"))
-			data, err := ec.unmarshalNWordType2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordType(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.WordType = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.DateFrom = data
+		case "dateTo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dateTo"))
 			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Description = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputNewWordList(ctx context.Context, obj any) (models.NewWordList, error) {
-	var it models.NewWordList
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "alias", "description"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
+			it.DateTo = data
 		}
 	}
 
@@ -10466,6 +8989,54 @@ func (ec *executionContext) unmarshalInputNoteFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Search = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNoteInput(ctx context.Context, obj any) (models.NoteInput, error) {
+	var it models.NoteInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"value", "rId", "referenceId", "referenceType"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		case "rId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rId"))
+			data, err := ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RId = data
+		case "referenceId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceId"))
+			data, err := ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReferenceId = data
+		case "referenceType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceType"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ReferenceType = data
 		}
 	}
 
@@ -10764,6 +9335,207 @@ func (ec *executionContext) unmarshalInputPatchWordList(ctx context.Context, obj
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputProgramInput(ctx context.Context, obj any) (models.ProgramInput, error) {
+	var it models.ProgramInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url", "tags"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "alias":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alias = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "domain":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Domain = data
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.URL = data
+		case "tags":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.ProgramInput().Tags(ctx, &it, data); err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTagInput(ctx context.Context, obj any) (models.TagInput, error) {
+	var it models.TagInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "alias", "description", "priority"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "alias":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alias = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "priority":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			data, err := ec.unmarshalOInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Priority = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputWordInput(ctx context.Context, obj any) (models.WordInput, error) {
+	var it models.WordInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"word", "alias", "wordType", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "word":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("word"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Word = data
+		case "alias":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alias = data
+		case "wordType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("wordType"))
+			data, err := ec.unmarshalNWordType2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WordType = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputWordListInput(ctx context.Context, obj any) (models.WordListInput, error) {
+	var it models.WordListInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "alias", "description"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "alias":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alias = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11521,16 +10293,37 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "patchTag":
+		case "newAlias":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_patchTag(ctx, field)
+				return ec._Mutation_newAlias(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "deleteTag":
+		case "renameAlias":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteTag(ctx, field)
+				return ec._Mutation_renameAlias(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "removeAlias":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeAlias(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "patch":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_patch(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "destroy":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_destroy(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11542,51 +10335,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "updateEndpoint":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateEndpoint(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "patchEndpoint":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_patchEndpoint(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteEndpoint":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteEndpoint(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "newMemorySheet":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_newMemorySheet(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "updateMemorySheet":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateMemorySheet(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "patchMemorySheet":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_patchMemorySheet(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteMemorySheet":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteMemorySheet(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11619,27 +10370,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "updateProgram":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateProgram(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "patchProgram":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_patchProgram(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteProgram":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteProgram(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "raw":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_raw(ctx, field)
@@ -11654,51 +10384,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "updateWord":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateWord(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "patchWord":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_patchWord(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteWord":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteWord(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "newWordList":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_newWordList(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "updateWordList":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateWordList(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "patchWordList":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_patchWordList(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "deleteWordList":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteWordList(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -13780,6 +12468,11 @@ func (ec *executionContext) marshalNEndpoint2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋ
 	return ec._Endpoint(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNEndpointInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpointInput(ctx context.Context, v any) (models.EndpointInput, error) {
+	res, err := ec.unmarshalInputEndpointInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNHttpMethod2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐHttpMethod(ctx context.Context, v any) (models.HttpMethod, error) {
 	var res models.HttpMethod
 	err := res.UnmarshalGQL(v)
@@ -13926,6 +12619,11 @@ func (ec *executionContext) marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbane
 	return ec._MemorySheet(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNMemorySheetInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetInput(ctx context.Context, v any) (models.MemorySheetInput, error) {
+	res, err := ec.unmarshalInputMemorySheetInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, v any) (models.MyDate, error) {
 	var res models.MyDate
 	err := res.UnmarshalGQL(v)
@@ -14006,36 +12704,6 @@ func (ec *executionContext) marshalNMyString2ᚕᚖstring(ctx context.Context, s
 	return ret
 }
 
-func (ec *executionContext) unmarshalNNewEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewEndpoint(ctx context.Context, v any) (models.NewEndpoint, error) {
-	res, err := ec.unmarshalInputNewEndpoint(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewMemorySheet(ctx context.Context, v any) (models.NewMemorySheet, error) {
-	res, err := ec.unmarshalInputNewMemorySheet(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram(ctx context.Context, v any) (models.NewProgram, error) {
-	res, err := ec.unmarshalInputNewProgram(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewTag(ctx context.Context, v any) (models.NewTag, error) {
-	res, err := ec.unmarshalInputNewTag(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWord(ctx context.Context, v any) (models.NewWord, error) {
-	res, err := ec.unmarshalInputNewWord(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewWordList(ctx context.Context, v any) (models.NewWordList, error) {
-	res, err := ec.unmarshalInputNewWordList(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNNote2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote(ctx context.Context, sel ast.SelectionSet, v models.Note) graphql.Marshaler {
 	return ec._Note(ctx, sel, &v)
 }
@@ -14094,33 +12762,8 @@ func (ec *executionContext) marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmode
 	return ec._Note(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPatchEndpoint2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchEndpoint(ctx context.Context, v any) (models.PatchEndpoint, error) {
-	res, err := ec.unmarshalInputPatchEndpoint(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNPatchInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchInput(ctx context.Context, v any) (models.PatchInput, error) {
 	res, err := ec.unmarshalInputPatchInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPatchMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchMemorySheet(ctx context.Context, v any) (models.PatchMemorySheet, error) {
-	res, err := ec.unmarshalInputPatchMemorySheet(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPatchProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchProgram(ctx context.Context, v any) (models.PatchProgram, error) {
-	res, err := ec.unmarshalInputPatchProgram(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPatchWord2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchWord(ctx context.Context, v any) (models.PatchWord, error) {
-	res, err := ec.unmarshalInputPatchWord(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPatchWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchWordList(ctx context.Context, v any) (models.PatchWordList, error) {
-	res, err := ec.unmarshalInputPatchWordList(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -14196,6 +12839,11 @@ func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 	return ec._Tag(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTagInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTagInput(ctx context.Context, v any) (models.TagInput, error) {
+	res, err := ec.unmarshalInputTagInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNVarString2githubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString(ctx context.Context, v any) (mystructs.VarString, error) {
 	var res mystructs.VarString
 	err := res.UnmarshalGQL(v)
@@ -14220,6 +12868,11 @@ func (ec *executionContext) marshalNWord2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmode
 	return ec._Word(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNWordInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordInput(ctx context.Context, v any) (models.WordInput, error) {
+	res, err := ec.unmarshalInputWordInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNWordList2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordList(ctx context.Context, sel ast.SelectionSet, v models.WordList) graphql.Marshaler {
 	return ec._WordList(ctx, sel, &v)
 }
@@ -14232,6 +12885,11 @@ func (ec *executionContext) marshalNWordList2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋ
 		return graphql.Null
 	}
 	return ec._WordList(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNWordListInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordListInput(ctx context.Context, v any) (models.WordListInput, error) {
+	res, err := ec.unmarshalInputWordListInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNWordType2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐWordType(ctx context.Context, v any) (models.WordType, error) {
@@ -14844,22 +13502,6 @@ func (ec *executionContext) marshalOMyString2ᚖstring(ctx context.Context, sel 
 	return res
 }
 
-func (ec *executionContext) unmarshalONewNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewNote(ctx context.Context, v any) (*models.NewNote, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputNewNote(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalONewProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNewProgram(ctx context.Context, v any) (*models.NewProgram, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputNewProgram(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalONote2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote(ctx context.Context, sel ast.SelectionSet, v []*models.Note) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -14916,6 +13558,14 @@ func (ec *executionContext) unmarshalONoteFilter2ᚖgithubᚗcomᚋlinn221ᚋban
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalONoteInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteInput(ctx context.Context, v any) (*models.NoteInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputNoteInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx context.Context, sel ast.SelectionSet, v []*models.Program) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -14962,6 +13612,14 @@ func (ec *executionContext) marshalOProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋm
 		return graphql.Null
 	}
 	return ec._Program(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOProgramInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgramInput(ctx context.Context, v any) (*models.ProgramInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputProgramInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSQLResult2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐSQLResult(ctx context.Context, sel ast.SelectionSet, v *model.SQLResult) graphql.Marshaler {

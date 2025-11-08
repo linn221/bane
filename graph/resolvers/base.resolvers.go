@@ -6,26 +6,41 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/services"
 )
 
 // NewTag is the resolver for the newTag field.
-func (r *mutationResolver) NewTag(ctx context.Context, input models.NewTag) (*models.Tag, error) {
+func (r *mutationResolver) NewTag(ctx context.Context, input models.TagInput) (*models.Tag, error) {
 	return r.app.Services.TagService.Create(ctx, &input)
 }
 
-// PatchTag is the resolver for the patchTag field.
-func (r *mutationResolver) PatchTag(ctx context.Context, a string, patch models.PatchInput) (*models.Tag, error) {
-	return services.PatchModel[models.Tag](r.DB.WithContext(ctx), r.app.Services.AliasService, a, patch)
+// NewAlias is the resolver for the newAlias field.
+func (r *mutationResolver) NewAlias(ctx context.Context, refType string, refID int, alias string) (bool, error) {
+	panic(fmt.Errorf("not implemented: NewAlias - newAlias"))
 }
 
-// DeleteTag is the resolver for the deleteTag field.
-func (r *mutationResolver) DeleteTag(ctx context.Context, a string) (*models.Tag, error) {
-	return r.app.Services.TagService.Delete(ctx, a)
+// RenameAlias is the resolver for the renameAlias field.
+func (r *mutationResolver) RenameAlias(ctx context.Context, old string, new string) (bool, error) {
+	panic(fmt.Errorf("not implemented: RenameAlias - renameAlias"))
+}
+
+// RemoveAlias is the resolver for the removeAlias field.
+func (r *mutationResolver) RemoveAlias(ctx context.Context, alias string) (bool, error) {
+	panic(fmt.Errorf("not implemented: RemoveAlias - removeAlias"))
+}
+
+// Patch is the resolver for the patch field.
+func (r *mutationResolver) Patch(ctx context.Context, a string, patch models.PatchInput) (bool, error) {
+	panic(fmt.Errorf("not implemented: Patch - patch"))
+}
+
+// Destroy is the resolver for the destroy field.
+func (r *mutationResolver) Destroy(ctx context.Context, a string) (bool, error) {
+	panic(fmt.Errorf("not implemented: Destroy - destroy"))
 }
 
 // Tag is the resolver for the tag field.

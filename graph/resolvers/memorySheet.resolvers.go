@@ -53,32 +53,8 @@ func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet
 }
 
 // NewMemorySheet is the resolver for the newMemorySheet field.
-func (r *mutationResolver) NewMemorySheet(ctx context.Context, input models.NewMemorySheet) (*models.MemorySheet, error) {
+func (r *mutationResolver) NewMemorySheet(ctx context.Context, input models.MemorySheetInput) (*models.MemorySheet, error) {
 	return r.app.Services.MemorySheetService.Create(&input)
-}
-
-// UpdateMemorySheet is the resolver for the updateMemorySheet field.
-func (r *mutationResolver) UpdateMemorySheet(ctx context.Context, id *int, alias *string, input models.NewMemorySheet) (*models.MemorySheet, error) {
-	return r.app.Services.MemorySheetService.Update(id, alias, &input)
-}
-
-// PatchMemorySheet is the resolver for the patchMemorySheet field.
-func (r *mutationResolver) PatchMemorySheet(ctx context.Context, id *int, alias *string, input models.PatchMemorySheet) (*models.MemorySheet, error) {
-	updates := make(map[string]any)
-
-	if input.Value != nil && *input.Value != "" {
-		updates["value"] = *input.Value
-	}
-	if input.Date != nil {
-		updates["current_date"] = input.Date.Time
-	}
-
-	return r.app.Services.MemorySheetService.Patch(id, alias, updates)
-}
-
-// DeleteMemorySheet is the resolver for the deleteMemorySheet field.
-func (r *mutationResolver) DeleteMemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error) {
-	return r.app.Services.MemorySheetService.Delete(id, alias)
 }
 
 // MemorySheet is the resolver for the memorySheet field.

@@ -15,15 +15,15 @@ func GetNextDate(currentDate time.Time, index int) time.Time {
 }
 
 type memorySheetService struct {
-	GeneralCrud[models.NewMemorySheet, models.MemorySheet]
+	GeneralCrud[models.MemorySheetInput, models.MemorySheet]
 	db           *gorm.DB
 	aliasService *aliasService
 }
 
 func newMemorySheetService(db *gorm.DB, aliasService *aliasService) *memorySheetService {
 	return &memorySheetService{
-		GeneralCrud: GeneralCrud[models.NewMemorySheet, models.MemorySheet]{
-			transform: func(input *models.NewMemorySheet) models.MemorySheet {
+		GeneralCrud: GeneralCrud[models.MemorySheetInput, models.MemorySheet]{
+			transform: func(input *models.MemorySheetInput) models.MemorySheet {
 				result := models.MemorySheet{
 					Value: input.Value,
 				}
@@ -32,7 +32,7 @@ func newMemorySheetService(db *gorm.DB, aliasService *aliasService) *memorySheet
 				result.NextDate = result.CurrentDate.AddDate(0, 0, 1)
 				return result
 			},
-			updates: func(existing models.MemorySheet, input *models.NewMemorySheet) map[string]any {
+			updates: func(existing models.MemorySheet, input *models.MemorySheetInput) map[string]any {
 				updates := map[string]any{}
 
 				if input.UpdateNextDate {
@@ -55,16 +55,14 @@ func newMemorySheetService(db *gorm.DB, aliasService *aliasService) *memorySheet
 	}
 }
 
-func (mss *memorySheetService) Create(input *models.NewMemorySheet) (*models.MemorySheet, error) {
+func (mss *memorySheetService) Create(input *models.MemorySheetInput) (*models.MemorySheet, error) {
 	result, err := mss.GeneralCrud.Create(mss.db, input)
 	if err != nil {
 		return nil, err
 	}
-	// Set alias if provided
-	if input.Alias != "" {
-		if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMemorySheet), result.Id, input.Alias); err != nil {
-			return nil, err
-		}
+	// Set alias (will be auto-generated if not provided)
+	if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMemorySheet), result.Id, input.Alias); err != nil {
+		return nil, err
 	}
 	return result, nil
 }
@@ -76,7 +74,7 @@ func (mss *memorySheetService) Get(id *int) (*models.MemorySheet, error) {
 	return mss.GeneralCrud.Get(mss.db, id)
 }
 
-func (mss *memorySheetService) Update(id *int, alias *string, input *models.NewMemorySheet) (*models.MemorySheet, error) {
+func (mss *memorySheetService) Update(id *int, alias *string, input *models.MemorySheetInput) (*models.MemorySheet, error) {
 	if id != nil {
 		return mss.GeneralCrud.Update(mss.db, input, id)
 	}
@@ -129,7 +127,7 @@ func (mss *memorySheetService) GetTodayNotes(currentDate time.Time) ([]*models.M
 	defer tx.Rollback()
 	for _, nSheet := range nextSheets {
 		id := nSheet.Id
-		_, err := mss.GeneralCrud.Update(tx, &models.NewMemorySheet{UpdateNextDate: true}, &id)
+		_, err := mss.GeneralCrud.Update(tx, &models.MemorySheetInput{UpdateNextDate: true}, &id)
 		if err != nil {
 			return nil, err
 		}

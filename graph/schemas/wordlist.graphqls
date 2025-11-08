@@ -10,7 +10,7 @@ type Word {
   # notes: [Note]
 }
 
-input NewWord {
+input WordInput {
   word: String!
   alias: String
   wordType: WordType! # fuzz | attack
@@ -26,7 +26,7 @@ type WordList {
     importUrl: String @goField(forceResolver: true)
 }
 
-input NewWordList {
+input WordListInput {
     name: String!
     alias: String
     description: String
@@ -50,15 +50,8 @@ input PatchWordList {
 }
 
 extend type Mutation {
-  newWord(input: NewWord!): Word!
-  updateWord(id: Int, alias: String, input: NewWord!): Word!
-  patchWord(id: Int, alias: String, input: PatchWord!): Word!
-  deleteWord(id: Int, alias: String): Word!
-
-  newWordList(input: NewWordList!): WordList!
-  updateWordList(id: Int, alias: String, input: NewWordList!): WordList!
-  patchWordList(id: Int, alias: String, input: PatchWordList!): WordList!
-  deleteWordList(id: Int, alias: String): WordList!
+  newWord(input: WordInput!): Word!
+  newWordList(input: WordListInput!): WordList!
 }
 
 extend type Query {

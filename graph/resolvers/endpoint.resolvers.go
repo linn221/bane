@@ -89,23 +89,8 @@ func (r *endpointResolver) Notes(ctx context.Context, obj *models.Endpoint) ([]*
 }
 
 // NewEndpoint is the resolver for the newEndpoint field.
-func (r *mutationResolver) NewEndpoint(ctx context.Context, input models.NewEndpoint) (*models.Endpoint, error) {
+func (r *mutationResolver) NewEndpoint(ctx context.Context, input models.EndpointInput) (*models.Endpoint, error) {
 	return r.app.Services.EndpointService.Create(&input)
-}
-
-// UpdateEndpoint is the resolver for the updateEndpoint field.
-func (r *mutationResolver) UpdateEndpoint(ctx context.Context, id *int, alias *string, input models.NewEndpoint) (*models.Endpoint, error) {
-	return r.app.Services.EndpointService.Update(id, alias, &input)
-}
-
-// PatchEndpoint is the resolver for the patchEndpoint field.
-func (r *mutationResolver) PatchEndpoint(ctx context.Context, id *int, alias *string, input models.PatchEndpoint) (*models.Endpoint, error) {
-	return r.app.Services.EndpointService.Patch(id, alias, &input)
-}
-
-// DeleteEndpoint is the resolver for the deleteEndpoint field.
-func (r *mutationResolver) DeleteEndpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
-	return r.app.Services.EndpointService.Delete(id, alias)
 }
 
 // Endpoint is the resolver for the endpoint field.

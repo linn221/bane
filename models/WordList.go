@@ -18,7 +18,7 @@ type WordList struct {
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
 
-type NewWordList struct {
+type WordListInput struct {
 	Name        string `json:"name"`
 	Alias       string `json:"alias,omitempty"`
 	Description string `json:"description,omitempty"`
@@ -30,7 +30,7 @@ type AllWordList struct {
 	Description *string `json:"description,omitempty"`
 }
 
-func (input *NewWordList) Validate(db *gorm.DB, id int) error {
+func (input *WordListInput) Validate(db *gorm.DB, id int) error {
 	var rules []validate.Rule
 
 	// Validate name uniqueness

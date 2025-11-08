@@ -48,7 +48,7 @@ type Endpoint struct {
 	// Vulns       []Vuln               `gorm:"many2many:endpoint_vulns"`
 }
 
-type NewEndpoint struct {
+type EndpointInput struct {
 	Name                string               `json:"name"`
 	Alias               string               `json:"alias,omitempty"`
 	ProgramAlias        string               `json:"program_alias"`
@@ -67,7 +67,7 @@ type NewEndpoint struct {
 	// Vulns       []string             `json:"vulns"` // alias of vulns to attach to the endpoint
 }
 
-func (input *NewEndpoint) Validate(db *gorm.DB, id int) error {
+func (input *EndpointInput) Validate(db *gorm.DB, id int) error {
 	var rules []validate.Rule
 
 	// Validate alias uniqueness if provided

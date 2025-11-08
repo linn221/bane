@@ -15,64 +15,13 @@ import (
 )
 
 // NewWord is the resolver for the newWord field.
-func (r *mutationResolver) NewWord(ctx context.Context, input models.NewWord) (*models.Word, error) {
+func (r *mutationResolver) NewWord(ctx context.Context, input models.WordInput) (*models.Word, error) {
 	return r.app.Services.WordService.CreateWord(&input)
 }
 
-// UpdateWord is the resolver for the updateWord field.
-func (r *mutationResolver) UpdateWord(ctx context.Context, id *int, alias *string, input models.NewWord) (*models.Word, error) {
-	return r.app.Services.WordService.UpdateWord(id, alias, &input)
-}
-
-// PatchWord is the resolver for the patchWord field.
-func (r *mutationResolver) PatchWord(ctx context.Context, id *int, alias *string, input models.PatchWord) (*models.Word, error) {
-	updates := make(map[string]any)
-
-	if input.Word != nil && *input.Word != "" {
-		updates["word"] = *input.Word
-	}
-	if input.WordType != nil {
-		updates["word_type"] = *input.WordType
-	}
-	if input.Description != nil && *input.Description != "" {
-		updates["description"] = *input.Description
-	}
-
-	return r.app.Services.WordService.PatchWord(id, alias, updates)
-}
-
-// DeleteWord is the resolver for the deleteWord field.
-func (r *mutationResolver) DeleteWord(ctx context.Context, id *int, alias *string) (*models.Word, error) {
-	return r.app.Services.WordService.DeleteWord(id, alias)
-}
-
 // NewWordList is the resolver for the newWordList field.
-func (r *mutationResolver) NewWordList(ctx context.Context, input models.NewWordList) (*models.WordList, error) {
+func (r *mutationResolver) NewWordList(ctx context.Context, input models.WordListInput) (*models.WordList, error) {
 	return r.app.Services.WordService.CreateWordList(&input)
-}
-
-// UpdateWordList is the resolver for the updateWordList field.
-func (r *mutationResolver) UpdateWordList(ctx context.Context, id *int, alias *string, input models.NewWordList) (*models.WordList, error) {
-	return r.app.Services.WordService.UpdateWordList(id, alias, &input)
-}
-
-// PatchWordList is the resolver for the patchWordList field.
-func (r *mutationResolver) PatchWordList(ctx context.Context, id *int, alias *string, input models.PatchWordList) (*models.WordList, error) {
-	updates := make(map[string]any)
-
-	if input.Name != nil && *input.Name != "" {
-		updates["name"] = *input.Name
-	}
-	if input.Description != nil && *input.Description != "" {
-		updates["description"] = *input.Description
-	}
-
-	return r.app.Services.WordService.PatchWordList(id, alias, updates)
-}
-
-// DeleteWordList is the resolver for the deleteWordList field.
-func (r *mutationResolver) DeleteWordList(ctx context.Context, id *int, alias *string) (*models.WordList, error) {
-	return r.app.Services.WordService.DeleteWordList(id, alias)
 }
 
 // Word is the resolver for the word field.

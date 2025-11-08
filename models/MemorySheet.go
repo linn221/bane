@@ -16,7 +16,7 @@ type MemorySheet struct {
 	// Notes       []Note    `gorm:"foreignKey:MemorySheetId"`
 }
 
-type NewMemorySheet struct {
+type MemorySheetInput struct {
 	Value string  `json:"value"`
 	Alias string  `json:"alias,omitempty"`
 	Date  *MyDate `json:"date,omitempty"`
@@ -24,7 +24,7 @@ type NewMemorySheet struct {
 	UpdateNextDate bool
 }
 
-func (input *NewMemorySheet) Validate(db *gorm.DB, id int) error {
+func (input *MemorySheetInput) Validate(db *gorm.DB, id int) error {
 	// Add validation logic here if needed
 	return nil
 }

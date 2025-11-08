@@ -26,7 +26,7 @@ type Program struct {
 	// Taggables   []Taggable   `gorm:"polymorphic:Taggable;polymorphicValue:programs"`
 }
 
-type NewProgram struct {
+type ProgramInput struct {
 	Alias       string  `json:"alias"`
 	Name        string  `json:"name"`
 	Description *string `json:"description,omitempty"`

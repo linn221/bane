@@ -18,7 +18,7 @@ type Tag {
     description: String
 }
 
-input NewTag {
+input TagInput {
     name: String!
     alias: String
     description: String
@@ -32,7 +32,7 @@ input PatchInput {
 
 
 extend type Mutation {
-    newTag(input: NewTag!): Tag!
+    newTag(input: TagInput!): Tag!
     newAlias(refType: String!, refId: Int!, alias: String!): Boolean!
     renameAlias(old: String!, new: String!): Boolean!
     removeAlias(alias: String!): Boolean!

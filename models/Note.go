@@ -14,7 +14,7 @@ type Note struct {
 	Taggables []Taggable `gorm:"polymorphic:Taggable;polymorphicValue:notes"`
 }
 
-type NewNote struct {
+type NoteInput struct {
 	Value         string
 	RId           int
 	ReferenceId   int

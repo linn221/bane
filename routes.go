@@ -154,7 +154,7 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 		dateStr := r.FormValue("date")
 
 		// Create new memory sheet
-		newMemorySheet := &models.NewMemorySheet{
+		newMemorySheet := &models.MemorySheetInput{
 			Value: value,
 			Alias: alias,
 		}

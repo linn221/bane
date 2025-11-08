@@ -16,11 +16,11 @@ func newTagService(db *gorm.DB, aliasService *aliasService) *tagService {
 	return &tagService{db: db, aliasService: aliasService}
 }
 
-func (ts *tagService) Validate(ctx context.Context, input *models.NewTag) error {
+func (ts *tagService) Validate(ctx context.Context, input *models.TagInput) error {
 	panic("ss")
 }
 
-func (ts *tagService) Create(ctx context.Context, input *models.NewTag) (*models.Tag, error) {
+func (ts *tagService) Create(ctx context.Context, input *models.TagInput) (*models.Tag, error) {
 	if err := ts.Validate(ctx, input); err != nil {
 		return nil, err
 	}
@@ -32,11 +32,9 @@ func (ts *tagService) Create(ctx context.Context, input *models.NewTag) (*models
 	if err := ts.db.WithContext(ctx).Create(&tag).Error; err != nil {
 		return nil, err
 	}
-	// Set alias if provided
-	if input.Alias != "" {
-		if err := ts.aliasService.SetAlias(string(models.AliasReferenceTypeTag), tag.Id, input.Alias); err != nil {
-			return nil, err
-		}
+	// Set alias (will be auto-generated if not provided)
+	if err := ts.aliasService.SetAlias(string(models.AliasReferenceTypeTag), tag.Id, input.Alias); err != nil {
+		return nil, err
 	}
 	return &tag, nil
 }
@@ -45,7 +43,7 @@ func (ts *tagService) Get(ctx context.Context, alias string) (*models.Tag, error
 	return first[models.Tag](ts.db.WithContext(ctx), ts.aliasService, alias)
 }
 
-// func (ts *tagService) Update(id *int, alias *string, input *models.NewTag) (*models.Tag, error) {
+// func (ts *tagService) Update(id *int, alias *string, input *models.TagInput) (*models.Tag, error) {
 // 	if id != nil {
 // 		return ts.GeneralCrud.Update(ts.db, input, id)
 // 	}

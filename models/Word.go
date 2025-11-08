@@ -19,14 +19,14 @@ type Word struct {
 	UpdatedAt   time.Time  `gorm:"autoUpdateTime"`
 }
 
-type NewWord struct {
+type WordInput struct {
 	Word        string   `json:"word"`
 	Alias       string   `json:"alias,omitempty"`
 	WordType    WordType `json:"wordType"`
 	Description string   `json:"description,omitempty"`
 }
 
-func (input *NewWord) Validate(db *gorm.DB, id int) error {
+func (input *WordInput) Validate(db *gorm.DB, id int) error {
 	var rules []validate.Rule
 
 	// Validate word uniqueness

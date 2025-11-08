@@ -15,9 +15,9 @@ type Program {
   # notes: [Note]
 }
 
-input NewProgram {
+input ProgramInput {
   name: String!
-  alias: String!
+  alias: String
   description: String
   domain: String!
   url: String!
@@ -36,10 +36,7 @@ input PatchProgram {
 }
 
 extend type Mutation {
-  newProgram(input: NewProgram): Program!
-  updateProgram(id: Int, alias: String, input: NewProgram!): Program!
-  patchProgram(id: Int, alias: String, input: PatchProgram!): Program!
-  deleteProgram(id: Int, alias: String): Program!
+  newProgram(input: ProgramInput): Program!
 }
 
 

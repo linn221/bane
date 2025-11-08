@@ -7,15 +7,15 @@ import (
 )
 
 type noteService struct {
-	GeneralCrud[models.NewNote, models.Note]
+	GeneralCrud[models.NoteInput, models.Note]
 	db      *gorm.DB
 	deducer Deducer
 }
 
 func newNoteService(db *gorm.DB, deducer Deducer) *noteService {
 	return &noteService{
-		GeneralCrud: GeneralCrud[models.NewNote, models.Note]{
-			transform: func(input *models.NewNote) models.Note {
+		GeneralCrud: GeneralCrud[models.NoteInput, models.Note]{
+			transform: func(input *models.NoteInput) models.Note {
 				today := utils.Today()
 				return models.Note{
 					ReferenceType: input.ReferenceType,
@@ -30,7 +30,7 @@ func newNoteService(db *gorm.DB, deducer Deducer) *noteService {
 	}
 }
 
-func (ns *noteService) Create(input *models.NewNote) (*models.Note, error) {
+func (ns *noteService) Create(input *models.NoteInput) (*models.Note, error) {
 	if input.RId > 0 {
 		input.ReferenceId, input.ReferenceType = ns.deducer.ReadRId(input.RId)
 	}

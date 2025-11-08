@@ -20,14 +20,14 @@ type Tag struct {
 	Taggables []Taggable `gorm:"foreignKey:TagID"`
 }
 
-type NewTag struct {
+type TagInput struct {
 	Name        string `json:"name"`
 	Alias       string `json:"alias,omitempty"`
 	Description string `json:"description,omitempty"`
 	Priority    int    `json:"priority,omitempty"`
 }
 
-func (input *NewTag) Validate(db *gorm.DB, id int) error {
+func (input *TagInput) Validate(db *gorm.DB, id int) error {
 	err := validate.Validate(db,
 		validate.NewUniqueRule("tags", "name", input.Name, nil).Except(id).Say("duplicate name"),
 		validate.NewUniqueRule("tags", "alias", input.Alias, nil).Except(id).Say("duplicate alias for tag"),

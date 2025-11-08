@@ -12,7 +12,7 @@ type MemorySheet {
     # images: [Image!]!
 }
 
-input NewMemorySheet {
+input MemorySheetInput {
     value: String!
     alias: String
     date: MyDate
@@ -33,7 +33,7 @@ input PatchMemorySheet {
 }
 
 extend type Mutation {
-    newMemorySheet(input: NewMemorySheet!): MemorySheet!
+    newMemorySheet(input: MemorySheetInput!): MemorySheet!
 }
 
 extend type Query {

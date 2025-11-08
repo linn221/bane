@@ -15,47 +15,8 @@ import (
 )
 
 // NewProgram is the resolver for the newProgram field.
-func (r *mutationResolver) NewProgram(ctx context.Context, input *models.NewProgram) (*models.Program, error) {
+func (r *mutationResolver) NewProgram(ctx context.Context, input *models.ProgramInput) (*models.Program, error) {
 	return r.app.Services.ProgramService.Create(input)
-}
-
-// UpdateProgram is the resolver for the updateProgram field.
-func (r *mutationResolver) UpdateProgram(ctx context.Context, id *int, alias *string, input models.NewProgram) (*models.Program, error) {
-	return r.app.Services.ProgramService.Update(id, alias, &input)
-}
-
-// PatchProgram is the resolver for the patchProgram field.
-func (r *mutationResolver) PatchProgram(ctx context.Context, id *int, alias *string, input models.PatchProgram) (*models.Program, error) {
-	// Note: This resolver needs to be updated to use Patch method if we add it to ProgramService
-	// For now, using Update as a workaround
-	input2 := models.NewProgram{
-		Name:        "",
-		Alias:       "",
-		Description: nil,
-		Domain:      "",
-		URL:         "",
-	}
-	if input.Name != nil {
-		input2.Name = *input.Name
-	}
-	if input.Alias != nil {
-		input2.Alias = *input.Alias
-	}
-	if input.Description != nil {
-		input2.Description = input.Description
-	}
-	if input.Domain != nil {
-		input2.Domain = *input.Domain
-	}
-	if input.URL != nil {
-		input2.URL = *input.URL
-	}
-	return r.app.Services.ProgramService.Update(id, alias, &input2)
-}
-
-// DeleteProgram is the resolver for the deleteProgram field.
-func (r *mutationResolver) DeleteProgram(ctx context.Context, id *int, alias *string) (*models.Program, error) {
-	return r.app.Services.ProgramService.Delete(id, alias)
 }
 
 // Alias is the resolver for the alias field.
@@ -85,15 +46,29 @@ func (r *queryResolver) Program(ctx context.Context, id *int, alias *string) (*m
 }
 
 // Tags is the resolver for the tags field.
-func (r *newProgramResolver) Tags(ctx context.Context, obj *models.NewProgram, data []string) error {
+func (r *programInputResolver) Tags(ctx context.Context, obj *models.ProgramInput, data []string) error {
 	panic(fmt.Errorf("not implemented: Tags - tags"))
 }
 
 // Program returns graph.ProgramResolver implementation.
 func (r *Resolver) Program() graph.ProgramResolver { return &programResolver{r} }
 
-// NewProgram returns graph.NewProgramResolver implementation.
-func (r *Resolver) NewProgram() graph.NewProgramResolver { return &newProgramResolver{r} }
+// ProgramInput returns graph.ProgramInputResolver implementation.
+func (r *Resolver) ProgramInput() graph.ProgramInputResolver { return &programInputResolver{r} }
 
 type programResolver struct{ *Resolver }
+type programInputResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func (r *newProgramResolver) Tags(ctx context.Context, obj *models.ProgramInput, data []string) error {
+	panic(fmt.Errorf("not implemented: Tags - tags"))
+}
+func (r *Resolver) NewProgram() graph.NewProgramResolver { return &newProgramResolver{r} }
 type newProgramResolver struct{ *Resolver }
+*/

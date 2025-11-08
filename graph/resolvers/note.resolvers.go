@@ -14,7 +14,7 @@ import (
 )
 
 // NewNote is the resolver for the newNote field.
-func (r *mutationResolver) NewNote(ctx context.Context, input *models.NewNote) (*models.Note, error) {
+func (r *mutationResolver) NewNote(ctx context.Context, input *models.NoteInput) (*models.Note, error) {
 	return r.app.Services.NoteService.Create(input)
 }
 

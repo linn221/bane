@@ -27,7 +27,7 @@ type Endpoint {
     notes: [Note] @goField(forceResolver: true)
 }
 
-input NewEndpoint {
+input EndpointInput {
     name: String!
     alias: String
     programAlias: String!
@@ -89,7 +89,7 @@ input PatchEndpoint {
 }
 
 extend type Mutation {
-    newEndpoint(input: NewEndpoint!): Endpoint!
+    newEndpoint(input: EndpointInput!): Endpoint!
     # importCurl(curl: String!): CurlImportResult! @goField(forceResolver: true)
 }
 
