@@ -18,6 +18,11 @@ func migrate(db *gorm.DB) {
 		&models.Request{},
 		&models.WordList{},
 		&models.Word{},
+		&models.Todo{},
+		&models.MySheet{},
+		&models.Project{},
+		&models.MyRequest{},
+		&models.Alias{},
 		// &models.Taggable{},
 	)
 	if err != nil {
