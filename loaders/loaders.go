@@ -32,6 +32,9 @@ type Loaders struct {
 	WordListAliasLoader    *dataloader.Loader[int, string]
 	EndpointAliasLoader    *dataloader.Loader[int, string]
 	MemorySheetAliasLoader *dataloader.Loader[int, string]
+	MySheetAliasLoader     *dataloader.Loader[int, string]
+	ProjectAliasLoader     *dataloader.Loader[int, string]
+	TodoAliasLoader        *dataloader.Loader[int, string]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -48,6 +51,9 @@ func NewLoaders(conn *gorm.DB, deducer *app.Deducer) *Loaders {
 	wordListAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeWordList}
 	endpointAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeEndpoint}
 	memorySheetAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeMemorySheet}
+	mySheetAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeMySheet}
+	projectAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeProject}
+	todoAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeTodo}
 
 	return &Loaders{
 		ProgramLoader:          dataloader.NewBatchedLoader(programReader.GetPrograms, dataloader.WithWait[int, *models.Program](time.Millisecond)),
@@ -59,6 +65,9 @@ func NewLoaders(conn *gorm.DB, deducer *app.Deducer) *Loaders {
 		WordListAliasLoader:    dataloader.NewBatchedLoader(wordListAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 		EndpointAliasLoader:    dataloader.NewBatchedLoader(endpointAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 		MemorySheetAliasLoader: dataloader.NewBatchedLoader(memorySheetAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		MySheetAliasLoader:     dataloader.NewBatchedLoader(mySheetAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		ProjectAliasLoader:     dataloader.NewBatchedLoader(projectAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		TodoAliasLoader:        dataloader.NewBatchedLoader(todoAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 	}
 }
 

@@ -1,0 +1,27 @@
+type Project {
+    id: Int!
+    name: String!
+    description: String
+    alias: String @goField(forceResolver: true)
+}
+
+input ProjectInput {
+    name: String!
+    description: String
+    alias: String
+}
+
+input ProjectFilter {
+    name: String
+    search: String
+}
+
+extend type Mutation {
+    newProject(input: ProjectInput!): Project!
+}
+
+extend type Query {
+    project(id: Int, alias: String): Project!
+    projects(filter: ProjectFilter): [Project!]!
+}
+

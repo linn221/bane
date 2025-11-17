@@ -11,6 +11,7 @@ type Matchable interface {
 }
 
 func MatchRegex(obj Matchable, regexString string) (*model.SearchResult, error) {
+
 	re, err := regexp.Compile(regexString)
 	if err != nil {
 		return nil, err

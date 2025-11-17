@@ -20,6 +20,9 @@ type MyServices struct {
 	MemorySheetService    *memorySheetService
 	WordService           *wordService
 	VulnConnectionService *vulnConnectionService
+	MySheetService        *mySheetService
+	ProjectService        *projectService
+	TodoService           *todoService
 	AliasService          *aliasService
 }
 
@@ -35,6 +38,9 @@ func NewMyServices(db *gorm.DB, cache config.CacheService, deducer Deducer) *MyS
 		MemorySheetService:    newMemorySheetService(db, aliasService),
 		WordService:           newWordService(db, aliasService),
 		VulnConnectionService: newVulnConnectionService(db),
+		MySheetService:        newMySheetService(db, aliasService),
+		ProjectService:        newProjectService(db, aliasService),
+		TodoService:           newTodoService(db, aliasService),
 		AliasService:          aliasService,
 	}
 }

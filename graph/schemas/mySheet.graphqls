@@ -1,0 +1,34 @@
+type MySheet {
+    id: Int!
+    title: String!
+    body: String!
+    alias: String @goField(forceResolver: true)
+    created: MyDate!
+    nextDate: MyDate
+    previousDate: MyDate
+    age: Int!
+}
+
+input MySheetInput {
+    title: String!
+    body: String!
+    alias: String
+    date: MyDate
+}
+
+input MySheetFilter {
+    title: String
+    search: String
+    nextDate: MyDate
+    previousDate: MyDate
+}
+
+extend type Mutation {
+    newMySheet(input: MySheetInput!): MySheet!
+}
+
+extend type Query {
+    mySheet(id: Int, alias: String): MySheet!
+    mySheets(filter: MySheetFilter): [MySheet!]!
+}
+

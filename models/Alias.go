@@ -16,4 +16,7 @@ const (
 	AliasReferenceTypeVuln        AliasReferenceType = "vulns"
 	AliasReferenceTypeTag         AliasReferenceType = "tags"
 	AliasReferenceTypeMemorySheet AliasReferenceType = "memory_sheets"
+	AliasReferenceTypeMySheet     AliasReferenceType = "my_sheets"
+	AliasReferenceTypeProject     AliasReferenceType = "projects"
+	AliasReferenceTypeTodo        AliasReferenceType = "todos"
 )

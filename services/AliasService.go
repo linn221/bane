@@ -35,6 +35,12 @@ func getReferenceTypePrefix(referenceType models.AliasReferenceType) string {
 		return "tag"
 	case models.AliasReferenceTypeMemorySheet:
 		return "ms"
+	case models.AliasReferenceTypeMySheet:
+		return "mys"
+	case models.AliasReferenceTypeProject:
+		return "proj"
+	case models.AliasReferenceTypeTodo:
+		return "todo"
 	default:
 		// Fallback: use first 3 characters of the reference type
 		refTypeStr := string(referenceType)

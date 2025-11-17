@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -44,19 +45,206 @@ type MyTime struct {
 	time.Time
 }
 
+// monthMap maps lowercase 3-4 letter month abbreviations to month numbers
+var monthMap = map[string]int{
+	"jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+	"jul": 7, "aug": 8, "sep": 9, "sept": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+// parseMonthName parses a lowercase 3-4 letter month name and returns the month number
+func parseMonthName(monthStr string) (int, error) {
+	monthStr = strings.ToLower(strings.TrimSpace(monthStr))
+	if len(monthStr) < 3 {
+		return 0, fmt.Errorf("month name too short")
+	}
+
+	// Try exact match first (for 3-4 letter inputs)
+	if month, ok := monthMap[monthStr]; ok {
+		return month, nil
+	}
+
+	// If longer than 4, try first 4 characters, then first 3
+	if len(monthStr) > 4 {
+		if month, ok := monthMap[monthStr[:4]]; ok {
+			return month, nil
+		}
+		if month, ok := monthMap[monthStr[:3]]; ok {
+			return month, nil
+		}
+	} else if len(monthStr) == 4 {
+		// For 4-letter input, also try first 3 characters
+		if month, ok := monthMap[monthStr[:3]]; ok {
+			return month, nil
+		}
+	}
+
+	return 0, fmt.Errorf("invalid month name: %s", monthStr)
+}
+
+// parseDateString parses date strings like "jan 8" or "jan 8 2024"
+func parseDateString(dateStr string) (time.Time, error) {
+	dateStr = strings.TrimSpace(dateStr)
+
+	// Pattern: month (3-4 letters) day [year]
+	// Examples: "jan 8", "jan 8 2024", "december 25 2023"
+	re := regexp.MustCompile(`^([a-z]{3,4})\s+(\d{1,2})(?:\s+(\d{4}))?$`)
+	matches := re.FindStringSubmatch(strings.ToLower(dateStr))
+
+	if len(matches) == 0 {
+		return time.Time{}, fmt.Errorf("invalid date format, expected format like 'jan 8' or 'jan 8 2024'")
+	}
+
+	monthStr := matches[1]
+	dayStr := matches[2]
+	yearStr := matches[3]
+
+	month, err := parseMonthName(monthStr)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	day, err := strconv.Atoi(dayStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid day: %s", dayStr)
+	}
+
+	year := time.Now().Year()
+	if yearStr != "" {
+		year, err = strconv.Atoi(yearStr)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("invalid year: %s", yearStr)
+		}
+	}
+
+	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC), nil
+}
+
+// parseDateTimeString parses date-time strings like "jan 8 11:01 PM" or "jan 8 2024 11:01 PM"
+func parseDateTimeString(dateTimeStr string) (time.Time, error) {
+	dateTimeStr = strings.TrimSpace(dateTimeStr)
+
+	// Pattern: month (3-4 letters) day [year] time (HH:MM AM/PM)
+	// Examples: "jan 8 11:01 PM", "jan 8 2024 11:01 PM"
+	re := regexp.MustCompile(`(?i)^([a-z]{3,4})\s+(\d{1,2})(?:\s+(\d{4}))?\s+(\d{1,2}):(\d{2})\s+(AM|PM)$`)
+	matches := re.FindStringSubmatch(dateTimeStr)
+
+	if len(matches) == 0 {
+		return time.Time{}, fmt.Errorf("invalid date-time format, expected format like 'jan 8 11:01 PM' or 'jan 8 2024 11:01 PM'")
+	}
+
+	monthStr := strings.ToLower(matches[1])
+	dayStr := matches[2]
+	yearStr := matches[3]
+	hourStr := matches[4]
+	minuteStr := matches[5]
+	ampm := strings.ToLower(matches[6])
+
+	month, err := parseMonthName(monthStr)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	day, err := strconv.Atoi(dayStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid day: %s", dayStr)
+	}
+
+	year := time.Now().Year()
+	if yearStr != "" {
+		year, err = strconv.Atoi(yearStr)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("invalid year: %s", yearStr)
+		}
+	}
+
+	hour, err := strconv.Atoi(hourStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid hour: %s", hourStr)
+	}
+
+	minute, err := strconv.Atoi(minuteStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid minute: %s", minuteStr)
+	}
+
+	// Convert to 24-hour format
+	if ampm == "pm" && hour != 12 {
+		hour += 12
+	} else if ampm == "am" && hour == 12 {
+		hour = 0
+	}
+
+	return time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.UTC), nil
+}
+
 // MarshalGQL implements the graphql.Marshaler interface.
 func (u MyTime) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(u.Format(time.DateOnly)))
+	// Format: "January 8 11:01 PM" (no year)
+	monthName := u.Time.Format("January")
+	day := u.Time.Day()
+	timeStr := u.Time.Format("3:04 PM")
+	formatted := fmt.Sprintf("%s %d %s", monthName, day, timeStr)
+	fmt.Fprint(w, strconv.Quote(formatted))
 }
 
 // UnmarshalGQL implements the graphql.Unmarshaler interface.
 func (u *MyTime) UnmarshalGQL(v interface{}) error {
-	_, ok := v.(string)
+	str, ok := v.(string)
 	if !ok {
-		return fmt.Errorf("uint must be a string")
+		return fmt.Errorf("MyTime must be a string")
 	}
 
+	parsedTime, err := parseDateTimeString(str)
+	if err != nil {
+		return err
+	}
+
+	u.Time = parsedTime
 	return nil
+}
+
+// Value implements the driver.Valuer interface for GORM
+func (u MyTime) Value() (driver.Value, error) {
+	if u.Time.IsZero() {
+		return nil, nil
+	}
+	return u.Time, nil
+}
+
+// Scan implements the sql.Scanner interface for GORM
+func (u *MyTime) Scan(value interface{}) error {
+	if value == nil {
+		u.Time = time.Time{}
+		return nil
+	}
+
+	switch v := value.(type) {
+	case time.Time:
+		u.Time = v
+		return nil
+	case []byte:
+		parsedTime, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", string(v))
+		if err != nil {
+			parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", string(v))
+			if err != nil {
+				return fmt.Errorf("cannot scan %T into MyTime: %v", value, err)
+			}
+		}
+		u.Time = parsedTime
+		return nil
+	case string:
+		parsedTime, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", v)
+		if err != nil {
+			parsedTime, err = time.Parse("2006-01-02T15:04:05Z07:00", v)
+			if err != nil {
+				return fmt.Errorf("cannot scan %T into MyTime: %v", value, err)
+			}
+		}
+		u.Time = parsedTime
+		return nil
+	default:
+		return fmt.Errorf("cannot scan %T into MyTime", value)
+	}
 }
 
 type MyDate struct {
@@ -65,7 +253,12 @@ type MyDate struct {
 
 // MarshalGQL implements the graphql.Marshaler interface.
 func (u MyDate) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(u.Format("02-01-2006")))
+	// Format: "January 8 2025"
+	monthName := u.Time.Format("January")
+	day := u.Time.Day()
+	year := u.Time.Year()
+	formatted := fmt.Sprintf("%s %d %d", monthName, day, year)
+	fmt.Fprint(w, strconv.Quote(formatted))
 }
 
 // UnmarshalGQL implements the graphql.Unmarshaler interface.
@@ -75,10 +268,10 @@ func (u *MyDate) UnmarshalGQL(v interface{}) error {
 		return fmt.Errorf("MyDate must be a string")
 	}
 
-	// Parse the date in format "15-08-2025"
-	parsedTime, err := time.Parse("02-01-2006", str)
+	// Parse the date in format "jan 8" or "jan 8 2024"
+	parsedTime, err := parseDateString(str)
 	if err != nil {
-		return fmt.Errorf("invalid date format, expected DD-MM-YYYY: %v", err)
+		return err
 	}
 
 	u.Time = parsedTime
