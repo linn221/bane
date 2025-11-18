@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/validate"
 	"gorm.io/gorm"
 )
 
@@ -17,80 +16,59 @@ func newAliasService(db *gorm.DB) *aliasService {
 	return &aliasService{db: db}
 }
 
-// getReferenceTypePrefix returns the prefix for a given reference type
-// Examples: endpoints -> "end", programs -> "prog", words -> "word"
-func getReferenceTypePrefix(referenceType models.AliasReferenceType) string {
-	switch referenceType {
-	case models.AliasReferenceTypeEndpoint:
-		return "end"
-	case models.AliasReferenceTypeProgram:
-		return "prog"
-	case models.AliasReferenceTypeWord:
-		return "word"
-	case models.AliasReferenceTypeWordList:
-		return "wl"
-	case models.AliasReferenceTypeVuln:
-		return "vuln"
-	case models.AliasReferenceTypeTag:
-		return "tag"
-	case models.AliasReferenceTypeMemorySheet:
-		return "ms"
-	case models.AliasReferenceTypeMySheet:
-		return "mys"
-	case models.AliasReferenceTypeProject:
-		return "proj"
-	case models.AliasReferenceTypeTodo:
-		return "todo"
-	default:
-		// Fallback: use first 3 characters of the reference type
-		refTypeStr := string(referenceType)
-		if len(refTypeStr) >= 3 {
-			return refTypeStr[:3]
-		}
-		return refTypeStr
+func (s *aliasService) getAlias(db *gorm.DB, referenceType string, referenceId int) (*models.Alias, error) {
+	var alias models.Alias
+	if err := db.Where("reference_type = ? AND reference_id = ?", referenceType, referenceId).First(&alias).Error; err != nil {
+		return nil, err
 	}
+	return &alias, nil
 }
 
-func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceId int, alias string) error {
+func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceId int, aliasStr string) error {
 	refType := models.AliasReferenceType(referenceType)
 
 	// If alias is empty, generate it automatically using referenceTypePrefix + referenceId
-	if alias == "" {
-		prefix := getReferenceTypePrefix(refType)
-		alias = fmt.Sprintf("%s%d", prefix, referenceId)
+	if aliasStr == "" {
+		aliasStr = fmt.Sprintf("%s%d", referenceType, referenceId)
 	}
-
-	if err := validate.Validate(tx, validate.NewExistsRule(referenceType, referenceId, errors.New("referencenot found"), nil)); err != nil {
-		return err
-	}
+	//2d validate if alias name is unique
 
 	// Create new alias
 	aliasRecord := models.Alias{
-		Name:          alias,
+		Name:          aliasStr,
 		ReferenceId:   referenceId,
 		ReferenceType: refType,
 	}
 	return tx.Create(&aliasRecord).Error
 }
 
-func (s *aliasService) SetAlias(referenceType string, referenceId int, alias string) error {
-	refType := models.AliasReferenceType(referenceType)
+func (s *aliasService) DestroyReference(tx *gorm.DB, alias string) error {
 
-	// If alias is empty, generate it automatically using referenceTypePrefix + referenceId
-	if alias == "" {
-		prefix := getReferenceTypePrefix(refType)
-		alias = fmt.Sprintf("%s%d", prefix, referenceId)
-	}
-
-	// Create new alias
-	aliasRecord := models.Alias{
-		Name:          alias,
-		ReferenceId:   referenceId,
-		ReferenceType: refType,
-	}
-
-	return s.db.Create(&aliasRecord).Error
+	panic("todo")
 }
+
+func (s *aliasService) CatchReference(db *gorm.DB, alias string) *gorm.DB {
+	panic("todo")
+}
+
+// func (s *aliasService) SetAlias(referenceType string, referenceId int, alias string) error {
+// 	refType := models.AliasReferenceType(referenceType)
+
+// 	// If alias is empty, generate it automatically using referenceTypePrefix + referenceId
+// 	if alias == "" {
+// 		prefix := getReferenceTypePrefix(refType)
+// 		alias = fmt.Sprintf("%s%d", prefix, referenceId)
+// 	}
+
+// 	// Create new alias
+// 	aliasRecord := models.Alias{
+// 		Name:          alias,
+// 		ReferenceId:   referenceId,
+// 		ReferenceType: refType,
+// 	}
+
+// 	return s.db.Create(&aliasRecord).Error
+// }
 
 func (s *aliasService) GetId(alias string) (int, error) {
 	var aliasRecord models.Alias
