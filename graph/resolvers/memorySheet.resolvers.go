@@ -54,7 +54,7 @@ func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet
 
 // NewMemorySheet is the resolver for the newMemorySheet field.
 func (r *mutationResolver) NewMemorySheet(ctx context.Context, input models.MemorySheetInput) (*models.MemorySheet, error) {
-	return r.app.Services.MemorySheetService.Create(&input)
+	return r.app.Services.MemorySheetService.Create(ctx, &input)
 }
 
 // MemorySheet is the resolver for the memorySheet field.
@@ -63,7 +63,7 @@ func (r *queryResolver) MemorySheet(ctx context.Context, id *int, alias *string)
 		return nil, fmt.Errorf("either id or alias must be provided")
 	}
 	if id != nil {
-		return r.app.Services.MemorySheetService.Get(id)
+		return r.app.Services.MemorySheetService.Get(ctx, id)
 	}
 	return nil, fmt.Errorf("alias lookup not yet implemented for MemorySheetService")
 }
@@ -76,7 +76,7 @@ func (r *queryResolver) MSheets(ctx context.Context, date *models.MyDate) ([]*mo
 		date = &v
 	}
 
-	return r.app.Services.MemorySheetService.GetTodayNotes(date.Time)
+	return r.app.Services.MemorySheetService.GetTodayNotes(ctx, date.Time)
 }
 
 // NextDay is the resolver for the nextDay field.

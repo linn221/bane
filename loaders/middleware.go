@@ -11,11 +11,11 @@ import (
 // LoaderMiddleware creates a middleware that injects dataloaders into the request context
 // This middleware should be used in your HTTP server setup to enable dataloader functionality
 // The middleware creates new loader instances for each request to ensure data consistency
-func LoaderMiddleware(db *gorm.DB, deducer *app.Deducer) app.Middleware {
+func LoaderMiddleware(db *gorm.DB) app.Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Create new loaders for this request
-			loaders := NewLoaders(db, deducer)
+			loaders := NewLoaders(db)
 
 			// Inject loaders into the request context
 			ctx := r.Context()

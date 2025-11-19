@@ -24,7 +24,7 @@ func (r *mutationResolver) RunCurl(ctx context.Context, endpointAlias string, va
 		valVS, _ := mystructs.NewVarString(p.Value)
 		vkg.VarKVs = append(vkg.VarKVs, mystructs.VarKV{Key: *keyVS, Value: *valVS})
 	}
-	return r.app.Services.MyRequestService.ExecuteCurl(endpointAlias, vkg)
+	return r.app.Services.MyRequestService.ExecuteCurl(ctx, endpointAlias, vkg)
 }
 
 // Program is the resolver for the program field.
@@ -48,12 +48,12 @@ func (r *myRequestResolver) ExecutedAt(ctx context.Context, obj *models.MyReques
 
 // MyRequests is the resolver for the myRequests field.
 func (r *queryResolver) MyRequests(ctx context.Context, filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
-	return r.app.Services.MyRequestService.List(filter)
+	return r.app.Services.MyRequestService.List(ctx, filter)
 }
 
 // MyRequest is the resolver for the myRequest field.
 func (r *queryResolver) MyRequest(ctx context.Context, id int) (*models.MyRequest, error) {
-	return r.app.Services.MyRequestService.Get(&id)
+	return r.app.Services.MyRequestService.Get(ctx, &id)
 }
 
 // MyRequest returns graph.MyRequestResolver implementation.

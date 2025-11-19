@@ -12,10 +12,6 @@ type wordService struct {
 	aliasService *aliasService
 }
 
-func newWordService(db *gorm.DB, aliasService *aliasService) *wordService {
-	return &wordService{db: db, aliasService: aliasService}
-}
-
 func (ws *wordService) CreateWord(input *models.WordInput) (*models.Word, error) {
 	wordCrud := GeneralCrud[models.WordInput, models.Word]{
 		transform: func(input *models.WordInput) models.Word {

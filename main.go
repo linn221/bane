@@ -33,7 +33,7 @@ func main() {
 		},
 	}
 	secretMiddleware := secretConfig.Middleware()
-	loaderMiddleware := loaders.LoaderMiddleware(app.DB, app.Deducer)
+	loaderMiddleware := loaders.LoaderMiddleware(app.DB)
 
 	// Start server
 	srv := http.Server{

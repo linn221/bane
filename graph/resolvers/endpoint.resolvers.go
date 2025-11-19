@@ -100,7 +100,7 @@ func (r *queryResolver) Endpoint(ctx context.Context, id *int, alias *string) (*
 
 // Endpoints is the resolver for the endpoints field.
 func (r *queryResolver) Endpoints(ctx context.Context, filter *models.EndpointFilter) ([]*models.Endpoint, error) {
-	return r.app.Services.EndpointService.List(filter)
+	return r.app.Services.EndpointService.List(ctx, filter)
 }
 
 // Endpoint returns graph.EndpointResolver implementation.

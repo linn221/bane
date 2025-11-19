@@ -12,20 +12,16 @@ type tagService struct {
 	aliasService *aliasService
 }
 
-func newTagService(db *gorm.DB, aliasService *aliasService) *tagService {
-	return &tagService{db: db, aliasService: aliasService}
-}
-
-func (ts *tagService) Validate(ctx context.Context, input *models.TagInput) error {
+func (s *tagService) Validate(ctx context.Context, input *models.TagInput) error {
 	panic("ss")
 }
 
-func (ts *tagService) Create(ctx context.Context, input *models.TagInput) (*models.Tag, error) {
-	if err := ts.Validate(ctx, input); err != nil {
+func (s *tagService) Create(ctx context.Context, input *models.TagInput) (*models.Tag, error) {
+	if err := s.Validate(ctx, input); err != nil {
 		return nil, err
 	}
 	var tag models.Tag
-	err := ts.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		tag = models.Tag{
 			Name:        input.Name,
 			Description: input.Description,
@@ -35,7 +31,7 @@ func (ts *tagService) Create(ctx context.Context, input *models.TagInput) (*mode
 			return err
 		}
 		// Create alias (will be auto-generated if not provided)
-		if err := ts.aliasService.CreateAlias(tx, "tags", tag.Id, input.Alias); err != nil {
+		if err := s.aliasService.CreateAlias(tx, "tags", tag.Id, input.Alias); err != nil {
 			return err
 		}
 		return nil
@@ -46,26 +42,26 @@ func (ts *tagService) Create(ctx context.Context, input *models.TagInput) (*mode
 	return &tag, nil
 }
 
-func (ts *tagService) Get(ctx context.Context, alias string) (*models.Tag, error) {
-	return first[models.Tag](ctx, ts.db, ts.aliasService, alias)
+func (s *tagService) Get(ctx context.Context, alias string) (*models.Tag, error) {
+	return first[models.Tag](ctx, s.db, s.aliasService, alias)
 }
 
-// func (ts *tagService) Update(id *int, alias *string, input *models.TagInput) (*models.Tag, error) {
+// func (s *tagService) Update(id *int, alias *string, input *models.TagInput) (*models.Tag, error) {
 // 	if id != nil {
-// 		return ts.GeneralCrud.Update(ts.db, input, id)
+// 		return s.GeneralCrud.Update(s.db, input, id)
 // 	}
 // 	if alias != nil {
-// 		return ts.GeneralCrud.UpdateByAlias(ts.db, input, *alias)
+// 		return s.GeneralCrud.UpdateByAlias(s.db, input, *alias)
 // 	}
 // 	return nil, gorm.ErrRecordNotFound
 // }
 
-func (ts *tagService) Delete(ctx context.Context, alias string) (*models.Tag, error) {
-	tag, err := ts.Get(ctx, alias)
+func (s *tagService) Delete(ctx context.Context, alias string) (*models.Tag, error) {
+	tag, err := s.Get(ctx, alias)
 	if err != nil {
 		return nil, err
 	}
-	if err := ts.db.WithContext(ctx).Delete(&tag).Error; err != nil {
+	if err := s.db.WithContext(ctx).Delete(&tag).Error; err != nil {
 		return nil, err
 	}
 

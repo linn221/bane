@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/utils"
 	"gorm.io/gorm"
 )
 
@@ -14,67 +13,18 @@ type todoService struct {
 	aliasService *aliasService
 }
 
-func newTodoService(db *gorm.DB, aliasService *aliasService) *todoService {
-	return &todoService{
-		GeneralCrud: GeneralCrud[models.TodoInput, models.Todo]{
-			transform: func(input *models.TodoInput) models.Todo {
-				result := models.Todo{
-					Title:       input.Title,
-					Description: input.Description,
-					Priority:    input.Priority,
-					Status:      models.ToDoStatusInProgress,
-					Created:     utils.Today(),
-				}
-				if input.Status != nil {
-					result.Status = *input.Status
-				}
-				if input.Deadline != nil {
-					result.Deadline = input.Deadline.Time
-				}
-				return result
-			},
-			updates: func(existing models.Todo, input *models.TodoInput) map[string]any {
-				updates := map[string]any{}
-				if input.Title != "" {
-					updates["Title"] = input.Title
-				}
-				if input.Description != "" {
-					updates["Description"] = input.Description
-				}
-				if input.Priority != 0 {
-					updates["Priority"] = input.Priority
-				}
-				if input.Status != nil {
-					updates["Status"] = *input.Status
-				}
-				if input.Deadline != nil {
-					updates["Deadline"] = input.Deadline.Time
-				}
-				return updates
-			},
-			validateWrite: func(db *gorm.DB, input *models.TodoInput, id int) error {
-				return input.Validate(db, id)
-			},
-		},
-		db:           db,
-		aliasService: aliasService,
-	}
-}
-
-func (ts *todoService) Create(input *models.TodoInput) (*models.Todo, error) {
+func (s *todoService) Create(ctx context.Context, input *models.TodoInput) (*models.Todo, error) {
 	var result *models.Todo
-	err := ts.db.Transaction(func(tx *gorm.DB) error {
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var err error
 		// Handle project alias lookup
 		if input.ProjectAlias != "" {
-			// Note: GetId doesn't have context, but we'll keep it for now since Create doesn't have context
-			// TODO: Add context to Create method if needed
-			projectId, err := ts.aliasService.GetId(input.ProjectAlias)
+			projectId, err := s.aliasService.GetReferenceId(ctx, input.ProjectAlias)
 			if err != nil {
 				return err
 			}
 			// We need to set ProjectId after creation, so we'll do it in a custom way
-			result, err = ts.GeneralCrud.Create(tx, input)
+			result, err = s.GeneralCrud.Create(tx, input)
 			if err != nil {
 				return err
 			}
@@ -83,13 +33,13 @@ func (ts *todoService) Create(input *models.TodoInput) (*models.Todo, error) {
 				return err
 			}
 		} else {
-			result, err = ts.GeneralCrud.Create(tx, input)
+			result, err = s.GeneralCrud.Create(tx, input)
 			if err != nil {
 				return err
 			}
 		}
 		// Create alias (will be auto-generated if not provided)
-		if err := ts.aliasService.CreateAlias(tx, "todos", result.Id, input.Alias); err != nil {
+		if err := s.aliasService.CreateAlias(tx, "todos", result.Id, input.Alias); err != nil {
 			return err
 		}
 		return nil
@@ -100,36 +50,36 @@ func (ts *todoService) Create(input *models.TodoInput) (*models.Todo, error) {
 	return result, nil
 }
 
-func (ts *todoService) Get(id *int, alias *string) (*models.Todo, error) {
+func (s *todoService) Get(ctx context.Context, id *int, alias *string) (*models.Todo, error) {
 	if id != nil {
-		return ts.GeneralCrud.Get(ts.db, id)
+		var result models.Todo
+		err := s.db.WithContext(ctx).First(&result, *id).Error
+		return &result, err
 	}
 	if alias != nil {
-		return ts.GeneralCrud.GetByAlias(context.Background(), ts.db, ts.aliasService, *alias)
+		return s.GeneralCrud.GetByAlias(ctx, s.db.WithContext(ctx), s.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (ts *todoService) Update(id *int, alias *string, input *models.TodoInput) (*models.Todo, error) {
+func (s *todoService) Update(ctx context.Context, id *int, alias *string, input *models.TodoInput) (*models.Todo, error) {
 	if id != nil {
-		return ts.GeneralCrud.Update(ts.db, input, id)
+		return s.GeneralCrud.Update(s.db.WithContext(ctx), input, id)
 	}
 	if alias != nil {
-		// Note: GetId doesn't have context, but we'll keep it for now since Update doesn't have context
-		// TODO: Add context to Update method if needed
-		todoId, err := ts.aliasService.GetId(*alias)
+		todoId, err := s.aliasService.GetReferenceId(ctx, *alias)
 		if err != nil {
 			return nil, err
 		}
 		var result *models.Todo
-		err = ts.db.Transaction(func(tx *gorm.DB) error {
-			result, err = ts.GeneralCrud.Update(tx, input, &todoId)
+		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			result, err = s.GeneralCrud.Update(tx, input, &todoId)
 			if err != nil {
 				return err
 			}
 			// Handle project alias update
 			if input.ProjectAlias != "" {
-				projectId, err := ts.aliasService.GetId(input.ProjectAlias)
+				projectId, err := s.aliasService.GetReferenceId(ctx, input.ProjectAlias)
 				if err != nil {
 					return err
 				}
@@ -140,7 +90,7 @@ func (ts *todoService) Update(id *int, alias *string, input *models.TodoInput) (
 			}
 			// Create alias if provided
 			if input.Alias != "" {
-				if err := ts.aliasService.CreateAlias(tx, "todos", todoId, input.Alias); err != nil {
+				if err := s.aliasService.CreateAlias(tx, "todos", todoId, input.Alias); err != nil {
 					return err
 				}
 			}
@@ -154,18 +104,8 @@ func (ts *todoService) Update(id *int, alias *string, input *models.TodoInput) (
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (ts *todoService) Delete(id *int, alias *string) (*models.Todo, error) {
-	if id != nil {
-		return ts.GeneralCrud.Delete(ts.db, id)
-	}
-	if alias != nil {
-		return ts.GeneralCrud.DeleteByAlias(context.Background(), ts.db, ts.aliasService, *alias)
-	}
-	return nil, gorm.ErrRecordNotFound
-}
-
-func (ts *todoService) List(filter *models.TodoFilter) ([]*models.Todo, error) {
-	dbctx := ts.db.Model(&models.Todo{})
+func (s *todoService) List(ctx context.Context, filter *models.TodoFilter) ([]*models.Todo, error) {
+	dbctx := s.db.WithContext(ctx).Model(&models.Todo{})
 	if filter != nil {
 		if filter.Title != "" {
 			dbctx = dbctx.Where("title LIKE ?", "%"+filter.Title+"%")
@@ -177,9 +117,7 @@ func (ts *todoService) List(filter *models.TodoFilter) ([]*models.Todo, error) {
 			dbctx = dbctx.Where("project_id = ?", filter.ProjectId)
 		}
 		if filter.ProjectAlias != "" {
-			// Note: GetId doesn't have context, but List doesn't have context either
-			// TODO: Add context to List method if needed
-			projectId, err := ts.aliasService.GetId(filter.ProjectAlias)
+			projectId, err := s.aliasService.GetReferenceId(ctx, filter.ProjectAlias)
 			if err == nil {
 				dbctx = dbctx.Where("project_id = ?", projectId)
 			}

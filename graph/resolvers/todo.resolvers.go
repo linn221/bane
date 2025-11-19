@@ -15,7 +15,7 @@ import (
 
 // NewTodo is the resolver for the newTodo field.
 func (r *mutationResolver) NewTodo(ctx context.Context, input models.TodoInput) (*models.Todo, error) {
-	return r.app.Services.TodoService.Create(&input)
+	return r.app.Services.TodoService.Create(ctx, &input)
 }
 
 // Todo is the resolver for the todo field.
@@ -23,12 +23,12 @@ func (r *queryResolver) Todo(ctx context.Context, id *int, alias *string) (*mode
 	if id == nil && alias == nil {
 		return nil, fmt.Errorf("either id or alias must be provided")
 	}
-	return r.app.Services.TodoService.Get(id, alias)
+	return r.app.Services.TodoService.Get(ctx, id, alias)
 }
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context, filter *models.TodoFilter) ([]*models.Todo, error) {
-	return r.app.Services.TodoService.List(filter)
+	return r.app.Services.TodoService.List(ctx, filter)
 }
 
 // Deadline is the resolver for the deadline field.

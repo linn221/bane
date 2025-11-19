@@ -11,10 +11,6 @@ type vulnConnectionService struct {
 	db *gorm.DB
 }
 
-func newVulnConnectionService(db *gorm.DB) *vulnConnectionService {
-	return &vulnConnectionService{db: db}
-}
-
 // GetVulnsByReference retrieves all Vulns connected to a specific reference
 func (s *vulnConnectionService) GetVulnsByReference(referenceId int, referenceType models.VulnReferenceType) ([]*models.Vuln, error) {
 	var vulns []*models.Vuln

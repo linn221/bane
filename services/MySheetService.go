@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/utils"
 	"gorm.io/gorm"
 )
 
@@ -15,59 +14,16 @@ type mySheetService struct {
 	aliasService *aliasService
 }
 
-func newMySheetService(db *gorm.DB, aliasService *aliasService) *mySheetService {
-	return &mySheetService{
-		GeneralCrud: GeneralCrud[models.MySheetInput, models.MySheet]{
-			transform: func(input *models.MySheetInput) models.MySheet {
-				result := models.MySheet{
-					Title: input.Title,
-					Body:  input.Body,
-				}
-				today := utils.Today()
-				if input.Date != nil {
-					today = input.Date.Time
-				}
-				result.Created = today
-				result.NextDate = today.AddDate(0, 0, 1)
-				result.PreviousDate = time.Time{}
-				return result
-			},
-			updates: func(existing models.MySheet, input *models.MySheetInput) map[string]any {
-				updates := map[string]any{}
-
-				if input.UpdateNextDate {
-					currentDate := existing.NextDate
-					nextDate := GetNextDate(currentDate, existing.Index+1)
-					// NextDate has moved for the sheet
-					updates["PreviousDate"] = currentDate
-					updates["NextDate"] = nextDate
-					updates["Index"] = existing.Index + 1
-				} else { // normal update coming from graphql
-					if input.Title != "" {
-						updates["Title"] = input.Title
-					}
-					if input.Body != "" {
-						updates["Body"] = input.Body
-					}
-				}
-				return updates
-			},
-		},
-		db:           db,
-		aliasService: aliasService,
-	}
-}
-
-func (mss *mySheetService) Create(input *models.MySheetInput) (*models.MySheet, error) {
+func (s *mySheetService) Create(ctx context.Context, input *models.MySheetInput) (*models.MySheet, error) {
 	var result *models.MySheet
-	err := mss.db.Transaction(func(tx *gorm.DB) error {
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var err error
-		result, err = mss.GeneralCrud.Create(tx, input)
+		result, err = s.GeneralCrud.Create(tx, input)
 		if err != nil {
 			return err
 		}
 		// Create alias (will be auto-generated if not provided)
-		if err := mss.aliasService.CreateAlias(tx, "my_sheets", result.Id, input.Alias); err != nil {
+		if err := s.aliasService.CreateAlias(tx, "my_sheets", result.Id, input.Alias); err != nil {
 			return err
 		}
 		return nil
@@ -78,36 +34,36 @@ func (mss *mySheetService) Create(input *models.MySheetInput) (*models.MySheet, 
 	return result, nil
 }
 
-func (mss *mySheetService) Get(id *int, alias *string) (*models.MySheet, error) {
+func (s *mySheetService) Get(ctx context.Context, id *int, alias *string) (*models.MySheet, error) {
 	if id != nil {
-		return mss.GeneralCrud.Get(mss.db, id)
+		var result models.MySheet
+		err := s.db.WithContext(ctx).First(&result, *id).Error
+		return &result, err
 	}
 	if alias != nil {
-		return mss.GeneralCrud.GetByAlias(context.Background(), mss.db, mss.aliasService, *alias)
+		return s.GeneralCrud.GetByAlias(ctx, s.db.WithContext(ctx), s.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (mss *mySheetService) Update(id *int, alias *string, input *models.MySheetInput) (*models.MySheet, error) {
+func (s *mySheetService) Update(ctx context.Context, id *int, alias *string, input *models.MySheetInput) (*models.MySheet, error) {
 	if id != nil {
-		return mss.GeneralCrud.Update(mss.db, input, id)
+		return s.GeneralCrud.Update(s.db.WithContext(ctx), input, id)
 	}
 	if alias != nil {
-		// Note: GetId doesn't have context, but we'll keep it for now since Update doesn't have context
-		// TODO: Add context to Update method if needed
-		mySheetId, err := mss.aliasService.GetId(*alias)
+		mySheetId, err := s.aliasService.GetReferenceId(ctx, *alias)
 		if err != nil {
 			return nil, err
 		}
 		var result *models.MySheet
-		err = mss.db.Transaction(func(tx *gorm.DB) error {
-			result, err = mss.GeneralCrud.Update(tx, input, &mySheetId)
+		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+			result, err = s.GeneralCrud.Update(tx, input, &mySheetId)
 			if err != nil {
 				return err
 			}
 			// Create alias if provided
 			if input.Alias != "" {
-				if err := mss.aliasService.CreateAlias(tx, "my_sheets", mySheetId, input.Alias); err != nil {
+				if err := s.aliasService.CreateAlias(tx, "my_sheets", mySheetId, input.Alias); err != nil {
 					return err
 				}
 			}
@@ -121,18 +77,8 @@ func (mss *mySheetService) Update(id *int, alias *string, input *models.MySheetI
 	return nil, gorm.ErrRecordNotFound
 }
 
-func (mss *mySheetService) Delete(id *int, alias *string) (*models.MySheet, error) {
-	if id != nil {
-		return mss.GeneralCrud.Delete(mss.db, id)
-	}
-	if alias != nil {
-		return mss.GeneralCrud.DeleteByAlias(context.Background(), mss.db, mss.aliasService, *alias)
-	}
-	return nil, gorm.ErrRecordNotFound
-}
-
-func (mss *mySheetService) List(filter *models.MySheetFilter) ([]*models.MySheet, error) {
-	dbctx := mss.db.Model(&models.MySheet{})
+func (s *mySheetService) List(ctx context.Context, filter *models.MySheetFilter) ([]*models.MySheet, error) {
+	dbctx := s.db.WithContext(ctx).Model(&models.MySheet{})
 	if filter != nil {
 		if filter.Title != "" {
 			dbctx = dbctx.Where("title LIKE ?", "%"+filter.Title+"%")
@@ -152,16 +98,16 @@ func (mss *mySheetService) List(filter *models.MySheetFilter) ([]*models.MySheet
 	return results, err
 }
 
-func (mss *mySheetService) GetTodaySheets(currentDate time.Time) ([]*models.MySheet, error) {
-	nextSheets, err := getMySheetsByNextDate(mss.db, currentDate)
+func (s *mySheetService) GetTodaySheets(ctx context.Context, currentDate time.Time) ([]*models.MySheet, error) {
+	nextSheets, err := getMySheetsByNextDate(s.db.WithContext(ctx), currentDate)
 	if err != nil {
 		return nil, err
 	}
-	tx := mss.db.Begin()
+	tx := s.db.WithContext(ctx).Begin()
 	defer tx.Rollback()
 	for _, nSheet := range nextSheets {
 		id := nSheet.Id
-		_, err := mss.GeneralCrud.Update(tx, &models.MySheetInput{UpdateNextDate: true}, &id)
+		_, err := s.GeneralCrud.Update(tx, &models.MySheetInput{UpdateNextDate: true}, &id)
 		if err != nil {
 			return nil, err
 		}

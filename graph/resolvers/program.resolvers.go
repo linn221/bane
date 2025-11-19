@@ -16,7 +16,7 @@ import (
 
 // NewProgram is the resolver for the newProgram field.
 func (r *mutationResolver) NewProgram(ctx context.Context, input *models.ProgramInput) (*models.Program, error) {
-	return r.app.Services.ProgramService.Create(input)
+	return r.app.Services.ProgramService.Create(ctx, input)
 }
 
 // Alias is the resolver for the alias field.
@@ -37,12 +37,12 @@ func (r *programResolver) Notes(ctx context.Context, obj *models.Program) ([]*mo
 
 // Programs is the resolver for the programs field.
 func (r *queryResolver) Programs(ctx context.Context, search *string) ([]*models.Program, error) {
-	return r.app.Services.ProgramService.List()
+	return r.app.Services.ProgramService.List(ctx)
 }
 
 // Program is the resolver for the program field.
 func (r *queryResolver) Program(ctx context.Context, id *int, alias *string) (*models.Program, error) {
-	return r.app.Services.ProgramService.Get(id, alias)
+	return r.app.Services.ProgramService.Get(ctx, id, alias)
 }
 
 // Tags is the resolver for the tags field.

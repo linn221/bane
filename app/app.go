@@ -11,7 +11,6 @@ import (
 type Middleware func(http.Handler) http.Handler
 
 type App struct {
-	Deducer            *Deducer
 	DB                 *gorm.DB
 	Cache              config.CacheService
 	Services           *services.MyServices
@@ -25,9 +24,8 @@ func NewApp(db *gorm.DB, cache config.CacheService) *App {
 		Cache:              cache,
 		RecoveryMiddleware: recovery,
 		LoggingMiddleware:  loggingMiddleware,
-		Deducer:            &Deducer{},
 	}
-	app.Services = services.NewMyServices(db, cache, app.Deducer)
+	app.Services = services.NewMyServices(db, cache)
 	return app
 }
 

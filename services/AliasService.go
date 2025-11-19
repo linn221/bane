@@ -13,10 +13,6 @@ type aliasService struct {
 	db *gorm.DB
 }
 
-func newAliasService(db *gorm.DB) *aliasService {
-	return &aliasService{db: db}
-}
-
 func (s *aliasService) getAliasByReference(db *gorm.DB, referenceType string, referenceId int) (*models.Alias, error) {
 	var alias models.Alias
 	if err := db.Where("reference_type = ? AND reference_id = ?", referenceType, referenceId).First(&alias).Error; err != nil {

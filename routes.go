@@ -111,7 +111,7 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 	mux.HandleFunc("GET /memory-sheets", func(w http.ResponseWriter, r *http.Request) {
 		// Get all memory sheets for today
 		today := utils.Today()
-		memorySheets, err := app.Services.MemorySheetService.GetTodayNotes(today)
+		memorySheets, err := app.Services.MemorySheetService.GetTodayNotes(r.Context(), today)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to get memory sheets: %v", err), http.StatusInternalServerError)
 			return
@@ -170,7 +170,7 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 		}
 
 		// Save to database
-		_, err = app.Services.MemorySheetService.Create(newMemorySheet)
+		_, err = app.Services.MemorySheetService.Create(r.Context(), newMemorySheet)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to create memory sheet: %v", err), http.StatusInternalServerError)
 			return

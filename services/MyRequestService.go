@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -13,39 +14,31 @@ import (
 )
 
 type myRequestService struct {
-	db      *gorm.DB
-	deducer Deducer
-}
-
-func newMyRequestService(db *gorm.DB, deducer Deducer) *myRequestService {
-	return &myRequestService{
-		db:      db,
-		deducer: deducer,
-	}
+	db *gorm.DB
 }
 
 // Create creates a new MyRequest record
-func (mrs *myRequestService) Create(request *models.MyRequest) (*models.MyRequest, error) {
-	if err := mrs.db.Create(request).Error; err != nil {
+func (s *myRequestService) Create(ctx context.Context, request *models.MyRequest) (*models.MyRequest, error) {
+	if err := s.db.WithContext(ctx).Create(request).Error; err != nil {
 		return nil, err
 	}
 	return request, nil
 }
 
 // Get retrieves a MyRequest by ID
-func (mrs *myRequestService) Get(id *int) (*models.MyRequest, error) {
+func (s *myRequestService) Get(ctx context.Context, id *int) (*models.MyRequest, error) {
 	var request models.MyRequest
 	if id == nil {
 		return nil, gorm.ErrRecordNotFound
 	}
-	err := mrs.db.Preload("Program").Preload("Endpoint").First(&request, *id).Error
+	err := s.db.WithContext(ctx).Preload("Program").Preload("Endpoint").First(&request, *id).Error
 	return &request, err
 }
 
 // List retrieves MyRequests with optional filtering
-func (mrs *myRequestService) List(filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
+func (s *myRequestService) List(ctx context.Context, filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
 	var requests []*models.MyRequest
-	query := mrs.db.Preload("Program").Preload("Endpoint")
+	query := s.db.WithContext(ctx).Preload("Program").Preload("Endpoint")
 
 	if filter != nil {
 		if filter.ProgramId != 0 {
@@ -76,16 +69,16 @@ func (mrs *myRequestService) List(filter *models.MyRequestFilter) ([]*models.MyR
 }
 
 // ExecuteCurl runs a curl command and captures the response
-func (mrs *myRequestService) ExecuteCurl(endpointAlias string, variables mystructs.VarKVGroup) (*models.MyRequest, error) {
+func (s *myRequestService) ExecuteCurl(ctx context.Context, endpointAlias string, variables mystructs.VarKVGroup) (*models.MyRequest, error) {
 	// Find endpoint by alias
 	var endpoint models.Endpoint
-	err := mrs.db.Preload("Program").Where("alias = ?", endpointAlias).First(&endpoint).Error
+	err := s.db.WithContext(ctx).Preload("Program").Where("alias = ?", endpointAlias).First(&endpoint).Error
 	if err != nil {
 		return nil, fmt.Errorf("endpoint with alias '%s' not found: %v", endpointAlias, err)
 	}
 
 	// Generate curl command with variable injection
-	curlCommand, err := mrs.generateCurlCommand(&endpoint, variables)
+	curlCommand, err := s.generateCurlCommand(&endpoint, variables)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate curl command: %v", err)
 	}
@@ -101,12 +94,12 @@ func (mrs *myRequestService) ExecuteCurl(endpointAlias string, variables mystruc
 		ProgramId:      endpoint.ProgramId,
 		EndpointId:     endpoint.Id,
 		RequestMethod:  string(endpoint.HttpMethod),
-		RequestUrl:     mrs.buildUrl(&endpoint),
-		RequestHeaders: mrs.serializeHeaders(endpoint.HttpHeaders),
+		RequestUrl:     s.buildUrl(&endpoint),
+		RequestHeaders: s.serializeHeaders(endpoint.HttpHeaders),
 		RequestBody:    endpoint.HttpBody.Exec(),
 		Latency:        latency,
 		ExecutedAt:     time.Now(),
-		Variables:      mrs.serializeVariables(variables),
+		Variables:      s.serializeVariables(variables),
 		CurlCommand:    curlCommand,
 		Success:        err == nil,
 	}
@@ -117,7 +110,7 @@ func (mrs *myRequestService) ExecuteCurl(endpointAlias string, variables mystruc
 		request.ResponseBody = string(output)
 	} else {
 		// Parse curl output to extract response information
-		responseInfo := mrs.parseCurlOutput(string(output))
+		responseInfo := s.parseCurlOutput(string(output))
 		request.ResponseStatus = responseInfo.Status
 		request.ResponseHeaders = responseInfo.Headers
 		request.ResponseBody = responseInfo.Body
@@ -127,11 +120,11 @@ func (mrs *myRequestService) ExecuteCurl(endpointAlias string, variables mystruc
 	}
 
 	// Save to database
-	return mrs.Create(request)
+	return s.Create(ctx, request)
 }
 
 // generateCurlCommand creates a curl command from endpoint and variables
-func (mrs *myRequestService) generateCurlCommand(endpoint *models.Endpoint, variables mystructs.VarKVGroup) (string, error) {
+func (s *myRequestService) generateCurlCommand(endpoint *models.Endpoint, variables mystructs.VarKVGroup) (string, error) {
 	// Inject variables into endpoint fields
 	path := endpoint.HttpPath.Exec()
 	headers := endpoint.HttpHeaders
@@ -161,7 +154,7 @@ func (mrs *myRequestService) generateCurlCommand(endpoint *models.Endpoint, vari
 	curlParts = append(curlParts, "-X", string(endpoint.HttpMethod))
 
 	// Add URL
-	url := mrs.buildUrl(endpoint)
+	url := s.buildUrl(endpoint)
 	url = strings.ReplaceAll(url, endpoint.HttpPath.Exec(), path)
 	curlParts = append(curlParts, fmt.Sprintf("'%s'", url))
 
@@ -192,7 +185,7 @@ func (mrs *myRequestService) generateCurlCommand(endpoint *models.Endpoint, vari
 }
 
 // buildUrl constructs the full URL from endpoint
-func (mrs *myRequestService) buildUrl(endpoint *models.Endpoint) string {
+func (s *myRequestService) buildUrl(endpoint *models.Endpoint) string {
 	schema := string(endpoint.HttpSchema)
 	domain := endpoint.HttpDomain
 	port := ""
@@ -205,7 +198,7 @@ func (mrs *myRequestService) buildUrl(endpoint *models.Endpoint) string {
 }
 
 // serializeHeaders converts VarKVGroup to JSON string
-func (mrs *myRequestService) serializeHeaders(headers mystructs.VarKVGroup) string {
+func (s *myRequestService) serializeHeaders(headers mystructs.VarKVGroup) string {
 	headerMap := make(map[string]string)
 	for _, kv := range headers.VarKVs {
 		headerMap[kv.Key.Exec()] = kv.Value.Exec()
@@ -215,7 +208,7 @@ func (mrs *myRequestService) serializeHeaders(headers mystructs.VarKVGroup) stri
 }
 
 // serializeVariables converts VarKVGroup to JSON string
-func (mrs *myRequestService) serializeVariables(variables mystructs.VarKVGroup) string {
+func (s *myRequestService) serializeVariables(variables mystructs.VarKVGroup) string {
 	varMap := make(map[string]string)
 	for _, kv := range variables.VarKVs {
 		varMap[kv.Key.Exec()] = kv.Value.Exec()
@@ -225,7 +218,7 @@ func (mrs *myRequestService) serializeVariables(variables mystructs.VarKVGroup) 
 }
 
 // parseCurlOutput extracts response information from curl verbose output
-func (mrs *myRequestService) parseCurlOutput(output string) struct {
+func (s *myRequestService) parseCurlOutput(output string) struct {
 	Status      int
 	Headers     string
 	Body        string
@@ -249,7 +242,7 @@ func (mrs *myRequestService) parseCurlOutput(output string) struct {
 		if strings.Contains(line, "HTTP/") {
 			parts := strings.Fields(line)
 			if len(parts) >= 2 {
-				if status := mrs.extractStatus(parts[1]); status > 0 {
+				if status := s.extractStatus(parts[1]); status > 0 {
 					result.Status = status
 				}
 			}
@@ -272,7 +265,7 @@ func (mrs *myRequestService) parseCurlOutput(output string) struct {
 }
 
 // extractStatus extracts HTTP status code from string
-func (mrs *myRequestService) extractStatus(statusStr string) int {
+func (s *myRequestService) extractStatus(statusStr string) int {
 	// Simple status extraction - could be more robust
 	if len(statusStr) >= 3 {
 		if status := statusStr[:3]; status >= "100" && status <= "599" {

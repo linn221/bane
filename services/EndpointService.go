@@ -13,29 +13,6 @@ type endpointService struct {
 	aliasService *aliasService
 }
 
-func newEndpointService(db *gorm.DB, deducer Deducer, aliasService *aliasService) *endpointService {
-	return &endpointService{
-		GeneralCrud: GeneralCrud[models.EndpointInput, models.Endpoint]{
-			transform: func(input *models.EndpointInput) models.Endpoint {
-				return models.Endpoint{
-					Name:        input.Name,
-					Description: input.Description,
-					HttpSchema:  input.HttpSchema,
-					HttpMethod:  input.HttpMethod,
-					HttpDomain:  input.HttpDomain,
-					HttpPath:    input.HttpPath,
-					HttpQueries: input.HttpQueries,
-					HttpHeaders: input.HttpHeaders,
-					HttpCookies: input.HttpCookies,
-					HttpBody:    input.HttpBody,
-				}
-			},
-		},
-		db:           db,
-		aliasService: aliasService,
-	}
-}
-
 func (s *endpointService) Create(ctx context.Context, input *models.EndpointInput) (*models.Endpoint, error) {
 	// Find the program by alias using AliasService
 	programId, err := s.aliasService.GetReferenceId(ctx, input.ProgramAlias)
@@ -66,8 +43,8 @@ func (s *endpointService) Create(ctx context.Context, input *models.EndpointInpu
 	return &endpoint, nil
 }
 
-func (s *endpointService) List(filter *models.EndpointFilter) ([]*models.Endpoint, error) {
-	query := s.db.Model(&models.Endpoint{})
+func (s *endpointService) List(ctx context.Context, filter *models.EndpointFilter) ([]*models.Endpoint, error) {
+	query := s.db.WithContext(ctx).Model(&models.Endpoint{})
 
 	if filter != nil {
 		if filter.ProgramAlias != "" {

@@ -15,7 +15,7 @@ import (
 
 // NewProject is the resolver for the newProject field.
 func (r *mutationResolver) NewProject(ctx context.Context, input models.ProjectInput) (*models.Project, error) {
-	return r.app.Services.ProjectService.Create(&input)
+	return r.app.Services.ProjectService.Create(ctx, &input)
 }
 
 // Alias is the resolver for the alias field.
@@ -35,12 +35,12 @@ func (r *queryResolver) Project(ctx context.Context, id *int, alias *string) (*m
 	if id == nil && alias == nil {
 		return nil, fmt.Errorf("either id or alias must be provided")
 	}
-	return r.app.Services.ProjectService.Get(id, alias)
+	return r.app.Services.ProjectService.Get(ctx, id, alias)
 }
 
 // Projects is the resolver for the projects field.
 func (r *queryResolver) Projects(ctx context.Context, filter *models.ProjectFilter) ([]*models.Project, error) {
-	return r.app.Services.ProjectService.List(filter)
+	return r.app.Services.ProjectService.List(ctx, filter)
 }
 
 // Project returns graph.ProjectResolver implementation.

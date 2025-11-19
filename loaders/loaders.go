@@ -38,11 +38,11 @@ type Loaders struct {
 }
 
 // NewLoaders instantiates data loaders for the middleware
-func NewLoaders(conn *gorm.DB, deducer *app.Deducer) *Loaders {
+func NewLoaders(conn *gorm.DB) *Loaders {
 	// Create Program and Notes readers for efficient loading
 	programReader := &ProgramReader{db: conn}
 	notesReader := &NotesReader{db: conn, referenceType: "programs"}
-	ridReader := &RIdReader{deducer: deducer}
+	ridReader := &RIdReader{}
 
 	// Create Alias readers for each reference type
 	tagAliasReader := &AliasReader{db: conn, referenceType: "tags"}

@@ -15,7 +15,7 @@ import (
 
 // NewMySheet is the resolver for the newMySheet field.
 func (r *mutationResolver) NewMySheet(ctx context.Context, input models.MySheetInput) (*models.MySheet, error) {
-	return r.app.Services.MySheetService.Create(&input)
+	return r.app.Services.MySheetService.Create(ctx, &input)
 }
 
 // Alias is the resolver for the alias field.
@@ -59,16 +59,16 @@ func (r *queryResolver) MySheet(ctx context.Context, id *int, alias *string) (*m
 	if id == nil && alias == nil {
 		return nil, fmt.Errorf("either id or alias must be provided")
 	}
-	return r.app.Services.MySheetService.Get(id, alias)
+	return r.app.Services.MySheetService.Get(ctx, id, alias)
 }
 
 // MySheets is the resolver for the mySheets field.
 func (r *queryResolver) MySheets(ctx context.Context, filter *models.MySheetFilter) ([]*models.MySheet, error) {
 	if filter != nil && filter.NextDate != nil && !filter.NextDate.Time.IsZero() {
 		// If NextDate is provided, use GetTodaySheets logic
-		return r.app.Services.MySheetService.GetTodaySheets(filter.NextDate.Time)
+		return r.app.Services.MySheetService.GetTodaySheets(ctx, filter.NextDate.Time)
 	}
-	return r.app.Services.MySheetService.List(filter)
+	return r.app.Services.MySheetService.List(ctx, filter)
 }
 
 // MySheet returns graph.MySheetResolver implementation.
