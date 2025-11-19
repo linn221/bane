@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/linn221/bane/models"
@@ -56,12 +57,20 @@ func newMemorySheetService(db *gorm.DB, aliasService *aliasService) *memorySheet
 }
 
 func (mss *memorySheetService) Create(input *models.MemorySheetInput) (*models.MemorySheet, error) {
-	result, err := mss.GeneralCrud.Create(mss.db, input)
+	var result *models.MemorySheet
+	err := mss.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		result, err = mss.GeneralCrud.Create(tx, input)
+		if err != nil {
+			return err
+		}
+		// Create alias (will be auto-generated if not provided)
+		if err := mss.aliasService.CreateAlias(tx, "memory_sheets", result.Id, input.Alias); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	// Set alias (will be auto-generated if not provided)
-	if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMemorySheet), result.Id, input.Alias); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -79,19 +88,28 @@ func (mss *memorySheetService) Update(id *int, alias *string, input *models.Memo
 		return mss.GeneralCrud.Update(mss.db, input, id)
 	}
 	if alias != nil {
+		// Note: GetId doesn't have context, but we'll keep it for now since Update doesn't have context
+		// TODO: Add context to Update method if needed
 		memorySheetId, err := mss.aliasService.GetId(*alias)
 		if err != nil {
 			return nil, err
 		}
-		result, err := mss.GeneralCrud.Update(mss.db, input, &memorySheetId)
+		var result *models.MemorySheet
+		err = mss.db.Transaction(func(tx *gorm.DB) error {
+			result, err = mss.GeneralCrud.Update(tx, input, &memorySheetId)
+			if err != nil {
+				return err
+			}
+			// Create alias if provided
+			if input.Alias != "" {
+				if err := mss.aliasService.CreateAlias(tx, "memory_sheets", memorySheetId, input.Alias); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return nil, err
-		}
-		// Set alias if provided
-		if input.Alias != "" {
-			if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMemorySheet), memorySheetId, input.Alias); err != nil {
-				return nil, err
-			}
 		}
 		return result, nil
 	}
@@ -103,7 +121,7 @@ func (mss *memorySheetService) Patch(id *int, alias *string, updates map[string]
 		return mss.GeneralCrud.Patch(mss.db, updates, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.PatchByAlias(mss.db, mss.aliasService, updates, *alias)
+		return mss.GeneralCrud.PatchByAlias(context.Background(), mss.db, mss.aliasService, updates, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -113,7 +131,7 @@ func (mss *memorySheetService) Delete(id *int, alias *string) (*models.MemoryShe
 		return mss.GeneralCrud.Delete(mss.db, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.DeleteByAlias(mss.db, mss.aliasService, *alias)
+		return mss.GeneralCrud.DeleteByAlias(context.Background(), mss.db, mss.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

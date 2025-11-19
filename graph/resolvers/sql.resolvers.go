@@ -29,7 +29,7 @@ func (r *sQLResolver) Del(ctx context.Context, obj *model.SQL, table string, whe
 		return nil, fmt.Errorf("where is required")
 	}
 	sql := fmt.Sprintf("DELETE FROM %s WHERE %s", table, where)
-	err := r.DB.WithContext(ctx).Exec(sql).Error
+	err := r.app.DB.WithContext(ctx).Exec(sql).Error
 	if err != nil {
 		return nil, err
 	}

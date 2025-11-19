@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -16,7 +17,7 @@ func newAliasService(db *gorm.DB) *aliasService {
 	return &aliasService{db: db}
 }
 
-func (s *aliasService) getAlias(db *gorm.DB, referenceType string, referenceId int) (*models.Alias, error) {
+func (s *aliasService) getAliasByReference(db *gorm.DB, referenceType string, referenceId int) (*models.Alias, error) {
 	var alias models.Alias
 	if err := db.Where("reference_type = ? AND reference_id = ?", referenceType, referenceId).First(&alias).Error; err != nil {
 		return nil, err
@@ -24,9 +25,15 @@ func (s *aliasService) getAlias(db *gorm.DB, referenceType string, referenceId i
 	return &alias, nil
 }
 
-func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceId int, aliasStr string) error {
-	refType := models.AliasReferenceType(referenceType)
+func (s *aliasService) getAliasByName(ctx context.Context, aliasStr string) (*models.Alias, error) {
+	var alias models.Alias
+	if err := s.db.WithContext(ctx).Where("name = ?", aliasStr).First(&alias).Error; err != nil {
+		return nil, err
+	}
+	return &alias, nil
+}
 
+func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceId int, aliasStr string) error {
 	// If alias is empty, generate it automatically using referenceTypePrefix + referenceId
 	if aliasStr == "" {
 		aliasStr = fmt.Sprintf("%s%d", referenceType, referenceId)
@@ -37,18 +44,38 @@ func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceI
 	aliasRecord := models.Alias{
 		Name:          aliasStr,
 		ReferenceId:   referenceId,
-		ReferenceType: refType,
+		ReferenceType: referenceType,
 	}
 	return tx.Create(&aliasRecord).Error
 }
 
-func (s *aliasService) DestroyReference(tx *gorm.DB, alias string) error {
+func (s *aliasService) DestroyReference(ctx context.Context, aliasStr string) (bool, error) {
 
-	panic("todo")
+	aliasRecord, err := s.getAliasByName(ctx, aliasStr)
+	if err != nil {
+		return false, err
+	}
+	tx := s.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
+	sql := fmt.Sprintf("DELETE FROM %s WHERE id = ?", aliasRecord.ReferenceType)
+	if err := tx.Exec(sql, aliasRecord.ReferenceId).Error; err != nil {
+		return false, err
+	}
+	if err := tx.Delete(&aliasRecord).Error; err != nil {
+		return false, err
+	}
+	if err := tx.Commit().Error; err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-func (s *aliasService) CatchReference(db *gorm.DB, alias string) *gorm.DB {
-	panic("todo")
+func (s *aliasService) ScopeReference(ctx context.Context, db *gorm.DB, aliasName string) (*gorm.DB, error) {
+	aliasRecord, err := s.getAliasByName(ctx, aliasName)
+	if err != nil {
+		return nil, err
+	}
+	return db.Table(aliasRecord.ReferenceType).Where("id = ?", aliasRecord.ReferenceId), nil
 }
 
 // func (s *aliasService) SetAlias(referenceType string, referenceId int, alias string) error {
@@ -73,21 +100,26 @@ func (s *aliasService) CatchReference(db *gorm.DB, alias string) *gorm.DB {
 func (s *aliasService) GetId(alias string) (int, error) {
 	var aliasRecord models.Alias
 	if err := s.db.Where("name = ?", alias).First(&aliasRecord).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, gorm.ErrRecordNotFound
-		}
 		return 0, err
 	}
 	return aliasRecord.ReferenceId, nil
 }
 
-func (s *aliasService) GetIdAndType(alias string) (int, string, error) {
-	var aliasRecord models.Alias
-	if err := s.db.Where("name = ?", alias).First(&aliasRecord).Error; err != nil {
+func (s *aliasService) GetReferenceId(ctx context.Context, alias string) (int, error) {
+	arecord, err := s.getAliasByName(ctx, alias)
+	if err != nil {
+		return 0, err
+	}
+	return arecord.ReferenceId, nil
+}
+
+func (s *aliasService) GetIdAndType(ctx context.Context, alias string) (int, string, error) {
+	aliasRecord, err := s.getAliasByName(ctx, alias)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return 0, "", gorm.ErrRecordNotFound
 		}
 		return 0, "", err
 	}
-	return aliasRecord.ReferenceId, string(aliasRecord.ReferenceType), nil
+	return aliasRecord.ReferenceId, aliasRecord.ReferenceType, nil
 }

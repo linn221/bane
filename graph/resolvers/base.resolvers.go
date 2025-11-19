@@ -11,6 +11,7 @@ import (
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/services"
 )
 
 // NewTag is the resolver for the newTag field.
@@ -35,12 +36,12 @@ func (r *mutationResolver) RemoveAlias(ctx context.Context, alias string) (bool,
 
 // Patch is the resolver for the patch field.
 func (r *mutationResolver) Patch(ctx context.Context, a string, patch models.PatchInput) (bool, error) {
-	panic(fmt.Errorf("not implemented: Patch - patch"))
+	return services.PatchModel(ctx, r.app.DB, r.app.Services.AliasService, a, patch)
 }
 
 // Destroy is the resolver for the destroy field.
 func (r *mutationResolver) Destroy(ctx context.Context, a string) (bool, error) {
-	panic(fmt.Errorf("not implemented: Destroy - destroy"))
+	return r.app.Services.AliasService.DestroyReference(ctx, a)
 }
 
 // Tag is the resolver for the tag field.
@@ -50,7 +51,7 @@ func (r *queryResolver) Tag(ctx context.Context, a string) (*models.Tag, error) 
 
 // Tags is the resolver for the tags field.
 func (r *queryResolver) Tags(ctx context.Context, search *string) ([]*models.Tag, error) {
-	dbctx := r.DB.WithContext(ctx).Model(models.Tag{}).Where("is_active = 1")
+	dbctx := r.app.DB.WithContext(ctx).Model(models.Tag{}).Where("is_active = 1")
 	var results []*models.Tag
 	err := dbctx.Find(&results).Error
 	return results, err

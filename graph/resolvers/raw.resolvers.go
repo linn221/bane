@@ -14,7 +14,7 @@ import (
 // Raw is the resolver for the raw mutation field.
 func (r *mutationResolver) Raw(ctx context.Context, sql string) (int, error) {
 	// Use gorm to execute Exec; it returns sql.Result
-	res := r.DB.WithContext(ctx).Exec(sql)
+	res := r.app.DB.WithContext(ctx).Exec(sql)
 	if res.Error != nil {
 		return 0, res.Error
 	}
@@ -25,7 +25,7 @@ func (r *mutationResolver) Raw(ctx context.Context, sql string) (int, error) {
 // Raw is the resolver for the raw query field.
 func (r *queryResolver) Raw(ctx context.Context, sql string) (*models.QueryResult, error) {
 	// Use the underlying *sql.DB from gorm to run raw query safely (no interpolation)
-	sqlDB, err := r.DB.DB()
+	sqlDB, err := r.app.DB.DB()
 	if err != nil {
 		return nil, err
 	}

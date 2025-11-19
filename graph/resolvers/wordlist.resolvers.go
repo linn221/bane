@@ -32,7 +32,7 @@ func (r *queryResolver) Word(ctx context.Context, id *int, alias *string) (*mode
 // Words is the resolver for the words field.
 func (r *queryResolver) Words(ctx context.Context, search *string) ([]*models.Word, error) {
 	var words []*models.Word
-	dbctx := r.DB.WithContext(ctx).Model(&models.Word{})
+	dbctx := r.app.DB.WithContext(ctx).Model(&models.Word{})
 	if search != nil {
 		dbctx.Where("word LIKE ?", utils.SurroundPercentages(*search))
 	}

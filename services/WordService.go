@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
@@ -35,12 +37,20 @@ func (ws *wordService) CreateWord(input *models.WordInput) (*models.Word, error)
 			return input.Validate(db, id)
 		},
 	}
-	result, err := wordCrud.Create(ws.db, input)
+	var result *models.Word
+	err := ws.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		result, err = wordCrud.Create(tx, input)
+		if err != nil {
+			return err
+		}
+		// Create alias (will be auto-generated if not provided)
+		if err := ws.aliasService.CreateAlias(tx, "words", result.Id, input.Alias); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	// Set alias (will be auto-generated if not provided)
-	if err := ws.aliasService.SetAlias(string(models.AliasReferenceTypeWord), result.Id, input.Alias); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -65,12 +75,20 @@ func (ws *wordService) CreateWordList(input *models.WordListInput) (*models.Word
 			return input.Validate(db, id)
 		},
 	}
-	result, err := wordListCrud.Create(ws.db, input)
+	var result *models.WordList
+	err := ws.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		result, err = wordListCrud.Create(tx, input)
+		if err != nil {
+			return err
+		}
+		// Create alias (will be auto-generated if not provided)
+		if err := ws.aliasService.CreateAlias(tx, "wordlists", result.Id, input.Alias); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	// Set alias (will be auto-generated if not provided)
-	if err := ws.aliasService.SetAlias(string(models.AliasReferenceTypeWordList), result.Id, input.Alias); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -101,7 +119,7 @@ func (ws *wordService) GetWord(id *int, alias *string) (*models.Word, error) {
 		return wordCrud.Get(ws.db, id)
 	}
 	if alias != nil {
-		return wordCrud.GetByAlias(ws.db, ws.aliasService, *alias)
+		return wordCrud.GetByAlias(context.Background(), ws.db, ws.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -129,7 +147,7 @@ func (ws *wordService) GetWordList(id *int, alias *string) (*models.WordList, er
 		return wordListCrud.Get(ws.db, id)
 	}
 	if alias != nil {
-		return wordListCrud.GetByAlias(ws.db, ws.aliasService, *alias)
+		return wordListCrud.GetByAlias(context.Background(), ws.db, ws.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

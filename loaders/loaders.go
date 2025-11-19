@@ -45,15 +45,15 @@ func NewLoaders(conn *gorm.DB, deducer *app.Deducer) *Loaders {
 	ridReader := &RIdReader{deducer: deducer}
 
 	// Create Alias readers for each reference type
-	tagAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeTag}
-	programAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeProgram}
-	wordAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeWord}
-	wordListAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeWordList}
-	endpointAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeEndpoint}
-	memorySheetAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeMemorySheet}
-	mySheetAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeMySheet}
-	projectAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeProject}
-	todoAliasReader := &AliasReader{db: conn, referenceType: models.AliasReferenceTypeTodo}
+	tagAliasReader := &AliasReader{db: conn, referenceType: "tags"}
+	programAliasReader := &AliasReader{db: conn, referenceType: "programs"}
+	wordAliasReader := &AliasReader{db: conn, referenceType: "words"}
+	wordListAliasReader := &AliasReader{db: conn, referenceType: "wordlists"}
+	endpointAliasReader := &AliasReader{db: conn, referenceType: "endpoints"}
+	memorySheetAliasReader := &AliasReader{db: conn, referenceType: "memory_sheets"}
+	mySheetAliasReader := &AliasReader{db: conn, referenceType: "my_sheets"}
+	projectAliasReader := &AliasReader{db: conn, referenceType: "projects"}
+	todoAliasReader := &AliasReader{db: conn, referenceType: "todos"}
 
 	return &Loaders{
 		ProgramLoader:          dataloader.NewBatchedLoader(programReader.GetPrograms, dataloader.WithWait[int, *models.Program](time.Millisecond)),

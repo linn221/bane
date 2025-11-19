@@ -13,7 +13,7 @@ import (
 // alias requests into a single database query, reducing N+1 query problems
 type AliasReader struct {
 	db            *gorm.DB
-	referenceType models.AliasReferenceType
+	referenceType string
 }
 
 // GetAliases is the batch function that loads multiple aliases by their reference IDs

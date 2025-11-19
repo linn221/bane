@@ -1,15 +1,19 @@
 package services
 
 import (
+	"context"
+
 	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
 
-func PatchModel[T any](db *gorm.DB, aliasService *aliasService, alias string, patches models.PatchInput) (*T, error) {
-	result, err := first[T](db, aliasService, alias)
+func PatchModel(ctx context.Context, db *gorm.DB, aliasService *aliasService, aliasName string, patches models.PatchInput) (bool, error) {
+	alias, err := aliasService.getAliasByName(ctx, aliasName)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
+
+	modelStruct := toModelStruct(alias.ReferenceType)
 
 	updates := map[string]any{}
 	for _, v := range patches.Values {
@@ -18,10 +22,11 @@ func PatchModel[T any](db *gorm.DB, aliasService *aliasService, alias string, pa
 	for _, v := range patches.ValuesInt {
 		updates[v.Key] = v.Value
 	}
-	err = db.Model(&result).Updates(updates).Error
+
+	err = db.WithContext(ctx).Model(&modelStruct).Where("id = ?", alias.ReferenceId).Updates(updates).Error
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return result, nil
+	return true, nil
 }

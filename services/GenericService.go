@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -39,16 +41,16 @@ func (s *GeneralCrud[I, M]) Update(tx *gorm.DB, input *I, id *int) (*M, error) {
 	return &existing, err
 }
 
-func (s *GeneralCrud[I, M]) UpdateByAlias(tx *gorm.DB, aliasService *aliasService, input *I, alias string) (*M, error) {
-	id, err := getIdByAlias[M](tx, aliasService, alias)
+func (s *GeneralCrud[I, M]) UpdateByAlias(ctx context.Context, tx *gorm.DB, aliasService *aliasService, input *I, alias string) (*M, error) {
+	id, err := getIdByAlias[M](ctx, tx, aliasService, alias)
 	if err != nil {
 		return nil, err
 	}
 	return s.Update(tx, input, &id)
 }
 
-func (s *GeneralCrud[I, M]) DeleteByAlias(tx *gorm.DB, aliasService *aliasService, alias string) (*M, error) {
-	id, err := getIdByAlias[M](tx, aliasService, alias)
+func (s *GeneralCrud[I, M]) DeleteByAlias(ctx context.Context, tx *gorm.DB, aliasService *aliasService, alias string) (*M, error) {
+	id, err := getIdByAlias[M](ctx, tx, aliasService, alias)
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +85,13 @@ func (s *GeneralCrud[I, M]) Get(db *gorm.DB, id *int) (*M, error) {
 	return &result, err
 }
 
-func (s *GeneralCrud[I, M]) GetByAlias(db *gorm.DB, aliasService *aliasService, alias string) (*M, error) {
+func (s *GeneralCrud[I, M]) GetByAlias(ctx context.Context, db *gorm.DB, aliasService *aliasService, alias string) (*M, error) {
 	var result M
-	id, _, err := aliasService.GetIdAndType(alias)
+	id, _, err := aliasService.GetIdAndType(ctx, alias)
 	if err != nil {
 		return nil, err
 	}
-	err = db.First(&result, id).Error
+	err = db.WithContext(ctx).First(&result, id).Error
 	return &result, err
 }
 
@@ -114,8 +116,8 @@ func (s *GeneralCrud[I, M]) Patch(tx *gorm.DB, updates map[string]any, id *int) 
 }
 
 // PatchByAlias updates only the fields provided in the updates map using alias
-func (s *GeneralCrud[I, M]) PatchByAlias(tx *gorm.DB, aliasService *aliasService, updates map[string]any, alias string) (*M, error) {
-	id, err := getIdByAlias[M](tx, aliasService, alias)
+func (s *GeneralCrud[I, M]) PatchByAlias(ctx context.Context, tx *gorm.DB, aliasService *aliasService, updates map[string]any, alias string) (*M, error) {
+	id, err := getIdByAlias[M](ctx, tx, aliasService, alias)
 	if err != nil {
 		return nil, err
 	}

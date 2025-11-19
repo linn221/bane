@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/linn221/bane/models"
@@ -58,12 +59,20 @@ func newMySheetService(db *gorm.DB, aliasService *aliasService) *mySheetService 
 }
 
 func (mss *mySheetService) Create(input *models.MySheetInput) (*models.MySheet, error) {
-	result, err := mss.GeneralCrud.Create(mss.db, input)
+	var result *models.MySheet
+	err := mss.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		result, err = mss.GeneralCrud.Create(tx, input)
+		if err != nil {
+			return err
+		}
+		// Create alias (will be auto-generated if not provided)
+		if err := mss.aliasService.CreateAlias(tx, "my_sheets", result.Id, input.Alias); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	// Set alias (will be auto-generated if not provided)
-	if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMySheet), result.Id, input.Alias); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -74,7 +83,7 @@ func (mss *mySheetService) Get(id *int, alias *string) (*models.MySheet, error) 
 		return mss.GeneralCrud.Get(mss.db, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.GetByAlias(mss.db, mss.aliasService, *alias)
+		return mss.GeneralCrud.GetByAlias(context.Background(), mss.db, mss.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -84,19 +93,28 @@ func (mss *mySheetService) Update(id *int, alias *string, input *models.MySheetI
 		return mss.GeneralCrud.Update(mss.db, input, id)
 	}
 	if alias != nil {
+		// Note: GetId doesn't have context, but we'll keep it for now since Update doesn't have context
+		// TODO: Add context to Update method if needed
 		mySheetId, err := mss.aliasService.GetId(*alias)
 		if err != nil {
 			return nil, err
 		}
-		result, err := mss.GeneralCrud.Update(mss.db, input, &mySheetId)
+		var result *models.MySheet
+		err = mss.db.Transaction(func(tx *gorm.DB) error {
+			result, err = mss.GeneralCrud.Update(tx, input, &mySheetId)
+			if err != nil {
+				return err
+			}
+			// Create alias if provided
+			if input.Alias != "" {
+				if err := mss.aliasService.CreateAlias(tx, "my_sheets", mySheetId, input.Alias); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return nil, err
-		}
-		// Set alias if provided
-		if input.Alias != "" {
-			if err := mss.aliasService.SetAlias(string(models.AliasReferenceTypeMySheet), mySheetId, input.Alias); err != nil {
-				return nil, err
-			}
 		}
 		return result, nil
 	}
@@ -108,7 +126,7 @@ func (mss *mySheetService) Delete(id *int, alias *string) (*models.MySheet, erro
 		return mss.GeneralCrud.Delete(mss.db, id)
 	}
 	if alias != nil {
-		return mss.GeneralCrud.DeleteByAlias(mss.db, mss.aliasService, *alias)
+		return mss.GeneralCrud.DeleteByAlias(context.Background(), mss.db, mss.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

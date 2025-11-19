@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
@@ -8,7 +10,6 @@ import (
 type endpointService struct {
 	GeneralCrud[models.EndpointInput, models.Endpoint]
 	db           *gorm.DB
-	deducer      Deducer
 	aliasService *aliasService
 }
 
@@ -31,38 +32,42 @@ func newEndpointService(db *gorm.DB, deducer Deducer, aliasService *aliasService
 			},
 		},
 		db:           db,
-		deducer:      deducer,
 		aliasService: aliasService,
 	}
 }
 
-func (es *endpointService) Create(input *models.EndpointInput) (*models.Endpoint, error) {
+func (s *endpointService) Create(ctx context.Context, input *models.EndpointInput) (*models.Endpoint, error) {
 	// Find the program by alias using AliasService
-	programId, err := es.aliasService.GetId(input.ProgramAlias)
+	programId, err := s.aliasService.GetReferenceId(ctx, input.ProgramAlias)
 	if err != nil {
 		return nil, err
 	}
 
 	// Set the program ID
-	endpoint := es.transform(input)
+	endpoint := s.transform(input)
 	endpoint.ProgramId = programId
 
 	// Create the endpoint directly
-	err = es.db.Create(&endpoint).Error
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		err := tx.Create(&endpoint).Error
+		if err != nil {
+			return err
+		}
+		err = s.aliasService.CreateAlias(tx, "endpoints", endpoint.Id, input.Alias)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-
-	// Set alias (will be auto-generated if not provided)
-	if err := es.aliasService.SetAlias(string(models.AliasReferenceTypeEndpoint), endpoint.Id, input.Alias); err != nil {
 		return nil, err
 	}
 
 	return &endpoint, nil
 }
 
-func (es *endpointService) List(filter *models.EndpointFilter) ([]*models.Endpoint, error) {
-	query := es.db.Model(&models.Endpoint{})
+func (s *endpointService) List(filter *models.EndpointFilter) ([]*models.Endpoint, error) {
+	query := s.db.Model(&models.Endpoint{})
 
 	if filter != nil {
 		if filter.ProgramAlias != "" {
@@ -94,19 +99,19 @@ func (es *endpointService) List(filter *models.EndpointFilter) ([]*models.Endpoi
 	return results, err
 }
 
-func (es *endpointService) Get(id *int, alias *string) (*models.Endpoint, error) {
+func (s *endpointService) Get(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
 	if id != nil {
 		var endpoint models.Endpoint
-		err := es.db.Preload("Program").First(&endpoint, *id).Error
+		err := s.db.WithContext(ctx).Preload("Program").First(&endpoint, *id).Error
 		return &endpoint, err
 	}
 	if alias != nil {
-		endpointId, err := es.aliasService.GetId(*alias)
+		endpointId, err := s.aliasService.GetReferenceId(ctx, *alias)
 		if err != nil {
 			return nil, err
 		}
 		var endpoint models.Endpoint
-		err = es.db.Preload("Program").First(&endpoint, endpointId).Error
+		err = s.db.WithContext(ctx).Preload("Program").First(&endpoint, endpointId).Error
 		return &endpoint, err
 	}
 	return nil, gorm.ErrRecordNotFound

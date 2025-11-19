@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 
 	"github.com/linn221/bane/models"
@@ -69,6 +70,8 @@ func newProgramService(db *gorm.DB, aliasService *aliasService) *programService 
 			validateWrite: func(db *gorm.DB, input *models.ProgramInput, id int) error {
 				// Check alias uniqueness using AliasService
 				if input.Alias != "" {
+					// Note: This validation doesn't have context, so we use GetId for now
+					// TODO: Add context to validateWrite if needed
 					existingId, err := aliasService.GetId(input.Alias)
 					if err == nil && existingId != id {
 						return errors.New("duplicate program alias")
@@ -88,12 +91,20 @@ func newProgramService(db *gorm.DB, aliasService *aliasService) *programService 
 }
 
 func (ps *programService) Create(input *models.ProgramInput) (*models.Program, error) {
-	result, err := ps.GeneralCrud.Create(ps.db, input)
+	var result *models.Program
+	err := ps.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		result, err = ps.GeneralCrud.Create(tx, input)
+		if err != nil {
+			return err
+		}
+		// Create alias (will be auto-generated if not provided)
+		if err := ps.aliasService.CreateAlias(tx, "programs", result.Id, input.Alias); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	// Set alias (will be auto-generated if not provided)
-	if err := ps.aliasService.SetAlias(string(models.AliasReferenceTypeProgram), result.Id, input.Alias); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -104,7 +115,7 @@ func (ps *programService) Get(id *int, alias *string) (*models.Program, error) {
 		return ps.GeneralCrud.Get(ps.db, id)
 	}
 	if alias != nil {
-		return ps.GeneralCrud.GetByAlias(ps.db, ps.aliasService, *alias)
+		return ps.GeneralCrud.GetByAlias(context.Background(), ps.db, ps.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

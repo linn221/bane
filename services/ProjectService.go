@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
@@ -40,12 +42,20 @@ func newProjectService(db *gorm.DB, aliasService *aliasService) *projectService 
 }
 
 func (ps *projectService) Create(input *models.ProjectInput) (*models.Project, error) {
-	result, err := ps.GeneralCrud.Create(ps.db, input)
+	var result *models.Project
+	err := ps.db.Transaction(func(tx *gorm.DB) error {
+		var err error
+		result, err = ps.GeneralCrud.Create(tx, input)
+		if err != nil {
+			return err
+		}
+		// Create alias (will be auto-generated if not provided)
+		if err := ps.aliasService.CreateAlias(tx, "projects", result.Id, input.Alias); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, err
-	}
-	// Set alias (will be auto-generated if not provided)
-	if err := ps.aliasService.SetAlias(string(models.AliasReferenceTypeProject), result.Id, input.Alias); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -56,7 +66,7 @@ func (ps *projectService) Get(id *int, alias *string) (*models.Project, error) {
 		return ps.GeneralCrud.Get(ps.db, id)
 	}
 	if alias != nil {
-		return ps.GeneralCrud.GetByAlias(ps.db, ps.aliasService, *alias)
+		return ps.GeneralCrud.GetByAlias(context.Background(), ps.db, ps.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }
@@ -66,19 +76,28 @@ func (ps *projectService) Update(id *int, alias *string, input *models.ProjectIn
 		return ps.GeneralCrud.Update(ps.db, input, id)
 	}
 	if alias != nil {
+		// Note: GetId doesn't have context, but we'll keep it for now since Update doesn't have context
+		// TODO: Add context to Update method if needed
 		projectId, err := ps.aliasService.GetId(*alias)
 		if err != nil {
 			return nil, err
 		}
-		result, err := ps.GeneralCrud.Update(ps.db, input, &projectId)
+		var result *models.Project
+		err = ps.db.Transaction(func(tx *gorm.DB) error {
+			result, err = ps.GeneralCrud.Update(tx, input, &projectId)
+			if err != nil {
+				return err
+			}
+			// Create alias if provided
+			if input.Alias != "" {
+				if err := ps.aliasService.CreateAlias(tx, "projects", projectId, input.Alias); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
 		if err != nil {
 			return nil, err
-		}
-		// Set alias if provided
-		if input.Alias != "" {
-			if err := ps.aliasService.SetAlias(string(models.AliasReferenceTypeProject), projectId, input.Alias); err != nil {
-				return nil, err
-			}
 		}
 		return result, nil
 	}
@@ -90,7 +109,7 @@ func (ps *projectService) Delete(id *int, alias *string) (*models.Project, error
 		return ps.GeneralCrud.Delete(ps.db, id)
 	}
 	if alias != nil {
-		return ps.GeneralCrud.DeleteByAlias(ps.db, ps.aliasService, *alias)
+		return ps.GeneralCrud.DeleteByAlias(context.Background(), ps.db, ps.aliasService, *alias)
 	}
 	return nil, gorm.ErrRecordNotFound
 }

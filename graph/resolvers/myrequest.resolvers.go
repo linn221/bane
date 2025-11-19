@@ -30,14 +30,14 @@ func (r *mutationResolver) RunCurl(ctx context.Context, endpointAlias string, va
 // Program is the resolver for the program field.
 func (r *myRequestResolver) Program(ctx context.Context, obj *models.MyRequest) (*models.Program, error) {
 	var program models.Program
-	err := r.DB.First(&program, obj.ProgramId).Error
+	err := r.app.DB.WithContext(ctx).First(&program, obj.ProgramId).Error
 	return &program, err
 }
 
 // Endpoint is the resolver for the endpoint field.
 func (r *myRequestResolver) Endpoint(ctx context.Context, obj *models.MyRequest) (*models.Endpoint, error) {
 	var endpoint models.Endpoint
-	err := r.DB.First(&endpoint, obj.EndpointId).Error
+	err := r.app.DB.WithContext(ctx).First(&endpoint, obj.EndpointId).Error
 	return &endpoint, err
 }
 

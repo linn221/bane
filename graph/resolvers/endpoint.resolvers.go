@@ -19,7 +19,7 @@ import (
 // Program is the resolver for the program field.
 func (r *endpointResolver) Program(ctx context.Context, obj *models.Endpoint) (*models.Program, error) {
 	var program models.Program
-	err := r.DB.First(&program, obj.ProgramId).Error
+	err := r.app.DB.WithContext(ctx).First(&program, obj.ProgramId).Error
 	if err != nil {
 		return nil, err
 	}
@@ -84,18 +84,18 @@ func (r *endpointResolver) Rid(ctx context.Context, obj *models.Endpoint) (int, 
 // Notes is the resolver for the notes field.
 func (r *endpointResolver) Notes(ctx context.Context, obj *models.Endpoint) ([]*models.Note, error) {
 	var notes []*models.Note
-	err := r.DB.Where("reference_type = ? AND reference_id = ?", "endpoints", obj.Id).Find(&notes).Error
+	err := r.app.DB.WithContext(ctx).Where("reference_type = ? AND reference_id = ?", "endpoints", obj.Id).Find(&notes).Error
 	return notes, err
 }
 
 // NewEndpoint is the resolver for the newEndpoint field.
 func (r *mutationResolver) NewEndpoint(ctx context.Context, input models.EndpointInput) (*models.Endpoint, error) {
-	return r.app.Services.EndpointService.Create(&input)
+	return r.app.Services.EndpointService.Create(ctx, &input)
 }
 
 // Endpoint is the resolver for the endpoint field.
 func (r *queryResolver) Endpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
-	return r.app.Services.EndpointService.Get(id, alias)
+	return r.app.Services.EndpointService.Get(ctx, id, alias)
 }
 
 // Endpoints is the resolver for the endpoints field.
