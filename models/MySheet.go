@@ -1,19 +1,17 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 type MySheet struct {
-	Id           int       `gorm:"primaryKey"`
-	Title        string    `gorm:"not null"`
-	Body         string    `gorm:"type:text"`
-	Created      time.Time `gorm:"not null"`
-	NextDate     time.Time `gorm:"index;not null"`
-	PreviousDate time.Time `gorm:"index;not null"`
-	Index        int       `gorm:"not null;default:0"`
+	Id           int    `gorm:"primaryKey"`
+	Title        string `gorm:"not null"`
+	Body         string `gorm:"type:text"`
+	Created      MyDate `gorm:"not null"`
+	NextDate     MyDate `gorm:"index;not null"`
+	PreviousDate MyDate `gorm:"index;not null"`
+	Index        int    `gorm:"not null;default:0"`
 	// Age is calculated, not stored
 }
 

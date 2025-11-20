@@ -30,24 +30,6 @@ func (r *mySheetResolver) Alias(ctx context.Context, obj *models.MySheet) (*stri
 	return &alias, nil
 }
 
-// Created is the resolver for the created field.
-func (r *mySheetResolver) Created(ctx context.Context, obj *models.MySheet) (*models.MyDate, error) {
-	myDate := &models.MyDate{Time: obj.Created}
-	return myDate, nil
-}
-
-// NextDate is the resolver for the nextDate field.
-func (r *mySheetResolver) NextDate(ctx context.Context, obj *models.MySheet) (*models.MyDate, error) {
-	myDate := &models.MyDate{Time: obj.NextDate}
-	return myDate, nil
-}
-
-// PreviousDate is the resolver for the previousDate field.
-func (r *mySheetResolver) PreviousDate(ctx context.Context, obj *models.MySheet) (*models.MyDate, error) {
-	myDate := &models.MyDate{Time: obj.PreviousDate}
-	return myDate, nil
-}
-
 // Age is the resolver for the age field.
 func (r *mySheetResolver) Age(ctx context.Context, obj *models.MySheet) (int, error) {
 	// Age is calculated as the number of times the sheet has been reviewed (Index)

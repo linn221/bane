@@ -27,24 +27,6 @@ func (r *memorySheetResolver) Alias(ctx context.Context, obj *models.MemorySheet
 	return &alias, nil
 }
 
-// CreateDate is the resolver for the createDate field.
-func (r *memorySheetResolver) CreateDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error) {
-	myDate := &models.MyDate{Time: obj.CreateDate}
-	return myDate, nil
-}
-
-// CurrentDate is the resolver for the currentDate field.
-func (r *memorySheetResolver) CurrentDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error) {
-	myDate := &models.MyDate{Time: obj.CurrentDate}
-	return myDate, nil
-}
-
-// NextDate is the resolver for the nextDate field.
-func (r *memorySheetResolver) NextDate(ctx context.Context, obj *models.MemorySheet) (*models.MyDate, error) {
-	myDate := &models.MyDate{Time: obj.NextDate}
-	return myDate, nil
-}
-
 // Notes is the resolver for the notes field.
 func (r *memorySheetResolver) Notes(ctx context.Context, obj *models.MemorySheet) ([]*models.Note, error) {
 	// TODO: Implement notes relationship when Note model is available

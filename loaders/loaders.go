@@ -34,7 +34,7 @@ type Loaders struct {
 	MemorySheetAliasLoader *dataloader.Loader[int, string]
 	MySheetAliasLoader     *dataloader.Loader[int, string]
 	ProjectAliasLoader     *dataloader.Loader[int, string]
-	TodoAliasLoader        *dataloader.Loader[int, string]
+	TaskAliasLoader        *dataloader.Loader[int, string]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -67,7 +67,7 @@ func NewLoaders(conn *gorm.DB) *Loaders {
 		MemorySheetAliasLoader: dataloader.NewBatchedLoader(memorySheetAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 		MySheetAliasLoader:     dataloader.NewBatchedLoader(mySheetAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 		ProjectAliasLoader:     dataloader.NewBatchedLoader(projectAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
-		TodoAliasLoader:        dataloader.NewBatchedLoader(todoAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		TaskAliasLoader:        dataloader.NewBatchedLoader(todoAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
 	}
 }
 

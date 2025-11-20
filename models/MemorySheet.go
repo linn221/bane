@@ -1,18 +1,16 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 type MemorySheet struct {
-	Id          int       `gorm:"primaryKey"`
-	Value       string    `gorm:"text;not null"`
-	CreateDate  time.Time `gorm:"not null"`
-	CurrentDate time.Time `gorm:"index;not null"`
-	NextDate    time.Time `gorm:"index;not null"`
-	Index       int       `gorm:"not null;default:0"`
+	Id          int    `gorm:"primaryKey"`
+	Value       string `gorm:"text;not null"`
+	CreateDate  MyDate `gorm:"not null"`
+	CurrentDate MyDate `gorm:"index;not null"`
+	NextDate    MyDate `gorm:"index;not null"`
+	Index       int    `gorm:"not null;default:0"`
 	// Notes       []Note    `gorm:"foreignKey:MemorySheetId"`
 }
 

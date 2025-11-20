@@ -18,7 +18,7 @@ func migrate(db *gorm.DB) {
 		&models.Request{},
 		&models.WordList{},
 		&models.Word{},
-		&models.Todo{},
+		&models.Task{},
 		&models.MySheet{},
 		&models.Project{},
 		&models.MyRequest{},

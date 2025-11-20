@@ -23,7 +23,7 @@ type MyServices struct {
 	VulnConnectionService *vulnConnectionService
 	MySheetService        *mySheetService
 	ProjectService        *projectService
-	TodoService           *todoService
+	TaskService           *taskService
 	AliasService          *aliasService
 }
 
@@ -113,38 +113,39 @@ func NewMyServices(db *gorm.DB, cache config.CacheService) *MyServices {
 		db: db,
 	}
 
-	memorySheetService := &memorySheetService{
-		GeneralCrud: GeneralCrud[models.MemorySheetInput, models.MemorySheet]{
-			transform: func(input *models.MemorySheetInput) models.MemorySheet {
-				result := models.MemorySheet{
-					Value: input.Value,
-				}
-				result.CreateDate = utils.Today()
-				result.CurrentDate = result.CreateDate
-				result.NextDate = result.CurrentDate.AddDate(0, 0, 1)
-				return result
-			},
-			updates: func(existing models.MemorySheet, input *models.MemorySheetInput) map[string]any {
-				updates := map[string]any{}
-
-				if input.UpdateNextDate {
-					currentDate := existing.NextDate
-					nextDate := GetNextDate(currentDate, existing.Index+1)
-					// NextDate has moved for the note
-					updates["CurrentDate"] = currentDate
-					updates["NextDate"] = nextDate
-					updates["Index"] = existing.Index + 1
-				} else { // normal update coming from graphql
-					if input.Value != "" {
-						updates["Value"] = input.Value
+		memorySheetService := &memorySheetService{
+			GeneralCrud: GeneralCrud[models.MemorySheetInput, models.MemorySheet]{
+				transform: func(input *models.MemorySheetInput) models.MemorySheet {
+					result := models.MemorySheet{
+						Value: input.Value,
 					}
-				}
-				return updates
+					today := utils.Today()
+					result.CreateDate = models.MyDate{Time: today}
+					result.CurrentDate = result.CreateDate
+					result.NextDate = models.MyDate{Time: result.CurrentDate.Time.AddDate(0, 0, 1)}
+					return result
+				},
+				updates: func(existing models.MemorySheet, input *models.MemorySheetInput) map[string]any {
+					updates := map[string]any{}
+
+					if input.UpdateNextDate {
+						currentDate := existing.NextDate
+						nextDate := GetNextDate(currentDate.Time, existing.Index+1)
+						// NextDate has moved for the note
+						updates["CurrentDate"] = currentDate
+						updates["NextDate"] = models.MyDate{Time: nextDate}
+						updates["Index"] = existing.Index + 1
+					} else { // normal update coming from graphql
+						if input.Value != "" {
+							updates["Value"] = input.Value
+						}
+					}
+					return updates
+				},
 			},
-		},
-		db:           db,
-		aliasService: aliasService,
-	}
+			db:           db,
+			aliasService: aliasService,
+		}
 
 	wordService := &wordService{
 		db:           db,
@@ -155,46 +156,46 @@ func NewMyServices(db *gorm.DB, cache config.CacheService) *MyServices {
 		db: db,
 	}
 
-	mySheetService := &mySheetService{
-		GeneralCrud: GeneralCrud[models.MySheetInput, models.MySheet]{
-			transform: func(input *models.MySheetInput) models.MySheet {
-				result := models.MySheet{
-					Title: input.Title,
-					Body:  input.Body,
-				}
-				today := utils.Today()
-				if input.Date != nil {
-					today = input.Date.Time
-				}
-				result.Created = today
-				result.NextDate = today.AddDate(0, 0, 1)
-				result.PreviousDate = time.Time{}
-				return result
-			},
-			updates: func(existing models.MySheet, input *models.MySheetInput) map[string]any {
-				updates := map[string]any{}
+		mySheetService := &mySheetService{
+			GeneralCrud: GeneralCrud[models.MySheetInput, models.MySheet]{
+				transform: func(input *models.MySheetInput) models.MySheet {
+					result := models.MySheet{
+						Title: input.Title,
+						Body:  input.Body,
+					}
+					today := utils.Today()
+					if input.Date != nil {
+						today = input.Date.Time
+					}
+					result.Created = models.MyDate{Time: today}
+					result.NextDate = models.MyDate{Time: today.AddDate(0, 0, 1)}
+					result.PreviousDate = models.MyDate{Time: time.Time{}}
+					return result
+				},
+				updates: func(existing models.MySheet, input *models.MySheetInput) map[string]any {
+					updates := map[string]any{}
 
-				if input.UpdateNextDate {
-					currentDate := existing.NextDate
-					nextDate := GetNextDate(currentDate, existing.Index+1)
-					// NextDate has moved for the sheet
-					updates["PreviousDate"] = currentDate
-					updates["NextDate"] = nextDate
-					updates["Index"] = existing.Index + 1
-				} else { // normal update coming from graphql
-					if input.Title != "" {
-						updates["Title"] = input.Title
+					if input.UpdateNextDate {
+						currentDate := existing.NextDate
+						nextDate := GetNextDate(currentDate.Time, existing.Index+1)
+						// NextDate has moved for the sheet
+						updates["PreviousDate"] = currentDate
+						updates["NextDate"] = models.MyDate{Time: nextDate}
+						updates["Index"] = existing.Index + 1
+					} else { // normal update coming from graphql
+						if input.Title != "" {
+							updates["Title"] = input.Title
+						}
+						if input.Body != "" {
+							updates["Body"] = input.Body
+						}
 					}
-					if input.Body != "" {
-						updates["Body"] = input.Body
-					}
-				}
-				return updates
+					return updates
+				},
 			},
-		},
-		db:           db,
-		aliasService: aliasService,
-	}
+			db:           db,
+			aliasService: aliasService,
+		}
 
 	projectService := &projectService{
 		GeneralCrud: GeneralCrud[models.ProjectInput, models.Project]{
@@ -222,50 +223,50 @@ func NewMyServices(db *gorm.DB, cache config.CacheService) *MyServices {
 		aliasService: aliasService,
 	}
 
-	todoService := &todoService{
-		GeneralCrud: GeneralCrud[models.TodoInput, models.Todo]{
-			transform: func(input *models.TodoInput) models.Todo {
-				result := models.Todo{
-					Title:       input.Title,
-					Description: input.Description,
-					Priority:    input.Priority,
-					Status:      models.ToDoStatusInProgress,
-					Created:     utils.Today(),
-				}
-				if input.Status != nil {
-					result.Status = *input.Status
-				}
-				if input.Deadline != nil {
-					result.Deadline = input.Deadline.Time
-				}
-				return result
+		taskService := &taskService{
+			GeneralCrud: GeneralCrud[models.TaskInput, models.Task]{
+				transform: func(input *models.TaskInput) models.Task {
+					result := models.Task{
+						Title:       input.Title,
+						Description: input.Description,
+						Priority:    input.Priority,
+						Status:      models.TaskStatusInProgress,
+						Created:     models.MyDate{Time: utils.Today()},
+					}
+					if input.Deadline != nil {
+						result.Deadline = *input.Deadline
+					}
+					if input.RemindDate != nil {
+						result.RemindDate = *input.RemindDate
+					}
+					return result
+				},
+				updates: func(existing models.Task, input *models.TaskInput) map[string]any {
+					updates := map[string]any{}
+					if input.Title != "" {
+						updates["Title"] = input.Title
+					}
+					if input.Description != "" {
+						updates["Description"] = input.Description
+					}
+					if input.Priority != 0 {
+						updates["Priority"] = input.Priority
+					}
+					if input.Deadline != nil {
+						updates["Deadline"] = *input.Deadline
+					}
+					if input.RemindDate != nil {
+						updates["RemindDate"] = *input.RemindDate
+					}
+					return updates
+				},
+				validateWrite: func(db *gorm.DB, input *models.TaskInput, id int) error {
+					return input.Validate(db, id)
+				},
 			},
-			updates: func(existing models.Todo, input *models.TodoInput) map[string]any {
-				updates := map[string]any{}
-				if input.Title != "" {
-					updates["Title"] = input.Title
-				}
-				if input.Description != "" {
-					updates["Description"] = input.Description
-				}
-				if input.Priority != 0 {
-					updates["Priority"] = input.Priority
-				}
-				if input.Status != nil {
-					updates["Status"] = *input.Status
-				}
-				if input.Deadline != nil {
-					updates["Deadline"] = input.Deadline.Time
-				}
-				return updates
-			},
-			validateWrite: func(db *gorm.DB, input *models.TodoInput, id int) error {
-				return input.Validate(db, id)
-			},
-		},
-		db:           db,
-		aliasService: aliasService,
-	}
+			db:           db,
+			aliasService: aliasService,
+		}
 
 	return &MyServices{
 		AliasService:          aliasService,
@@ -279,6 +280,6 @@ func NewMyServices(db *gorm.DB, cache config.CacheService) *MyServices {
 		VulnConnectionService: vulnConnectionService,
 		MySheetService:        mySheetService,
 		ProjectService:        projectService,
-		TodoService:           todoService,
+		TaskService:           taskService,
 	}
 }

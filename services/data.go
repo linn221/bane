@@ -9,7 +9,7 @@ import (
 func toModelStruct(tableName string) any {
 	var tableNameToStruct = map[string]any{
 		"endpoints":        models.Endpoint{},
-		"todos":            models.Todo{},
+		"todos":            models.Task{},
 		"projects":         models.Project{},
 		"memory_sheets":    models.MemorySheet{},
 		"programs":         models.Program{},

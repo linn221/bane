@@ -6,3 +6,6 @@ need to implement patch/delete mutations. PatchService instead of a function. De
 
 Nov 19
 make AI refactor methods of service structs. consistently take context as first parameter. clear errors
+
+Nov 20
+make sure Task CRUD works
