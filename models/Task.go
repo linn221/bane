@@ -4,8 +4,6 @@ import (
 	"errors"
 	"io"
 	"strconv"
-
-	"gorm.io/gorm"
 )
 
 type TaskStatus string
@@ -44,17 +42,17 @@ func (t *TaskStatus) UnmarshalGQL(v interface{}) error {
 }
 
 type Task struct {
-	Id           int        `gorm:"primaryKey"`
-	Title        string     `gorm:"not null"`
-	Description  string     `gorm:"type:text"`
-	Status       TaskStatus `gorm:"type:enum('finished','in_progress','cancelled','deadlined');not null;default:'in_progress'"`
-	Priority     int        `gorm:"default:0"`
-	Deadline     MyDate
-	RemindDate   MyDate
-	FinishedDate MyDate
+	Id            int        `gorm:"primaryKey"`
+	Title         string     `gorm:"not null"`
+	Description   string     `gorm:"type:text"`
+	Status        TaskStatus `gorm:"index;not null"`
+	Priority      int        `gorm:"default:0"`
+	Deadline      MyDate
+	RemindDate    MyDate
+	FinishedDate  MyDate
 	CancelledDate MyDate
-	Created      MyDate     `gorm:"not null"`
-	ProjectId   int        `gorm:"index"`
+	Created       MyDate `gorm:"not null"`
+	ProjectId     int    `gorm:"index"`
 }
 
 type TaskInput struct {
@@ -65,9 +63,4 @@ type TaskInput struct {
 	RemindDate   *MyDate `json:"remindDate,omitempty"`
 	Alias        string  `json:"alias,omitempty"`
 	ProjectAlias string  `json:"projectAlias,omitempty"`
-}
-
-func (input *TaskInput) Validate(db *gorm.DB, id int) error {
-	// Add validation logic here if needed
-	return nil
 }

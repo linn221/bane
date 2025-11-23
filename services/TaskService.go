@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/utils"
@@ -30,8 +31,8 @@ func (s *taskService) Create(ctx context.Context, input *models.TaskInput) (*mod
 		task.Deadline = *input.Deadline
 	}
 	if input.RemindDate != nil {
-		if task.RemindDate.Before(today) {
-			return nil, errors.New("remind date is in the past")
+		if input.RemindDate.Before(today) {
+			return nil, fmt.Errorf("remind date is in the past: %v", input.RemindDate.Time)
 		}
 		task.RemindDate = *input.RemindDate
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -16,7 +15,7 @@ import (
 func main() {
 	// Initialize dependencies
 	db := config.ConnectSQLite()
-	cache := config.ConnectRedis(context.Background())
+	cache := config.NewInMemoryCache()
 
 	app := app.NewApp(db, cache)
 
