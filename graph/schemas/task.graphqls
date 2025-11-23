@@ -12,7 +12,7 @@ type Task {
     cancelledDate: MyDate
     created: MyDate!
     projectId: Int
-    alias: String @goField(forceResolver: true)
+    alias: String! @goField(forceResolver: true)
 }
 
 input TaskInput {
@@ -25,6 +25,16 @@ input TaskInput {
     projectAlias: String
 }
 
+input TaskFilter {
+    today: Boolean
+    search: String
+    status: TaskStatus
+    project: String
+    created: MyDate
+    deadline: MyDate
+    remindDate: MyDate
+}
+
 extend type Mutation {
     createTask(input: TaskInput!): Task!
     cancelTask(id: Int, a: String): Task!
@@ -33,6 +43,6 @@ extend type Mutation {
 
 extend type Query {
     task(a: String): Task!
-    tasks: [Task!]!
+    tasks(filter: TaskFilter): [Task!]!
 }
 

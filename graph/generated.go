@@ -154,11 +154,11 @@ type ComplexityRoot struct {
 	}
 
 	MySheet struct {
-		Age          func(childComplexity int) int
 		Alias        func(childComplexity int) int
 		Body         func(childComplexity int) int
 		Created      func(childComplexity int) int
 		Id           func(childComplexity int) int
+		Index        func(childComplexity int) int
 		NextDate     func(childComplexity int) int
 		PreviousDate func(childComplexity int) int
 		Title        func(childComplexity int) int
@@ -208,7 +208,7 @@ type ComplexityRoot struct {
 		Tag         func(childComplexity int, a string) int
 		Tags        func(childComplexity int, search *string) int
 		Task        func(childComplexity int, a *string) int
-		Tasks       func(childComplexity int) int
+		Tasks       func(childComplexity int, filter *model.TaskFilter) int
 		Word        func(childComplexity int, id *int, alias *string) int
 		WordList    func(childComplexity int, id *int, alias *string) int
 		WordLists   func(childComplexity int, regex *string) int
@@ -336,9 +336,7 @@ type MyRequestResolver interface {
 	ExecutedAt(ctx context.Context, obj *models.MyRequest) (string, error)
 }
 type MySheetResolver interface {
-	Alias(ctx context.Context, obj *models.MySheet) (*string, error)
-
-	Age(ctx context.Context, obj *models.MySheet) (int, error)
+	Alias(ctx context.Context, obj *models.MySheet) (string, error)
 }
 type NoteResolver interface {
 	Match(ctx context.Context, obj *models.Note, regex string) (*model.SearchResult, error)
@@ -371,7 +369,7 @@ type QueryResolver interface {
 	Projects(ctx context.Context, filter *models.ProjectFilter) ([]*models.Project, error)
 	Raw(ctx context.Context, sql string) (*models.QueryResult, error)
 	Task(ctx context.Context, a *string) (*models.Task, error)
-	Tasks(ctx context.Context) ([]*models.Task, error)
+	Tasks(ctx context.Context, filter *model.TaskFilter) ([]*models.Task, error)
 	Word(ctx context.Context, id *int, alias *string) (*models.Word, error)
 	Words(ctx context.Context, search *string) ([]*models.Word, error)
 	WordList(ctx context.Context, id *int, alias *string) (*models.WordList, error)
@@ -390,7 +388,7 @@ type TagResolver interface {
 	Alias(ctx context.Context, obj *models.Tag) (string, error)
 }
 type TaskResolver interface {
-	Alias(ctx context.Context, obj *models.Task) (*string, error)
+	Alias(ctx context.Context, obj *models.Task) (string, error)
 }
 type TodayMemorySheetResolver interface {
 	NextDay(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
@@ -1004,12 +1002,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.MyRequest.Variables(childComplexity), true
 
-	case "MySheet.age":
-		if e.complexity.MySheet.Age == nil {
-			break
-		}
-
-		return e.complexity.MySheet.Age(childComplexity), true
 	case "MySheet.alias":
 		if e.complexity.MySheet.Alias == nil {
 			break
@@ -1034,6 +1026,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.MySheet.Id(childComplexity), true
+	case "MySheet.index":
+		if e.complexity.MySheet.Index == nil {
+			break
+		}
+
+		return e.complexity.MySheet.Index(childComplexity), true
 	case "MySheet.nextDate":
 		if e.complexity.MySheet.NextDate == nil {
 			break
@@ -1355,7 +1353,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			break
 		}
 
-		return e.complexity.Query.Tasks(childComplexity), true
+		args, err := ec.field_Query_tasks_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Tasks(childComplexity, args["filter"].(*model.TaskFilter)), true
 	case "Query.word":
 		if e.complexity.Query.Word == nil {
 			break
@@ -1719,6 +1722,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputProjectFilter,
 		ec.unmarshalInputProjectInput,
 		ec.unmarshalInputTagInput,
+		ec.unmarshalInputTaskFilter,
 		ec.unmarshalInputTaskInput,
 		ec.unmarshalInputWordInput,
 		ec.unmarshalInputWordListInput,
@@ -2422,6 +2426,17 @@ func (ec *executionContext) field_Query_task_args(ctx context.Context, rawArgs m
 		return nil, err
 	}
 	args["a"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_tasks_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐTaskFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
 	return args, nil
 }
 
@@ -4090,8 +4105,8 @@ func (ec *executionContext) fieldContext_Mutation_newMySheet(ctx context.Context
 				return ec.fieldContext_MySheet_nextDate(ctx, field)
 			case "previousDate":
 				return ec.fieldContext_MySheet_previousDate(ctx, field)
-			case "age":
-				return ec.fieldContext_MySheet_age(ctx, field)
+			case "index":
+				return ec.fieldContext_MySheet_index(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MySheet", field.Name)
 		},
@@ -5527,9 +5542,9 @@ func (ec *executionContext) _MySheet_alias(ctx context.Context, field graphql.Co
 			return ec.resolvers.MySheet().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -5633,28 +5648,28 @@ func (ec *executionContext) fieldContext_MySheet_previousDate(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _MySheet_age(ctx context.Context, field graphql.CollectedField, obj *models.MySheet) (ret graphql.Marshaler) {
+func (ec *executionContext) _MySheet_index(ctx context.Context, field graphql.CollectedField, obj *models.MySheet) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_MySheet_age,
+		ec.fieldContext_MySheet_index,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.MySheet().Age(ctx, obj)
+			return obj.Index, nil
 		},
 		nil,
-		ec.marshalNInt2int,
+		ec.marshalOInt2int,
 		true,
-		true,
+		false,
 	)
 }
 
-func (ec *executionContext) fieldContext_MySheet_age(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_MySheet_index(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "MySheet",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -6612,8 +6627,8 @@ func (ec *executionContext) fieldContext_Query_mySheet(ctx context.Context, fiel
 				return ec.fieldContext_MySheet_nextDate(ctx, field)
 			case "previousDate":
 				return ec.fieldContext_MySheet_previousDate(ctx, field)
-			case "age":
-				return ec.fieldContext_MySheet_age(ctx, field)
+			case "index":
+				return ec.fieldContext_MySheet_index(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MySheet", field.Name)
 		},
@@ -6671,8 +6686,8 @@ func (ec *executionContext) fieldContext_Query_mySheets(ctx context.Context, fie
 				return ec.fieldContext_MySheet_nextDate(ctx, field)
 			case "previousDate":
 				return ec.fieldContext_MySheet_previousDate(ctx, field)
-			case "age":
-				return ec.fieldContext_MySheet_age(ctx, field)
+			case "index":
+				return ec.fieldContext_MySheet_index(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type MySheet", field.Name)
 		},
@@ -7253,7 +7268,8 @@ func (ec *executionContext) _Query_tasks(ctx context.Context, field graphql.Coll
 		field,
 		ec.fieldContext_Query_tasks,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().Tasks(ctx)
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().Tasks(ctx, fc.Args["filter"].(*model.TaskFilter))
 		},
 		nil,
 		ec.marshalNTask2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskᚄ,
@@ -7262,7 +7278,7 @@ func (ec *executionContext) _Query_tasks(ctx context.Context, field graphql.Coll
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_tasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_tasks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -7297,6 +7313,17 @@ func (ec *executionContext) fieldContext_Query_tasks(_ context.Context, field gr
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Task", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_tasks_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -8438,9 +8465,9 @@ func (ec *executionContext) _Task_alias(ctx context.Context, field graphql.Colle
 			return ec.resolvers.Task().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -11445,6 +11472,75 @@ func (ec *executionContext) unmarshalInputTagInput(ctx context.Context, obj any)
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj any) (model.TaskFilter, error) {
+	var it model.TaskFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"today", "search", "status", "project", "created", "deadline", "remindDate"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "today":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("today"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Today = data
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOTaskStatus2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
+		case "project":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Project = data
+		case "created":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created"))
+			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Created = data
+		case "deadline":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deadline"))
+			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Deadline = data
+		case "remindDate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("remindDate"))
+			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RemindDate = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputTaskInput(ctx context.Context, obj any) (models.TaskInput, error) {
 	var it models.TaskInput
 	asMap := map[string]any{}
@@ -12650,13 +12746,16 @@ func (ec *executionContext) _MySheet(ctx context.Context, sel ast.SelectionSet, 
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._MySheet_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -12689,42 +12788,8 @@ func (ec *executionContext) _MySheet(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._MySheet_nextDate(ctx, field, obj)
 		case "previousDate":
 			out.Values[i] = ec._MySheet_previousDate(ctx, field, obj)
-		case "age":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._MySheet_age(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "index":
+			out.Values[i] = ec._MySheet_index(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14067,13 +14132,16 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Task_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -16381,6 +16449,30 @@ func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodel
 		return graphql.Null
 	}
 	return ec._Tag(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐTaskFilter(ctx context.Context, v any) (*model.TaskFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTaskFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTaskStatus2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskStatus(ctx context.Context, v any) (*models.TaskStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(models.TaskStatus)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTaskStatus2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskStatus(ctx context.Context, sel ast.SelectionSet, v *models.TaskStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOVarString2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmystructsᚐVarString(ctx context.Context, v any) (*mystructs.VarString, error) {

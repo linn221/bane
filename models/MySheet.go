@@ -20,8 +20,6 @@ type MySheetInput struct {
 	Body  string  `json:"body"`
 	Alias string  `json:"alias,omitempty"`
 	Date  *MyDate `json:"date,omitempty"`
-
-	UpdateNextDate bool
 }
 
 func (input *MySheetInput) Validate(db *gorm.DB, id int) error {

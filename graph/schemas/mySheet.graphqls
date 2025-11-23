@@ -2,11 +2,11 @@ type MySheet {
     id: Int!
     title: String!
     body: String!
-    alias: String @goField(forceResolver: true)
+    alias: String! @goField(forceResolver: true)
     created: MyDate!
     nextDate: MyDate
     previousDate: MyDate
-    age: Int!
+    index: Int
 }
 
 input MySheetInput {

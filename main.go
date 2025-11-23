@@ -15,7 +15,7 @@ import (
 
 func main() {
 	// Initialize dependencies
-	db := config.ConnectMySQL()
+	db := config.ConnectSQLite()
 	cache := config.ConnectRedis(context.Background())
 
 	app := app.NewApp(db, cache)

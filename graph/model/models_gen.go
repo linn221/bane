@@ -29,6 +29,16 @@ type SearchResult struct {
 	Count   *int     `json:"count,omitempty"`
 }
 
+type TaskFilter struct {
+	Today      *bool              `json:"today,omitempty"`
+	Search     *string            `json:"search,omitempty"`
+	Status     *models.TaskStatus `json:"status,omitempty"`
+	Project    *string            `json:"project,omitempty"`
+	Created    *models.MyDate     `json:"created,omitempty"`
+	Deadline   *models.MyDate     `json:"deadline,omitempty"`
+	RemindDate *models.MyDate     `json:"remindDate,omitempty"`
+}
+
 type TodayMemorySheet struct {
 	Today     models.MyDate         `json:"today"`
 	Sheets    []*models.MemorySheet `json:"sheets"`

@@ -5,25 +5,33 @@ import (
 	"time"
 
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/utils"
 	"gorm.io/gorm"
 )
 
 type mySheetService struct {
-	GeneralCrud[models.MySheetInput, models.MySheet]
 	db           *gorm.DB
 	aliasService *aliasService
 }
 
 func (s *mySheetService) Create(ctx context.Context, input *models.MySheetInput) (*models.MySheet, error) {
-	var result *models.MySheet
+	created := utils.Today()
+	if input.Date != nil {
+		created = input.Date.Time
+	}
+	mysheet := models.MySheet{
+		Title:   input.Title,
+		Body:    input.Body,
+		Created: models.MyDate{Time: created},
+		Index:   0,
+	}
+	mysheet.PreviousDate = mysheet.Created
+	mysheet.NextDate = models.MyDate{Time: mysheet.Created.AddDate(0, 0, 1)}
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var err error
-		result, err = s.GeneralCrud.Create(tx, input)
-		if err != nil {
+		if err := tx.Create(&mysheet).Error; err != nil {
 			return err
 		}
-		// Create alias (will be auto-generated if not provided)
-		if err := s.aliasService.CreateAlias(tx, "my_sheets", result.Id, input.Alias); err != nil {
+		if err := s.aliasService.CreateAlias(tx, "my_sheets", mysheet.Id, input.Alias); err != nil {
 			return err
 		}
 		return nil
@@ -31,50 +39,8 @@ func (s *mySheetService) Create(ctx context.Context, input *models.MySheetInput)
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
-}
 
-func (s *mySheetService) Get(ctx context.Context, id *int, alias *string) (*models.MySheet, error) {
-	if id != nil {
-		var result models.MySheet
-		err := s.db.WithContext(ctx).First(&result, *id).Error
-		return &result, err
-	}
-	if alias != nil {
-		return s.GeneralCrud.GetByAlias(ctx, s.db.WithContext(ctx), s.aliasService, *alias)
-	}
-	return nil, gorm.ErrRecordNotFound
-}
-
-func (s *mySheetService) Update(ctx context.Context, id *int, alias *string, input *models.MySheetInput) (*models.MySheet, error) {
-	if id != nil {
-		return s.GeneralCrud.Update(s.db.WithContext(ctx), input, id)
-	}
-	if alias != nil {
-		mySheetId, err := s.aliasService.GetReferenceId(ctx, *alias)
-		if err != nil {
-			return nil, err
-		}
-		var result *models.MySheet
-		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			result, err = s.GeneralCrud.Update(tx, input, &mySheetId)
-			if err != nil {
-				return err
-			}
-			// Create alias if provided
-			if input.Alias != "" {
-				if err := s.aliasService.CreateAlias(tx, "my_sheets", mySheetId, input.Alias); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		return result, nil
-	}
-	return nil, gorm.ErrRecordNotFound
+	return &mysheet, nil
 }
 
 func (s *mySheetService) List(ctx context.Context, filter *models.MySheetFilter) ([]*models.MySheet, error) {
@@ -105,9 +71,15 @@ func (s *mySheetService) GetTodaySheets(ctx context.Context, currentDate time.Ti
 	}
 	tx := s.db.WithContext(ctx).Begin()
 	defer tx.Rollback()
-	for _, nSheet := range nextSheets {
-		id := nSheet.Id
-		_, err := s.GeneralCrud.Update(tx, &models.MySheetInput{UpdateNextDate: true}, &id)
+	for _, existing := range nextSheets {
+		updates := make(map[string]any)
+		currentDate := existing.NextDate
+		nextDate := GetNextDate(currentDate.Time, existing.Index+1)
+		// NextDate has moved for the sheet
+		updates["PreviousDate"] = currentDate
+		updates["NextDate"] = models.MyDate{Time: nextDate}
+		updates["Index"] = existing.Index + 1
+		err := tx.Model(&existing).Updates(updates).Error
 		if err != nil {
 			return nil, err
 		}

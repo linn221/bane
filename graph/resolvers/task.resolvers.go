@@ -6,11 +6,12 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/linn221/bane/graph"
+	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/services"
 )
 
 // CreateTask is the resolver for the createTask field.
@@ -20,37 +21,27 @@ func (r *mutationResolver) CreateTask(ctx context.Context, input models.TaskInpu
 
 // CancelTask is the resolver for the cancelTask field.
 func (r *mutationResolver) CancelTask(ctx context.Context, id *int, a *string) (*models.Task, error) {
-	return r.app.Services.TaskService.Cancel(ctx, id, a)
+	return r.app.Services.TaskService.ChangeStatus(ctx, a, id, models.TaskStatusCancelled)
 }
 
 // FinishTask is the resolver for the finishTask field.
 func (r *mutationResolver) FinishTask(ctx context.Context, id *int, a *string) (*models.Task, error) {
-	return r.app.Services.TaskService.Finish(ctx, id, a)
+	return r.app.Services.TaskService.ChangeStatus(ctx, a, id, models.TaskStatusFinished)
 }
 
 // Task is the resolver for the task field.
 func (r *queryResolver) Task(ctx context.Context, a *string) (*models.Task, error) {
-	if a == nil {
-		return nil, fmt.Errorf("alias must be provided")
-	}
-	return r.app.Services.TaskService.Get(ctx, nil, a)
+	return services.GetRecordByAliasOrId[models.Task](r.app.DB.WithContext(ctx), "tasks", a, nil)
 }
 
 // Tasks is the resolver for the tasks field.
-func (r *queryResolver) Tasks(ctx context.Context) ([]*models.Task, error) {
+func (r *queryResolver) Tasks(ctx context.Context, filter *model.TaskFilter) ([]*models.Task, error) {
 	return r.app.Services.TaskService.List(ctx)
 }
 
 // Alias is the resolver for the alias field.
-func (r *taskResolver) Alias(ctx context.Context, obj *models.Task) (*string, error) {
-	alias, err := loaders.GetTaskAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
+func (r *taskResolver) Alias(ctx context.Context, obj *models.Task) (string, error) {
+	return loaders.GetTaskAlias(ctx, obj.Id)
 }
 
 // Task returns graph.TaskResolver implementation.

@@ -119,3 +119,34 @@ func (s *aliasService) GetIdAndType(ctx context.Context, alias string) (int, str
 	}
 	return aliasRecord.ReferenceId, aliasRecord.ReferenceType, nil
 }
+
+func GetRecordByAlias[T any](db *gorm.DB, refType string, alias string) (*T, error) {
+	var a models.Alias
+	if err := db.Where("name = ?", alias).First(&a).Error; err != nil {
+		return nil, err
+	}
+	var v T
+	if err := db.Where("id = ?", a.ReferenceId).First(&v).Error; err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+func GetRecordByAliasOrId[T any](db *gorm.DB, refType string, alias *string, id *int) (*T, error) {
+	var v T
+	if alias != nil {
+		var a models.Alias
+		if err := db.Where("name = ?", alias).First(&a).Error; err != nil {
+			return nil, err
+		}
+		if err := db.Where("id = ?", a.ReferenceId).First(&v).Error; err != nil {
+			return nil, err
+		}
+	}
+	if id != nil {
+		if err := db.First(&v, *id).Error; err != nil {
+			return nil, err
+		}
+	}
+	return &v, nil
+}

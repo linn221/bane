@@ -6,11 +6,11 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/services"
 )
 
 // NewMySheet is the resolver for the newMySheet field.
@@ -19,29 +19,13 @@ func (r *mutationResolver) NewMySheet(ctx context.Context, input models.MySheetI
 }
 
 // Alias is the resolver for the alias field.
-func (r *mySheetResolver) Alias(ctx context.Context, obj *models.MySheet) (*string, error) {
-	alias, err := loaders.GetMySheetAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
-}
-
-// Age is the resolver for the age field.
-func (r *mySheetResolver) Age(ctx context.Context, obj *models.MySheet) (int, error) {
-	// Age is calculated as the number of times the sheet has been reviewed (Index)
-	return obj.Index, nil
+func (r *mySheetResolver) Alias(ctx context.Context, obj *models.MySheet) (string, error) {
+	return loaders.GetMySheetAlias(ctx, obj.Id)
 }
 
 // MySheet is the resolver for the mySheet field.
 func (r *queryResolver) MySheet(ctx context.Context, id *int, alias *string) (*models.MySheet, error) {
-	if id == nil && alias == nil {
-		return nil, fmt.Errorf("either id or alias must be provided")
-	}
-	return r.app.Services.MySheetService.Get(ctx, id, alias)
+	return services.GetRecordByAliasOrId[models.MySheet](r.app.DB.WithContext(ctx), "my_sheets", alias, id)
 }
 
 // MySheets is the resolver for the mySheets field.
