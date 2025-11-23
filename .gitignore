@@ -3,3 +3,4 @@ app.db
 bane
 *.test
 gorm.log
+secret.txt

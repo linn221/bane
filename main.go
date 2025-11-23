@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/linn221/bane/app"
@@ -28,7 +29,18 @@ func main() {
 		SecretPath:  "start-session",
 		RedirectUrl: "http://localhost:" + port + "/graphql",
 		SecretFunc: func() string {
-			return utils.GenerateRandomString(20)
+			// return utils.GenerateRandomString(20)
+			secretFilename := "secret.txt"
+			bs, err := os.ReadFile(secretFilename)
+			if err != nil {
+				secret := utils.GenerateRandomString(20)
+				err := os.WriteFile(secretFilename, []byte(secret), 0666)
+				if err != nil {
+					panic(err)
+				}
+				return secret
+			}
+			return string(bs)
 		},
 	}
 	secretMiddleware := secretConfig.Middleware()
