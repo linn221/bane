@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/linn221/bane/graph"
-	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
@@ -35,13 +34,20 @@ func (r *queryResolver) Task(ctx context.Context, a *string) (*models.Task, erro
 }
 
 // Tasks is the resolver for the tasks field.
-func (r *queryResolver) Tasks(ctx context.Context, filter *model.TaskFilter) ([]*models.Task, error) {
-	return r.app.Services.TaskService.List(ctx)
+func (r *queryResolver) Tasks(ctx context.Context, f *models.TaskFilter) ([]*models.Task, error) {
+	return r.app.Services.TaskService.List(ctx, f)
 }
 
 // Alias is the resolver for the alias field.
-func (r *taskResolver) Alias(ctx context.Context, obj *models.Task) (string, error) {
-	return loaders.GetTaskAlias(ctx, obj.Id)
+func (r *taskResolver) Alias(ctx context.Context, obj *models.Task) (*string, error) {
+	alias, err := loaders.GetTaskAlias(ctx, obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	if alias == "" {
+		return nil, nil
+	}
+	return &alias, nil
 }
 
 // Task returns graph.TaskResolver implementation.

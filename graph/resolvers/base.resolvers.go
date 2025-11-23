@@ -6,32 +6,14 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/linn221/bane/graph"
-	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
 )
 
-// NewTag is the resolver for the newTag field.
-func (r *mutationResolver) NewTag(ctx context.Context, input models.TagInput) (*models.Tag, error) {
-	return r.app.Services.TagService.Create(ctx, &input)
-}
-
-// NewAlias is the resolver for the newAlias field.
-func (r *mutationResolver) NewAlias(ctx context.Context, refType string, refID int, alias string) (bool, error) {
-	panic(fmt.Errorf("not implemented: NewAlias - newAlias"))
-}
-
 // RenameAlias is the resolver for the renameAlias field.
 func (r *mutationResolver) RenameAlias(ctx context.Context, old string, new string) (bool, error) {
-	panic(fmt.Errorf("not implemented: RenameAlias - renameAlias"))
-}
-
-// RemoveAlias is the resolver for the removeAlias field.
-func (r *mutationResolver) RemoveAlias(ctx context.Context, alias string) (bool, error) {
-	panic(fmt.Errorf("not implemented: RemoveAlias - removeAlias"))
+	return r.app.Services.AliasService.RenameAlias(ctx, old, new)
 }
 
 // Patch is the resolver for the patch field.
@@ -43,26 +25,3 @@ func (r *mutationResolver) Patch(ctx context.Context, a string, patch models.Pat
 func (r *mutationResolver) Destroy(ctx context.Context, a string) (bool, error) {
 	return r.app.Services.AliasService.DestroyReference(ctx, a)
 }
-
-// Tag is the resolver for the tag field.
-func (r *queryResolver) Tag(ctx context.Context, a string) (*models.Tag, error) {
-	return r.app.Services.TagService.Get(ctx, a)
-}
-
-// Tags is the resolver for the tags field.
-func (r *queryResolver) Tags(ctx context.Context, search *string) ([]*models.Tag, error) {
-	dbctx := r.app.DB.WithContext(ctx).Model(models.Tag{}).Where("is_active = 1")
-	var results []*models.Tag
-	err := dbctx.Find(&results).Error
-	return results, err
-}
-
-// Alias is the resolver for the alias field.
-func (r *tagResolver) Alias(ctx context.Context, obj *models.Tag) (string, error) {
-	return loaders.GetTagAlias(ctx, obj.Id)
-}
-
-// Tag returns graph.TagResolver implementation.
-func (r *Resolver) Tag() graph.TagResolver { return &tagResolver{r} }
-
-type tagResolver struct{ *Resolver }

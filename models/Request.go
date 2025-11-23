@@ -8,8 +8,6 @@ import (
 
 type Job struct {
 	Id          int       `gorm:"primaryKey"`
-	ProgramId   int       `gorm:"not null;index"`
-	Program     Program   `gorm:"foreignKey:ProgramId"`
 	Name        string    `gorm:"size:255;not null"`
 	Description string    `gorm:"default:null"`
 	JobDate     time.Time `gorm:"not null"`
@@ -22,8 +20,6 @@ type Request struct {
 	JobId               int               `gorm:"not null;index"`
 	Job                 Job               `gorm:"foreignKey:JobId"`
 	SequenceNumber      int               `gorm:"not null"`
-	ProgramId           int               `gorm:"not null;index"`
-	Program             Program           `gorm:"foreignKey:ProgramId"`
 	Description         string            `gorm:"default:null"`
 	HttpSchema          HttpSchema        `gorm:"size:10;not null"`
 	HttpMethod          HttpMethod        `gorm:"size:10;not null"`

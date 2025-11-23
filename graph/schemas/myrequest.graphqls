@@ -1,7 +1,5 @@
 type MyRequest {
     id: Int!
-    programId: Int!
-    program: Program! @goField(forceResolver: true)
     endpointId: Int!
     endpoint: Endpoint! @goField(forceResolver: true)
     
@@ -33,7 +31,6 @@ type MyRequest {
 }
 
 input MyRequestFilter {
-    programId: Int
     endpointId: Int
     success: Boolean
     statusMin: Int

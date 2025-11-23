@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 type TaskStatus string
@@ -42,11 +44,11 @@ func (t *TaskStatus) UnmarshalGQL(v interface{}) error {
 }
 
 type Task struct {
-	Id            int        `gorm:"primaryKey"`
-	Title         string     `gorm:"not null"`
-	Description   string     `gorm:"type:text"`
-	Status        TaskStatus `gorm:"index;not null"`
-	Priority      int        `gorm:"default:0"`
+	Id            int    `gorm:"primaryKey"`
+	Title         string `gorm:"not null"`
+	Description   string `gorm:"type:text"`
+	Status        TaskStatus
+	Priority      int `gorm:"default:0"`
 	Deadline      MyDate
 	RemindDate    MyDate
 	FinishedDate  MyDate
@@ -63,4 +65,15 @@ type TaskInput struct {
 	RemindDate   *MyDate `json:"remindDate,omitempty"`
 	Alias        string  `json:"alias,omitempty"`
 	ProjectAlias string  `json:"projectAlias,omitempty"`
+}
+
+func (input *TaskInput) Validate(db *gorm.DB, id int) error {
+	// Add validation logic here if needed
+	return nil
+}
+
+type TaskFilter struct {
+	Today  bool        `json:"today,omitempty"`
+	Search string      `json:"search,omitempty"`
+	Status *TaskStatus `json:"status,omitempty"`
 }

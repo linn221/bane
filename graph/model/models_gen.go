@@ -2,10 +2,6 @@
 
 package model
 
-import (
-	"github.com/linn221/bane/models"
-)
-
 type Mutation struct {
 }
 
@@ -27,23 +23,4 @@ type SQLResult struct {
 type SearchResult struct {
 	Results []string `json:"results,omitempty"`
 	Count   *int     `json:"count,omitempty"`
-}
-
-type TaskFilter struct {
-	Today      *bool              `json:"today,omitempty"`
-	Search     *string            `json:"search,omitempty"`
-	Status     *models.TaskStatus `json:"status,omitempty"`
-	Project    *string            `json:"project,omitempty"`
-	Created    *models.MyDate     `json:"created,omitempty"`
-	Deadline   *models.MyDate     `json:"deadline,omitempty"`
-	RemindDate *models.MyDate     `json:"remindDate,omitempty"`
-}
-
-type TodayMemorySheet struct {
-	Today     models.MyDate         `json:"today"`
-	Sheets    []*models.MemorySheet `json:"sheets"`
-	NextDay   []*models.MemorySheet `json:"nextDay"`
-	NextMonth []*models.MemorySheet `json:"nextMonth"`
-	ThisWeek  []*models.MemorySheet `json:"thisWeek"`
-	ThisMonth []*models.MemorySheet `json:"thisMonth"`
 }

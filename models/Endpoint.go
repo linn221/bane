@@ -30,8 +30,6 @@ const (
 
 type Endpoint struct {
 	Id                  int                  `gorm:"primaryKey"`
-	ProgramId           int                  `gorm:"not null;index"`
-	Program             Program              `gorm:"foreignKey:ProgramId"`
 	Name                string               `gorm:"size:255;not null"`
 	Description         string               `gorm:"default:null"`
 	HttpSchema          HttpSchema           `gorm:"size:10;not null"`
@@ -51,7 +49,6 @@ type Endpoint struct {
 type EndpointInput struct {
 	Name                string               `json:"name"`
 	Alias               string               `json:"alias,omitempty"`
-	ProgramAlias        string               `json:"program_alias"`
 	Description         string               `json:"description"`
 	HttpSchema          HttpSchema           `json:"http_schema"`
 	HttpMethod          HttpMethod           `json:"http_method"`
@@ -82,7 +79,6 @@ func (input *EndpointInput) Validate(db *gorm.DB, id int) error {
 type PatchEndpoint struct {
 	Name                *string               `json:"name,omitempty"`
 	Alias               *string               `json:"alias,omitempty"`
-	ProgramAlias        *string               `json:"program_alias,omitempty"`
 	Description         *string               `json:"description,omitempty"`
 	HttpSchema          *HttpSchema           `json:"http_schema,omitempty"`
 	HttpMethod          *HttpMethod           `json:"http_method,omitempty"`
@@ -109,16 +105,14 @@ func (input *PatchEndpoint) Validate(db *gorm.DB, id int) error {
 }
 
 type EndpointFilter struct {
-	ProgramAlias string     `json:"programAlias,omitempty"`
-	HttpSchema   HttpSchema `json:"httpSchema,omitempty"`
-	HttpMethod   HttpMethod `json:"httpMethod,omitempty"`
-	HttpDomain   string     `json:"httpDomain,omitempty"`
-	Search       string     `json:"search,omitempty"`
+	HttpSchema HttpSchema `json:"httpSchema,omitempty"`
+	HttpMethod HttpMethod `json:"httpMethod,omitempty"`
+	HttpDomain string     `json:"httpDomain,omitempty"`
+	Search     string     `json:"search,omitempty"`
 }
 
 type CurlImportResult struct {
 	Name                string               `json:"name"`
-	ProgramAlias        string               `json:"programAlias"`
 	Description         string               `json:"description"`
 	HttpSchema          HttpSchema           `json:"httpSchema"`
 	HttpMethod          HttpMethod           `json:"httpMethod"`

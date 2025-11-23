@@ -42,22 +42,17 @@ type Config struct {
 
 type ResolverRoot interface {
 	Endpoint() EndpointResolver
-	MemorySheet() MemorySheetResolver
 	Mutation() MutationResolver
 	MyRequest() MyRequestResolver
 	MySheet() MySheetResolver
 	Note() NoteResolver
-	Program() ProgramResolver
 	Project() ProjectResolver
 	Query() QueryResolver
 	QueryResult() QueryResultResolver
 	SQL() SQLResolver
-	Tag() TagResolver
 	Task() TaskResolver
-	TodayMemorySheet() TodayMemorySheetResolver
 	Word() WordResolver
 	WordList() WordListResolver
-	ProgramInput() ProgramInputResolver
 }
 
 type DirectiveRoot struct {
@@ -90,43 +85,26 @@ type ComplexityRoot struct {
 		Match               func(childComplexity int, regex string) int
 		Name                func(childComplexity int) int
 		Notes               func(childComplexity int) int
-		Program             func(childComplexity int) int
-		ProgramId           func(childComplexity int) int
 		Rid                 func(childComplexity int) int
 	}
 
-	MemorySheet struct {
-		Alias       func(childComplexity int) int
-		CreateDate  func(childComplexity int) int
-		CurrentDate func(childComplexity int) int
-		Id          func(childComplexity int) int
-		NextDate    func(childComplexity int) int
-		Notes       func(childComplexity int) int
-		Value       func(childComplexity int) int
-	}
-
 	Mutation struct {
-		CancelTask     func(childComplexity int, id *int, a *string) int
-		CreateTask     func(childComplexity int, input models.TaskInput) int
-		DelNote        func(childComplexity int, id int) int
-		Destroy        func(childComplexity int, a string) int
-		FinishTask     func(childComplexity int, id *int, a *string) int
-		Helloworld     func(childComplexity int) int
-		NewAlias       func(childComplexity int, refType string, refID int, alias string) int
-		NewEndpoint    func(childComplexity int, input models.EndpointInput) int
-		NewMemorySheet func(childComplexity int, input models.MemorySheetInput) int
-		NewMySheet     func(childComplexity int, input models.MySheetInput) int
-		NewNote        func(childComplexity int, input *models.NoteInput) int
-		NewProgram     func(childComplexity int, input *models.ProgramInput) int
-		NewProject     func(childComplexity int, input models.ProjectInput) int
-		NewTag         func(childComplexity int, input models.TagInput) int
-		NewWord        func(childComplexity int, input models.WordInput) int
-		NewWordList    func(childComplexity int, input models.WordListInput) int
-		Patch          func(childComplexity int, a string, patch models.PatchInput) int
-		Raw            func(childComplexity int, sql string) int
-		RemoveAlias    func(childComplexity int, alias string) int
-		RenameAlias    func(childComplexity int, old string, new string) int
-		RunCurl        func(childComplexity int, endpointAlias string, variables string) int
+		CancelTask  func(childComplexity int, id *int, a *string) int
+		CreateTask  func(childComplexity int, input models.TaskInput) int
+		DelNote     func(childComplexity int, id int) int
+		Destroy     func(childComplexity int, a string) int
+		FinishTask  func(childComplexity int, id *int, a *string) int
+		Helloworld  func(childComplexity int) int
+		NewEndpoint func(childComplexity int, input models.EndpointInput) int
+		NewMySheet  func(childComplexity int, input models.MySheetInput) int
+		NewNote     func(childComplexity int, input *models.NoteInput) int
+		NewProject  func(childComplexity int, input models.ProjectInput) int
+		NewWord     func(childComplexity int, input models.WordInput) int
+		NewWordList func(childComplexity int, input models.WordListInput) int
+		Patch       func(childComplexity int, a string, patch models.PatchInput) int
+		Raw         func(childComplexity int, sql string) int
+		RenameAlias func(childComplexity int, old string, new string) int
+		RunCurl     func(childComplexity int, endpointAlias string, variables string) int
 	}
 
 	MyRequest struct {
@@ -139,8 +117,6 @@ type ComplexityRoot struct {
 		ExecutedAt      func(childComplexity int) int
 		Id              func(childComplexity int) int
 		Latency         func(childComplexity int) int
-		Program         func(childComplexity int) int
-		ProgramId       func(childComplexity int) int
 		RequestBody     func(childComplexity int) int
 		RequestHeaders  func(childComplexity int) int
 		RequestMethod   func(childComplexity int) int
@@ -171,17 +147,6 @@ type ComplexityRoot struct {
 		Value    func(childComplexity int) int
 	}
 
-	Program struct {
-		Alias       func(childComplexity int) int
-		Description func(childComplexity int) int
-		Domain      func(childComplexity int) int
-		Id          func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Notes       func(childComplexity int) int
-		Rid         func(childComplexity int) int
-		Url         func(childComplexity int) int
-	}
-
 	Project struct {
 		Alias       func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -190,29 +155,23 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Endpoint    func(childComplexity int, id *int, alias *string) int
-		Endpoints   func(childComplexity int, filter *models.EndpointFilter) int
-		Helloworld  func(childComplexity int) int
-		MSheets     func(childComplexity int, date *models.MyDate) int
-		MemorySheet func(childComplexity int, id *int, alias *string) int
-		MyRequest   func(childComplexity int, id int) int
-		MyRequests  func(childComplexity int, filter *models.MyRequestFilter) int
-		MySheet     func(childComplexity int, id *int, alias *string) int
-		MySheets    func(childComplexity int, filter *models.MySheetFilter) int
-		Notes       func(childComplexity int, filter *models.NoteFilter) int
-		Program     func(childComplexity int, id *int, alias *string) int
-		Programs    func(childComplexity int, search *string) int
-		Project     func(childComplexity int, id *int, alias *string) int
-		Projects    func(childComplexity int, filter *models.ProjectFilter) int
-		Raw         func(childComplexity int, sql string) int
-		Tag         func(childComplexity int, a string) int
-		Tags        func(childComplexity int, search *string) int
-		Task        func(childComplexity int, a *string) int
-		Tasks       func(childComplexity int, filter *model.TaskFilter) int
-		Word        func(childComplexity int, id *int, alias *string) int
-		WordList    func(childComplexity int, id *int, alias *string) int
-		WordLists   func(childComplexity int, regex *string) int
-		Words       func(childComplexity int, search *string) int
+		Endpoint   func(childComplexity int, id *int, alias *string) int
+		Endpoints  func(childComplexity int, filter *models.EndpointFilter) int
+		Helloworld func(childComplexity int) int
+		MyRequest  func(childComplexity int, id int) int
+		MyRequests func(childComplexity int, filter *models.MyRequestFilter) int
+		MySheet    func(childComplexity int, id *int, alias *string) int
+		MySheets   func(childComplexity int, filter *models.MySheetFilter) int
+		Notes      func(childComplexity int, filter *models.NoteFilter) int
+		Project    func(childComplexity int, id *int, alias *string) int
+		Projects   func(childComplexity int, filter *models.ProjectFilter) int
+		Raw        func(childComplexity int, sql string) int
+		Task       func(childComplexity int, a *string) int
+		Tasks      func(childComplexity int, f *models.TaskFilter) int
+		Word       func(childComplexity int, id *int, alias *string) int
+		WordList   func(childComplexity int, id *int, alias *string) int
+		WordLists  func(childComplexity int, regex *string) int
+		Words      func(childComplexity int, search *string) int
 	}
 
 	QueryResult struct {
@@ -237,13 +196,6 @@ type ComplexityRoot struct {
 		Results func(childComplexity int) int
 	}
 
-	Tag struct {
-		Alias       func(childComplexity int) int
-		Description func(childComplexity int) int
-		Id          func(childComplexity int) int
-		Name        func(childComplexity int) int
-	}
-
 	Task struct {
 		Alias         func(childComplexity int) int
 		CancelledDate func(childComplexity int) int
@@ -257,15 +209,6 @@ type ComplexityRoot struct {
 		RemindDate    func(childComplexity int) int
 		Status        func(childComplexity int) int
 		Title         func(childComplexity int) int
-	}
-
-	TodayMemorySheet struct {
-		NextDay   func(childComplexity int) int
-		NextMonth func(childComplexity int) int
-		Sheets    func(childComplexity int) int
-		ThisMonth func(childComplexity int) int
-		ThisWeek  func(childComplexity int) int
-		Today     func(childComplexity int) int
 	}
 
 	Word struct {
@@ -287,8 +230,6 @@ type ComplexityRoot struct {
 }
 
 type EndpointResolver interface {
-	Program(ctx context.Context, obj *models.Endpoint) (*models.Program, error)
-
 	Alias(ctx context.Context, obj *models.Endpoint) (*string, error)
 
 	HTTPPathMy(ctx context.Context, obj *models.Endpoint, sep *string) (string, error)
@@ -300,26 +241,16 @@ type EndpointResolver interface {
 	Rid(ctx context.Context, obj *models.Endpoint) (int, error)
 	Notes(ctx context.Context, obj *models.Endpoint) ([]*models.Note, error)
 }
-type MemorySheetResolver interface {
-	Alias(ctx context.Context, obj *models.MemorySheet) (*string, error)
-
-	Notes(ctx context.Context, obj *models.MemorySheet) ([]*models.Note, error)
-}
 type MutationResolver interface {
 	Helloworld(ctx context.Context) (string, error)
-	NewTag(ctx context.Context, input models.TagInput) (*models.Tag, error)
-	NewAlias(ctx context.Context, refType string, refID int, alias string) (bool, error)
 	RenameAlias(ctx context.Context, old string, new string) (bool, error)
-	RemoveAlias(ctx context.Context, alias string) (bool, error)
 	Patch(ctx context.Context, a string, patch models.PatchInput) (bool, error)
 	Destroy(ctx context.Context, a string) (bool, error)
 	NewEndpoint(ctx context.Context, input models.EndpointInput) (*models.Endpoint, error)
-	NewMemorySheet(ctx context.Context, input models.MemorySheetInput) (*models.MemorySheet, error)
 	NewMySheet(ctx context.Context, input models.MySheetInput) (*models.MySheet, error)
 	RunCurl(ctx context.Context, endpointAlias string, variables string) (*models.MyRequest, error)
 	NewNote(ctx context.Context, input *models.NoteInput) (*models.Note, error)
 	DelNote(ctx context.Context, id int) (*models.Note, error)
-	NewProgram(ctx context.Context, input *models.ProgramInput) (*models.Program, error)
 	NewProject(ctx context.Context, input models.ProjectInput) (*models.Project, error)
 	Raw(ctx context.Context, sql string) (int, error)
 	CreateTask(ctx context.Context, input models.TaskInput) (*models.Task, error)
@@ -329,8 +260,6 @@ type MutationResolver interface {
 	NewWordList(ctx context.Context, input models.WordListInput) (*models.WordList, error)
 }
 type MyRequestResolver interface {
-	Program(ctx context.Context, obj *models.MyRequest) (*models.Program, error)
-
 	Endpoint(ctx context.Context, obj *models.MyRequest) (*models.Endpoint, error)
 
 	ExecutedAt(ctx context.Context, obj *models.MyRequest) (string, error)
@@ -341,35 +270,23 @@ type MySheetResolver interface {
 type NoteResolver interface {
 	Match(ctx context.Context, obj *models.Note, regex string) (*model.SearchResult, error)
 }
-type ProgramResolver interface {
-	Alias(ctx context.Context, obj *models.Program) (string, error)
-
-	Rid(ctx context.Context, obj *models.Program) (int, error)
-	Notes(ctx context.Context, obj *models.Program) ([]*models.Note, error)
-}
 type ProjectResolver interface {
 	Alias(ctx context.Context, obj *models.Project) (*string, error)
 }
 type QueryResolver interface {
 	Helloworld(ctx context.Context) (string, error)
-	Tag(ctx context.Context, a string) (*models.Tag, error)
-	Tags(ctx context.Context, search *string) ([]*models.Tag, error)
 	Endpoint(ctx context.Context, id *int, alias *string) (*models.Endpoint, error)
 	Endpoints(ctx context.Context, filter *models.EndpointFilter) ([]*models.Endpoint, error)
-	MemorySheet(ctx context.Context, id *int, alias *string) (*models.MemorySheet, error)
-	MSheets(ctx context.Context, date *models.MyDate) ([]*models.MemorySheet, error)
 	MySheet(ctx context.Context, id *int, alias *string) (*models.MySheet, error)
 	MySheets(ctx context.Context, filter *models.MySheetFilter) ([]*models.MySheet, error)
 	MyRequests(ctx context.Context, filter *models.MyRequestFilter) ([]*models.MyRequest, error)
 	MyRequest(ctx context.Context, id int) (*models.MyRequest, error)
 	Notes(ctx context.Context, filter *models.NoteFilter) ([]*models.Note, error)
-	Programs(ctx context.Context, search *string) ([]*models.Program, error)
-	Program(ctx context.Context, id *int, alias *string) (*models.Program, error)
 	Project(ctx context.Context, id *int, alias *string) (*models.Project, error)
 	Projects(ctx context.Context, filter *models.ProjectFilter) ([]*models.Project, error)
 	Raw(ctx context.Context, sql string) (*models.QueryResult, error)
 	Task(ctx context.Context, a *string) (*models.Task, error)
-	Tasks(ctx context.Context, filter *model.TaskFilter) ([]*models.Task, error)
+	Tasks(ctx context.Context, f *models.TaskFilter) ([]*models.Task, error)
 	Word(ctx context.Context, id *int, alias *string) (*models.Word, error)
 	Words(ctx context.Context, search *string) ([]*models.Word, error)
 	WordList(ctx context.Context, id *int, alias *string) (*models.WordList, error)
@@ -384,17 +301,8 @@ type SQLResolver interface {
 	Del(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 	Count(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 }
-type TagResolver interface {
-	Alias(ctx context.Context, obj *models.Tag) (string, error)
-}
 type TaskResolver interface {
-	Alias(ctx context.Context, obj *models.Task) (string, error)
-}
-type TodayMemorySheetResolver interface {
-	NextDay(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
-	NextMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
-	ThisWeek(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
-	ThisMonth(ctx context.Context, obj *model.TodayMemorySheet) ([]*models.MemorySheet, error)
+	Alias(ctx context.Context, obj *models.Task) (*string, error)
 }
 type WordResolver interface {
 	Alias(ctx context.Context, obj *models.Word) (*string, error)
@@ -403,10 +311,6 @@ type WordListResolver interface {
 	Alias(ctx context.Context, obj *models.WordList) (*string, error)
 
 	ImportURL(ctx context.Context, obj *models.WordList) (*string, error)
-}
-
-type ProgramInputResolver interface {
-	Tags(ctx context.Context, obj *models.ProgramInput, data []string) error
 }
 
 type executableSchema struct {
@@ -586,67 +490,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Endpoint.Notes(childComplexity), true
-	case "Endpoint.program":
-		if e.complexity.Endpoint.Program == nil {
-			break
-		}
-
-		return e.complexity.Endpoint.Program(childComplexity), true
-	case "Endpoint.programId":
-		if e.complexity.Endpoint.ProgramId == nil {
-			break
-		}
-
-		return e.complexity.Endpoint.ProgramId(childComplexity), true
 	case "Endpoint.rid":
 		if e.complexity.Endpoint.Rid == nil {
 			break
 		}
 
 		return e.complexity.Endpoint.Rid(childComplexity), true
-
-	case "MemorySheet.alias":
-		if e.complexity.MemorySheet.Alias == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.Alias(childComplexity), true
-	case "MemorySheet.createDate":
-		if e.complexity.MemorySheet.CreateDate == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.CreateDate(childComplexity), true
-	case "MemorySheet.currentDate":
-		if e.complexity.MemorySheet.CurrentDate == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.CurrentDate(childComplexity), true
-	case "MemorySheet.id":
-		if e.complexity.MemorySheet.Id == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.Id(childComplexity), true
-	case "MemorySheet.nextDate":
-		if e.complexity.MemorySheet.NextDate == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.NextDate(childComplexity), true
-	case "MemorySheet.notes":
-		if e.complexity.MemorySheet.Notes == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.Notes(childComplexity), true
-	case "MemorySheet.value":
-		if e.complexity.MemorySheet.Value == nil {
-			break
-		}
-
-		return e.complexity.MemorySheet.Value(childComplexity), true
 
 	case "Mutation.cancelTask":
 		if e.complexity.Mutation.CancelTask == nil {
@@ -709,17 +558,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.Helloworld(childComplexity), true
-	case "Mutation.newAlias":
-		if e.complexity.Mutation.NewAlias == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_newAlias_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.NewAlias(childComplexity, args["refType"].(string), args["refId"].(int), args["alias"].(string)), true
 	case "Mutation.newEndpoint":
 		if e.complexity.Mutation.NewEndpoint == nil {
 			break
@@ -731,17 +569,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.NewEndpoint(childComplexity, args["input"].(models.EndpointInput)), true
-	case "Mutation.newMemorySheet":
-		if e.complexity.Mutation.NewMemorySheet == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_newMemorySheet_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.NewMemorySheet(childComplexity, args["input"].(models.MemorySheetInput)), true
 	case "Mutation.newMySheet":
 		if e.complexity.Mutation.NewMySheet == nil {
 			break
@@ -764,17 +591,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.NewNote(childComplexity, args["input"].(*models.NoteInput)), true
-	case "Mutation.newProgram":
-		if e.complexity.Mutation.NewProgram == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_newProgram_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.NewProgram(childComplexity, args["input"].(*models.ProgramInput)), true
 	case "Mutation.newProject":
 		if e.complexity.Mutation.NewProject == nil {
 			break
@@ -786,17 +602,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.NewProject(childComplexity, args["input"].(models.ProjectInput)), true
-	case "Mutation.newTag":
-		if e.complexity.Mutation.NewTag == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_newTag_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.NewTag(childComplexity, args["input"].(models.TagInput)), true
 	case "Mutation.newWord":
 		if e.complexity.Mutation.NewWord == nil {
 			break
@@ -841,17 +646,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.Raw(childComplexity, args["sql"].(string)), true
-	case "Mutation.removeAlias":
-		if e.complexity.Mutation.RemoveAlias == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_removeAlias_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.RemoveAlias(childComplexity, args["alias"].(string)), true
 	case "Mutation.renameAlias":
 		if e.complexity.Mutation.RenameAlias == nil {
 			break
@@ -929,18 +723,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.MyRequest.Latency(childComplexity), true
-	case "MyRequest.program":
-		if e.complexity.MyRequest.Program == nil {
-			break
-		}
-
-		return e.complexity.MyRequest.Program(childComplexity), true
-	case "MyRequest.programId":
-		if e.complexity.MyRequest.ProgramId == nil {
-			break
-		}
-
-		return e.complexity.MyRequest.ProgramId(childComplexity), true
 	case "MyRequest.requestBody":
 		if e.complexity.MyRequest.RequestBody == nil {
 			break
@@ -1081,55 +863,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Note.Value(childComplexity), true
 
-	case "Program.alias":
-		if e.complexity.Program.Alias == nil {
-			break
-		}
-
-		return e.complexity.Program.Alias(childComplexity), true
-	case "Program.description":
-		if e.complexity.Program.Description == nil {
-			break
-		}
-
-		return e.complexity.Program.Description(childComplexity), true
-	case "Program.domain":
-		if e.complexity.Program.Domain == nil {
-			break
-		}
-
-		return e.complexity.Program.Domain(childComplexity), true
-	case "Program.id":
-		if e.complexity.Program.Id == nil {
-			break
-		}
-
-		return e.complexity.Program.Id(childComplexity), true
-	case "Program.name":
-		if e.complexity.Program.Name == nil {
-			break
-		}
-
-		return e.complexity.Program.Name(childComplexity), true
-	case "Program.notes":
-		if e.complexity.Program.Notes == nil {
-			break
-		}
-
-		return e.complexity.Program.Notes(childComplexity), true
-	case "Program.rid":
-		if e.complexity.Program.Rid == nil {
-			break
-		}
-
-		return e.complexity.Program.Rid(childComplexity), true
-	case "Program.url":
-		if e.complexity.Program.Url == nil {
-			break
-		}
-
-		return e.complexity.Program.Url(childComplexity), true
-
 	case "Project.alias":
 		if e.complexity.Project.Alias == nil {
 			break
@@ -1183,28 +916,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Helloworld(childComplexity), true
-	case "Query.mSheets":
-		if e.complexity.Query.MSheets == nil {
-			break
-		}
-
-		args, err := ec.field_Query_mSheets_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MSheets(childComplexity, args["date"].(*models.MyDate)), true
-	case "Query.memorySheet":
-		if e.complexity.Query.MemorySheet == nil {
-			break
-		}
-
-		args, err := ec.field_Query_memorySheet_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MemorySheet(childComplexity, args["id"].(*int), args["alias"].(*string)), true
 	case "Query.myRequest":
 		if e.complexity.Query.MyRequest == nil {
 			break
@@ -1260,28 +971,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Notes(childComplexity, args["filter"].(*models.NoteFilter)), true
-	case "Query.program":
-		if e.complexity.Query.Program == nil {
-			break
-		}
-
-		args, err := ec.field_Query_program_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Program(childComplexity, args["id"].(*int), args["alias"].(*string)), true
-	case "Query.programs":
-		if e.complexity.Query.Programs == nil {
-			break
-		}
-
-		args, err := ec.field_Query_programs_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Programs(childComplexity, args["search"].(*string)), true
 	case "Query.project":
 		if e.complexity.Query.Project == nil {
 			break
@@ -1315,28 +1004,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Raw(childComplexity, args["sql"].(string)), true
-	case "Query.tag":
-		if e.complexity.Query.Tag == nil {
-			break
-		}
-
-		args, err := ec.field_Query_tag_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Tag(childComplexity, args["a"].(string)), true
-	case "Query.tags":
-		if e.complexity.Query.Tags == nil {
-			break
-		}
-
-		args, err := ec.field_Query_tags_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Tags(childComplexity, args["search"].(*string)), true
 	case "Query.task":
 		if e.complexity.Query.Task == nil {
 			break
@@ -1358,7 +1025,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.Tasks(childComplexity, args["filter"].(*model.TaskFilter)), true
+		return e.complexity.Query.Tasks(childComplexity, args["f"].(*models.TaskFilter)), true
 	case "Query.word":
 		if e.complexity.Query.Word == nil {
 			break
@@ -1493,31 +1160,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.SearchResult.Results(childComplexity), true
 
-	case "Tag.alias":
-		if e.complexity.Tag.Alias == nil {
-			break
-		}
-
-		return e.complexity.Tag.Alias(childComplexity), true
-	case "Tag.description":
-		if e.complexity.Tag.Description == nil {
-			break
-		}
-
-		return e.complexity.Tag.Description(childComplexity), true
-	case "Tag.id":
-		if e.complexity.Tag.Id == nil {
-			break
-		}
-
-		return e.complexity.Tag.Id(childComplexity), true
-	case "Tag.name":
-		if e.complexity.Tag.Name == nil {
-			break
-		}
-
-		return e.complexity.Tag.Name(childComplexity), true
-
 	case "Task.alias":
 		if e.complexity.Task.Alias == nil {
 			break
@@ -1590,43 +1232,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Task.Title(childComplexity), true
-
-	case "TodayMemorySheet.nextDay":
-		if e.complexity.TodayMemorySheet.NextDay == nil {
-			break
-		}
-
-		return e.complexity.TodayMemorySheet.NextDay(childComplexity), true
-	case "TodayMemorySheet.nextMonth":
-		if e.complexity.TodayMemorySheet.NextMonth == nil {
-			break
-		}
-
-		return e.complexity.TodayMemorySheet.NextMonth(childComplexity), true
-	case "TodayMemorySheet.sheets":
-		if e.complexity.TodayMemorySheet.Sheets == nil {
-			break
-		}
-
-		return e.complexity.TodayMemorySheet.Sheets(childComplexity), true
-	case "TodayMemorySheet.thisMonth":
-		if e.complexity.TodayMemorySheet.ThisMonth == nil {
-			break
-		}
-
-		return e.complexity.TodayMemorySheet.ThisMonth(childComplexity), true
-	case "TodayMemorySheet.thisWeek":
-		if e.complexity.TodayMemorySheet.ThisWeek == nil {
-			break
-		}
-
-		return e.complexity.TodayMemorySheet.ThisWeek(childComplexity), true
-	case "TodayMemorySheet.today":
-		if e.complexity.TodayMemorySheet.Today == nil {
-			break
-		}
-
-		return e.complexity.TodayMemorySheet.Today(childComplexity), true
 
 	case "Word.alias":
 		if e.complexity.Word.Alias == nil {
@@ -1706,7 +1311,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputEndpointFilter,
 		ec.unmarshalInputEndpointInput,
-		ec.unmarshalInputMemorySheetInput,
 		ec.unmarshalInputMyRequestFilter,
 		ec.unmarshalInputMySheetFilter,
 		ec.unmarshalInputMySheetInput,
@@ -1714,14 +1318,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNoteInput,
 		ec.unmarshalInputPatchEndpoint,
 		ec.unmarshalInputPatchInput,
-		ec.unmarshalInputPatchMemorySheet,
-		ec.unmarshalInputPatchProgram,
 		ec.unmarshalInputPatchWord,
 		ec.unmarshalInputPatchWordList,
-		ec.unmarshalInputProgramInput,
 		ec.unmarshalInputProjectFilter,
 		ec.unmarshalInputProjectInput,
-		ec.unmarshalInputTagInput,
 		ec.unmarshalInputTaskFilter,
 		ec.unmarshalInputTaskInput,
 		ec.unmarshalInputWordInput,
@@ -1822,7 +1422,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "schemas/base.graphqls" "schemas/endpoint.graphqls" "schemas/memorySheet.graphqls" "schemas/mySheet.graphqls" "schemas/myrequest.graphqls" "schemas/note.graphqls" "schemas/program.graphqls" "schemas/project.graphqls" "schemas/raw.graphqls" "schemas/root.graphqls" "schemas/sql.graphqls" "schemas/task.graphqls" "schemas/wordlist.graphqls"
+//go:embed "schemas/base.graphqls" "schemas/endpoint.graphqls" "schemas/mySheet.graphqls" "schemas/myrequest.graphqls" "schemas/note.graphqls" "schemas/project.graphqls" "schemas/raw.graphqls" "schemas/root.graphqls" "schemas/sql.graphqls" "schemas/task.graphqls" "schemas/wordlist.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1836,11 +1436,9 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "schemas/base.graphqls", Input: sourceData("schemas/base.graphqls"), BuiltIn: false},
 	{Name: "schemas/endpoint.graphqls", Input: sourceData("schemas/endpoint.graphqls"), BuiltIn: false},
-	{Name: "schemas/memorySheet.graphqls", Input: sourceData("schemas/memorySheet.graphqls"), BuiltIn: false},
 	{Name: "schemas/mySheet.graphqls", Input: sourceData("schemas/mySheet.graphqls"), BuiltIn: false},
 	{Name: "schemas/myrequest.graphqls", Input: sourceData("schemas/myrequest.graphqls"), BuiltIn: false},
 	{Name: "schemas/note.graphqls", Input: sourceData("schemas/note.graphqls"), BuiltIn: false},
-	{Name: "schemas/program.graphqls", Input: sourceData("schemas/program.graphqls"), BuiltIn: false},
 	{Name: "schemas/project.graphqls", Input: sourceData("schemas/project.graphqls"), BuiltIn: false},
 	{Name: "schemas/raw.graphqls", Input: sourceData("schemas/raw.graphqls"), BuiltIn: false},
 	{Name: "schemas/root.graphqls", Input: sourceData("schemas/root.graphqls"), BuiltIn: false},
@@ -1989,42 +1587,10 @@ func (ec *executionContext) field_Mutation_finishTask_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_newAlias_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "refType", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["refType"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "refId", ec.unmarshalNInt2int)
-	if err != nil {
-		return nil, err
-	}
-	args["refId"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_newEndpoint_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNEndpointInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐEndpointInput)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_newMemorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNMemorySheetInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2054,32 +1620,10 @@ func (ec *executionContext) field_Mutation_newNote_args(ctx context.Context, raw
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_newProgram_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOProgramInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgramInput)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_newProject_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNProjectInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProjectInput)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_newTag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTagInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTagInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2133,17 +1677,6 @@ func (ec *executionContext) field_Mutation_raw_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["sql"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_removeAlias_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg0
 	return args, nil
 }
 
@@ -2244,33 +1777,6 @@ func (ec *executionContext) field_Query_endpoints_args(ctx context.Context, rawA
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_mSheets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "date", ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate)
-	if err != nil {
-		return nil, err
-	}
-	args["date"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_memorySheet_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_myRequest_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2331,33 +1837,6 @@ func (ec *executionContext) field_Query_notes_args(ctx context.Context, rawArgs 
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_program_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalOInt2ᚖint)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "alias", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["alias"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_programs_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "search", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["search"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_project_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2396,28 +1875,6 @@ func (ec *executionContext) field_Query_raw_args(ctx context.Context, rawArgs ma
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_tag_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
-	if err != nil {
-		return nil, err
-	}
-	args["a"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_tags_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "search", ec.unmarshalOString2ᚖstring)
-	if err != nil {
-		return nil, err
-	}
-	args["search"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_task_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2432,11 +1889,11 @@ func (ec *executionContext) field_Query_task_args(ctx context.Context, rawArgs m
 func (ec *executionContext) field_Query_tasks_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐTaskFilter)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "f", ec.unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskFilter)
 	if err != nil {
 		return nil, err
 	}
-	args["filter"] = arg0
+	args["f"] = arg0
 	return args, nil
 }
 
@@ -2716,82 +2173,6 @@ func (ec *executionContext) fieldContext_Endpoint_id(_ context.Context, field gr
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Endpoint_programId(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_programId,
-		func(ctx context.Context) (any, error) {
-			return obj.ProgramId, nil
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_programId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Endpoint_program(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_program,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Endpoint().Program(ctx, obj)
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_program(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
 		},
 	}
 	return fc, nil
@@ -3424,219 +2805,6 @@ func (ec *executionContext) fieldContext_Endpoint_notes(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _MemorySheet_id(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_id,
-		func(ctx context.Context) (any, error) {
-			return obj.Id, nil
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MemorySheet_value(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_value,
-		func(ctx context.Context) (any, error) {
-			return obj.Value, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MemorySheet_alias(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_alias,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.MemorySheet().Alias(ctx, obj)
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_alias(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MemorySheet_createDate(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_createDate,
-		func(ctx context.Context) (any, error) {
-			return obj.CreateDate, nil
-		},
-		nil,
-		ec.marshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_createDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type MyDate does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MemorySheet_currentDate(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_currentDate,
-		func(ctx context.Context) (any, error) {
-			return obj.CurrentDate, nil
-		},
-		nil,
-		ec.marshalOMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_currentDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type MyDate does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MemorySheet_nextDate(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_nextDate,
-		func(ctx context.Context) (any, error) {
-			return obj.NextDate, nil
-		},
-		nil,
-		ec.marshalOMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_nextDate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type MyDate does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MemorySheet_notes(ctx context.Context, field graphql.CollectedField, obj *models.MemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MemorySheet_notes,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.MemorySheet().Notes(ctx, obj)
-		},
-		nil,
-		ec.marshalNNote2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_MemorySheet_notes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MemorySheet",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Note_id(ctx, field)
-			case "value":
-				return ec.fieldContext_Note_value(ctx, field)
-			case "match":
-				return ec.fieldContext_Note_match(ctx, field)
-			case "noteDate":
-				return ec.fieldContext_Note_noteDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Note", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_helloworld(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3662,98 +2830,6 @@ func (ec *executionContext) fieldContext_Mutation_helloworld(_ context.Context, 
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_newTag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_newTag,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewTag(ctx, fc.Args["input"].(models.TagInput))
-		},
-		nil,
-		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_newTag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tag_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Tag_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Tag_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Tag_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tag", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_newTag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_newAlias(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_newAlias,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewAlias(ctx, fc.Args["refType"].(string), fc.Args["refId"].(int), fc.Args["alias"].(string))
-		},
-		nil,
-		ec.marshalNBoolean2bool,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_newAlias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_newAlias_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -3793,47 +2869,6 @@ func (ec *executionContext) fieldContext_Mutation_renameAlias(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_renameAlias_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_removeAlias(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_removeAlias,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().RemoveAlias(ctx, fc.Args["alias"].(string))
-		},
-		nil,
-		ec.marshalNBoolean2bool,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_removeAlias(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_removeAlias_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3949,10 +2984,6 @@ func (ec *executionContext) fieldContext_Mutation_newEndpoint(ctx context.Contex
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
 			case "name":
 				return ec.fieldContext_Endpoint_name(ctx, field)
 			case "alias":
@@ -4003,63 +3034,6 @@ func (ec *executionContext) fieldContext_Mutation_newEndpoint(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_newEndpoint_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_newMemorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_newMemorySheet,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewMemorySheet(ctx, fc.Args["input"].(models.MemorySheetInput))
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_newMemorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_newMemorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4152,10 +3126,6 @@ func (ec *executionContext) fieldContext_Mutation_runCurl(ctx context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MyRequest_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_MyRequest_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_MyRequest_program(ctx, field)
 			case "endpointId":
 				return ec.fieldContext_MyRequest_endpointId(ctx, field)
 			case "endpoint":
@@ -4306,65 +3276,6 @@ func (ec *executionContext) fieldContext_Mutation_delNote(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_delNote_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_newProgram(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Mutation_newProgram,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewProgram(ctx, fc.Args["input"].(*models.ProgramInput))
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Mutation_newProgram(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_newProgram_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4801,82 +3712,6 @@ func (ec *executionContext) fieldContext_MyRequest_id(_ context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _MyRequest_programId(ctx context.Context, field graphql.CollectedField, obj *models.MyRequest) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MyRequest_programId,
-		func(ctx context.Context) (any, error) {
-			return obj.ProgramId, nil
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_MyRequest_programId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MyRequest",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _MyRequest_program(ctx context.Context, field graphql.CollectedField, obj *models.MyRequest) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_MyRequest_program,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.MyRequest().Program(ctx, obj)
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_MyRequest_program(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "MyRequest",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _MyRequest_endpointId(ctx context.Context, field graphql.CollectedField, obj *models.MyRequest) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4932,10 +3767,6 @@ func (ec *executionContext) fieldContext_MyRequest_endpoint(_ context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
 			case "name":
 				return ec.fieldContext_Endpoint_name(ctx, field)
 			case "alias":
@@ -5811,248 +4642,6 @@ func (ec *executionContext) fieldContext_Note_noteDate(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Program_id(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_id,
-		func(ctx context.Context) (any, error) {
-			return obj.Id, nil
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_alias(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_alias,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Program().Alias(ctx, obj)
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_alias(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_name(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_name,
-		func(ctx context.Context) (any, error) {
-			return obj.Name, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_description(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_description,
-		func(ctx context.Context) (any, error) {
-			return obj.Description, nil
-		},
-		nil,
-		ec.marshalOString2string,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_domain(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_domain,
-		func(ctx context.Context) (any, error) {
-			return obj.Domain, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_domain(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_url(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_url,
-		func(ctx context.Context) (any, error) {
-			return obj.Url, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_rid(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_rid,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Program().Rid(ctx, obj)
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_rid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Program_notes(ctx context.Context, field graphql.CollectedField, obj *models.Program) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Program_notes,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Program().Notes(ctx, obj)
-		},
-		nil,
-		ec.marshalONote2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Program_notes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Program",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Note_id(ctx, field)
-			case "value":
-				return ec.fieldContext_Note_value(ctx, field)
-			case "match":
-				return ec.fieldContext_Note_match(ctx, field)
-			case "noteDate":
-				return ec.fieldContext_Note_noteDate(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Note", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Project_id(ctx context.Context, field graphql.CollectedField, obj *models.Project) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -6198,108 +4787,6 @@ func (ec *executionContext) fieldContext_Query_helloworld(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_tag(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_tag,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Tag(ctx, fc.Args["a"].(string))
-		},
-		nil,
-		ec.marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_tag(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tag_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Tag_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Tag_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Tag_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tag", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_tag_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_tags(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_tags,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Tags(ctx, fc.Args["search"].(*string))
-		},
-		nil,
-		ec.marshalOTag2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Tag_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Tag_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Tag_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Tag_description(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Tag", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_tags_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_endpoint(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -6327,10 +4814,6 @@ func (ec *executionContext) fieldContext_Query_endpoint(ctx context.Context, fie
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
 			case "name":
 				return ec.fieldContext_Endpoint_name(ctx, field)
 			case "alias":
@@ -6414,10 +4897,6 @@ func (ec *executionContext) fieldContext_Query_endpoints(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Endpoint_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_Endpoint_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_Endpoint_program(ctx, field)
 			case "name":
 				return ec.fieldContext_Endpoint_name(ctx, field)
 			case "alias":
@@ -6468,120 +4947,6 @@ func (ec *executionContext) fieldContext_Query_endpoints(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_endpoints_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_memorySheet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_memorySheet,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().MemorySheet(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_memorySheet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_memorySheet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_mSheets(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_mSheets,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().MSheets(ctx, fc.Args["date"].(*models.MyDate))
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_mSheets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_mSheets_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6733,10 +5098,6 @@ func (ec *executionContext) fieldContext_Query_myRequests(ctx context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MyRequest_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_MyRequest_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_MyRequest_program(ctx, field)
 			case "endpointId":
 				return ec.fieldContext_MyRequest_endpointId(ctx, field)
 			case "endpoint":
@@ -6818,10 +5179,6 @@ func (ec *executionContext) fieldContext_Query_myRequest(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_MyRequest_id(ctx, field)
-			case "programId":
-				return ec.fieldContext_MyRequest_programId(ctx, field)
-			case "program":
-				return ec.fieldContext_MyRequest_program(ctx, field)
 			case "endpointId":
 				return ec.fieldContext_MyRequest_endpointId(ctx, field)
 			case "endpoint":
@@ -6921,124 +5278,6 @@ func (ec *executionContext) fieldContext_Query_notes(ctx context.Context, field 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_notes_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_programs(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_programs,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Programs(ctx, fc.Args["search"].(*string))
-		},
-		nil,
-		ec.marshalOProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_programs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_programs_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_program(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Query_program,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Program(ctx, fc.Args["id"].(*int), fc.Args["alias"].(*string))
-		},
-		nil,
-		ec.marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Query_program(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Program_id(ctx, field)
-			case "alias":
-				return ec.fieldContext_Program_alias(ctx, field)
-			case "name":
-				return ec.fieldContext_Program_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Program_description(ctx, field)
-			case "domain":
-				return ec.fieldContext_Program_domain(ctx, field)
-			case "url":
-				return ec.fieldContext_Program_url(ctx, field)
-			case "rid":
-				return ec.fieldContext_Program_rid(ctx, field)
-			case "notes":
-				return ec.fieldContext_Program_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Program", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_program_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7269,7 +5508,7 @@ func (ec *executionContext) _Query_tasks(ctx context.Context, field graphql.Coll
 		ec.fieldContext_Query_tasks,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Tasks(ctx, fc.Args["filter"].(*model.TaskFilter))
+			return ec.resolvers.Query().Tasks(ctx, fc.Args["f"].(*models.TaskFilter))
 		},
 		nil,
 		ec.marshalNTask2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskᚄ,
@@ -8020,122 +6259,6 @@ func (ec *executionContext) fieldContext_SearchResult_count(_ context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Tag_id,
-		func(ctx context.Context) (any, error) {
-			return obj.Id, nil
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Tag_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tag",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Tag_alias(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Tag_alias,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Tag().Alias(ctx, obj)
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Tag_alias(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tag",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Tag_name(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Tag_name,
-		func(ctx context.Context) (any, error) {
-			return obj.Name, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Tag_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tag",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Tag_description(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Tag_description,
-		func(ctx context.Context) (any, error) {
-			return obj.Description, nil
-		},
-		nil,
-		ec.marshalOString2string,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Tag_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Tag",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Task_id(ctx context.Context, field graphql.CollectedField, obj *models.Task) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -8465,9 +6588,9 @@ func (ec *executionContext) _Task_alias(ctx context.Context, field graphql.Colle
 			return ec.resolvers.Task().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalNString2string,
+		ec.marshalOString2ᚖstring,
 		true,
-		true,
+		false,
 	)
 }
 
@@ -8479,260 +6602,6 @@ func (ec *executionContext) fieldContext_Task_alias(_ context.Context, field gra
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TodayMemorySheet_today(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_TodayMemorySheet_today,
-		func(ctx context.Context) (any, error) {
-			return obj.Today, nil
-		},
-		nil,
-		ec.marshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_TodayMemorySheet_today(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TodayMemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type MyDate does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TodayMemorySheet_sheets(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_TodayMemorySheet_sheets,
-		func(ctx context.Context) (any, error) {
-			return obj.Sheets, nil
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_TodayMemorySheet_sheets(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TodayMemorySheet",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TodayMemorySheet_nextDay(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_TodayMemorySheet_nextDay,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.TodayMemorySheet().NextDay(ctx, obj)
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_TodayMemorySheet_nextDay(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TodayMemorySheet",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TodayMemorySheet_nextMonth(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_TodayMemorySheet_nextMonth,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.TodayMemorySheet().NextMonth(ctx, obj)
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_TodayMemorySheet_nextMonth(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TodayMemorySheet",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TodayMemorySheet_thisWeek(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_TodayMemorySheet_thisWeek,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.TodayMemorySheet().ThisWeek(ctx, obj)
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_TodayMemorySheet_thisWeek(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TodayMemorySheet",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _TodayMemorySheet_thisMonth(ctx context.Context, field graphql.CollectedField, obj *model.TodayMemorySheet) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_TodayMemorySheet_thisMonth,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.TodayMemorySheet().ThisMonth(ctx, obj)
-		},
-		nil,
-		ec.marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_TodayMemorySheet_thisMonth(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "TodayMemorySheet",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_MemorySheet_id(ctx, field)
-			case "value":
-				return ec.fieldContext_MemorySheet_value(ctx, field)
-			case "alias":
-				return ec.fieldContext_MemorySheet_alias(ctx, field)
-			case "createDate":
-				return ec.fieldContext_MemorySheet_createDate(ctx, field)
-			case "currentDate":
-				return ec.fieldContext_MemorySheet_currentDate(ctx, field)
-			case "nextDate":
-				return ec.fieldContext_MemorySheet_nextDate(ctx, field)
-			case "notes":
-				return ec.fieldContext_MemorySheet_notes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type MemorySheet", field.Name)
 		},
 	}
 	return fc, nil
@@ -10522,20 +8391,13 @@ func (ec *executionContext) unmarshalInputEndpointFilter(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"programAlias", "httpSchema", "httpMethod", "httpDomain", "search"}
+	fieldsInOrder := [...]string{"httpSchema", "httpMethod", "httpDomain", "search"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "programAlias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programAlias"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ProgramAlias = data
 		case "httpSchema":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpSchema"))
 			data, err := ec.unmarshalOHttpSchema2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐHttpSchema(ctx, v)
@@ -10577,7 +8439,7 @@ func (ec *executionContext) unmarshalInputEndpointInput(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "alias", "programAlias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpBody", "httpTimeout", "httpFollowRedirects"}
+	fieldsInOrder := [...]string{"name", "alias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpBody", "httpTimeout", "httpFollowRedirects"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10598,13 +8460,6 @@ func (ec *executionContext) unmarshalInputEndpointInput(ctx context.Context, obj
 				return it, err
 			}
 			it.Alias = data
-		case "programAlias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programAlias"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ProgramAlias = data
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			data, err := ec.unmarshalOString2string(ctx, v)
@@ -10674,47 +8529,6 @@ func (ec *executionContext) unmarshalInputEndpointInput(ctx context.Context, obj
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputMemorySheetInput(ctx context.Context, obj any) (models.MemorySheetInput, error) {
-	var it models.MemorySheetInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"value", "alias", "date"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "value":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Value = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "date":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
-			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Date = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputMyRequestFilter(ctx context.Context, obj any) (models.MyRequestFilter, error) {
 	var it models.MyRequestFilter
 	asMap := map[string]any{}
@@ -10722,20 +8536,13 @@ func (ec *executionContext) unmarshalInputMyRequestFilter(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"programId", "endpointId", "success", "statusMin", "statusMax", "dateFrom", "dateTo"}
+	fieldsInOrder := [...]string{"endpointId", "success", "statusMin", "statusMax", "dateFrom", "dateTo"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "programId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programId"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ProgramId = data
 		case "endpointId":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endpointId"))
 			data, err := ec.unmarshalOInt2int(ctx, v)
@@ -10990,7 +8797,7 @@ func (ec *executionContext) unmarshalInputPatchEndpoint(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "alias", "programAlias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpBody", "httpTimeout", "httpFollowRedirects"}
+	fieldsInOrder := [...]string{"name", "alias", "description", "httpSchema", "httpMethod", "httpDomain", "httpPort", "httpPath", "httpBody", "httpTimeout", "httpFollowRedirects"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11011,13 +8818,6 @@ func (ec *executionContext) unmarshalInputPatchEndpoint(ctx context.Context, obj
 				return it, err
 			}
 			it.Alias = data
-		case "programAlias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("programAlias"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ProgramAlias = data
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -11121,95 +8921,6 @@ func (ec *executionContext) unmarshalInputPatchInput(ctx context.Context, obj an
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputPatchMemorySheet(ctx context.Context, obj any) (models.PatchMemorySheet, error) {
-	var it models.PatchMemorySheet
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"value", "date"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "value":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Value = data
-		case "date":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
-			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Date = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputPatchProgram(ctx context.Context, obj any) (models.PatchProgram, error) {
-	var it models.PatchProgram
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		case "domain":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Domain = data
-		case "url":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.URL = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputPatchWord(ctx context.Context, obj any) (models.PatchWord, error) {
 	var it models.PatchWord
 	asMap := map[string]any{}
@@ -11279,70 +8990,6 @@ func (ec *executionContext) unmarshalInputPatchWordList(ctx context.Context, obj
 				return it, err
 			}
 			it.Description = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputProgramInput(ctx context.Context, obj any) (models.ProgramInput, error) {
-	var it models.ProgramInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "alias", "description", "domain", "url", "tags"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		case "domain":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Domain = data
-		case "url":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.URL = data
-		case "tags":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			if err = ec.resolvers.ProgramInput().Tags(ctx, &it, data); err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -11424,62 +9071,14 @@ func (ec *executionContext) unmarshalInputProjectInput(ctx context.Context, obj 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputTagInput(ctx context.Context, obj any) (models.TagInput, error) {
-	var it models.TagInput
+func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj any) (models.TaskFilter, error) {
+	var it models.TaskFilter
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "alias", "description", "priority"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "alias":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alias"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Alias = data
-		case "description":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Description = data
-		case "priority":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Priority = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj any) (model.TaskFilter, error) {
-	var it model.TaskFilter
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"today", "search", "status", "project", "created", "deadline", "remindDate"}
+	fieldsInOrder := [...]string{"today", "status", "search"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11488,18 +9087,11 @@ func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj an
 		switch k {
 		case "today":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("today"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Today = data
-		case "search":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Search = data
 		case "status":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			data, err := ec.unmarshalOTaskStatus2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskStatus(ctx, v)
@@ -11507,34 +9099,13 @@ func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Status = data
-		case "project":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Project = data
-		case "created":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created"))
-			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Created = data
-		case "deadline":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deadline"))
-			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Deadline = data
-		case "remindDate":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("remindDate"))
-			data, err := ec.unmarshalOMyDate2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.RemindDate = data
+			it.Search = data
 		}
 	}
 
@@ -11769,47 +9340,6 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "programId":
-			out.Values[i] = ec._Endpoint_programId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "program":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Endpoint_program(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._Endpoint_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -12198,128 +9728,6 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var memorySheetImplementors = []string{"MemorySheet"}
-
-func (ec *executionContext) _MemorySheet(ctx context.Context, sel ast.SelectionSet, obj *models.MemorySheet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, memorySheetImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("MemorySheet")
-		case "id":
-			out.Values[i] = ec._MemorySheet_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "value":
-			out.Values[i] = ec._MemorySheet_value(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "alias":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._MemorySheet_alias(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "createDate":
-			out.Values[i] = ec._MemorySheet_createDate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "currentDate":
-			out.Values[i] = ec._MemorySheet_currentDate(ctx, field, obj)
-		case "nextDate":
-			out.Values[i] = ec._MemorySheet_nextDate(ctx, field, obj)
-		case "notes":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._MemorySheet_notes(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -12346,30 +9754,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "newTag":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_newTag(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "newAlias":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_newAlias(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "renameAlias":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_renameAlias(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "removeAlias":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_removeAlias(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -12391,13 +9778,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "newEndpoint":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_newEndpoint(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "newMemorySheet":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_newMemorySheet(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -12426,13 +9806,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "delNote":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_delNote(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "newProgram":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_newProgram(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -12525,47 +9898,6 @@ func (ec *executionContext) _MyRequest(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "programId":
-			out.Values[i] = ec._MyRequest_programId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "program":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._MyRequest_program(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "endpointId":
 			out.Values[i] = ec._MyRequest_endpointId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -12898,167 +10230,6 @@ func (ec *executionContext) _Note(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var programImplementors = []string{"Program"}
-
-func (ec *executionContext) _Program(ctx context.Context, sel ast.SelectionSet, obj *models.Program) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, programImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Program")
-		case "id":
-			out.Values[i] = ec._Program_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "alias":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Program_alias(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "name":
-			out.Values[i] = ec._Program_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "description":
-			out.Values[i] = ec._Program_description(ctx, field, obj)
-		case "domain":
-			out.Values[i] = ec._Program_domain(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "url":
-			out.Values[i] = ec._Program_url(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "rid":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Program_rid(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "notes":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Program_notes(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var projectImplementors = []string{"Project"}
 
 func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, obj *models.Project) graphql.Marshaler {
@@ -13179,47 +10350,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "tag":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_tag(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "tags":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_tags(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "endpoint":
 			field := field
 
@@ -13252,50 +10382,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_endpoints(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "memorySheet":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_memorySheet(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "mSheets":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_mSheets(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -13400,47 +10486,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_notes(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "programs":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_programs(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "program":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_program(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -13999,88 +11044,6 @@ func (ec *executionContext) _SearchResult(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var tagImplementors = []string{"Tag"}
-
-func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj *models.Tag) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, tagImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Tag")
-		case "id":
-			out.Values[i] = ec._Tag_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "alias":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Tag_alias(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "name":
-			out.Values[i] = ec._Tag_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "description":
-			out.Values[i] = ec._Tag_description(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var taskImplementors = []string{"Task"}
 
 func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj *models.Task) graphql.Marshaler {
@@ -14132,204 +11095,13 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Task_alias(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var todayMemorySheetImplementors = []string{"TodayMemorySheet"}
-
-func (ec *executionContext) _TodayMemorySheet(ctx context.Context, sel ast.SelectionSet, obj *model.TodayMemorySheet) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, todayMemorySheetImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("TodayMemorySheet")
-		case "today":
-			out.Values[i] = ec._TodayMemorySheet_today(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "sheets":
-			out.Values[i] = ec._TodayMemorySheet_sheets(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "nextDay":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TodayMemorySheet_nextDay(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "nextMonth":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TodayMemorySheet_nextMonth(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "thisWeek":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TodayMemorySheet_thisWeek(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "thisMonth":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._TodayMemorySheet_thisMonth(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
 				return res
 			}
 
@@ -15070,69 +11842,6 @@ func (ec *executionContext) marshalNKVString2githubᚗcomᚋlinn221ᚋbaneᚋmod
 	return v
 }
 
-func (ec *executionContext) marshalNMemorySheet2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx context.Context, sel ast.SelectionSet, v models.MemorySheet) graphql.Marshaler {
-	return ec._MemorySheet(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNMemorySheet2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.MemorySheet) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNMemorySheet2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheet(ctx context.Context, sel ast.SelectionSet, v *models.MemorySheet) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._MemorySheet(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNMemorySheetInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMemorySheetInput(ctx context.Context, v any) (models.MemorySheetInput, error) {
-	res, err := ec.unmarshalInputMemorySheetInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNMyDate2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐMyDate(ctx context.Context, v any) (models.MyDate, error) {
 	var res models.MyDate
 	err := res.UnmarshalGQL(v)
@@ -15264,50 +11973,6 @@ func (ec *executionContext) marshalNNote2githubᚗcomᚋlinn221ᚋbaneᚋmodels�
 	return ec._Note(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNote2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Note) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote(ctx context.Context, sel ast.SelectionSet, v *models.Note) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -15321,20 +11986,6 @@ func (ec *executionContext) marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmode
 func (ec *executionContext) unmarshalNPatchInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchInput(ctx context.Context, v any) (models.PatchInput, error) {
 	res, err := ec.unmarshalInputPatchInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNProgram2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx context.Context, sel ast.SelectionSet, v models.Program) graphql.Marshaler {
-	return ec._Program(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx context.Context, sel ast.SelectionSet, v *models.Program) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Program(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNProject2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProject(ctx context.Context, sel ast.SelectionSet, v models.Project) graphql.Marshaler {
@@ -15442,25 +12093,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNTag2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v models.Tag) graphql.Marshaler {
-	return ec._Tag(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Tag(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNTagInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTagInput(ctx context.Context, v any) (models.TagInput, error) {
-	res, err := ec.unmarshalInputTagInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNTask2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask(ctx context.Context, sel ast.SelectionSet, v models.Task) graphql.Marshaler {
@@ -16266,62 +12898,6 @@ func (ec *executionContext) unmarshalONoteInput2ᚖgithubᚗcomᚋlinn221ᚋbane
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOProgram2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx context.Context, sel ast.SelectionSet, v []*models.Program) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOProgram2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgram(ctx context.Context, sel ast.SelectionSet, v *models.Program) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Program(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOProgramInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProgramInput(ctx context.Context, v any) (*models.ProgramInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputProgramInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOProjectFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProjectFilter(ctx context.Context, v any) (*models.ProjectFilter, error) {
 	if v == nil {
 		return nil, nil
@@ -16403,55 +12979,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalOTag2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v []*models.Tag) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOTag2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v *models.Tag) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Tag(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋgraphᚋmodelᚐTaskFilter(ctx context.Context, v any) (*model.TaskFilter, error) {
+func (ec *executionContext) unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskFilter(ctx context.Context, v any) (*models.TaskFilter, error) {
 	if v == nil {
 		return nil, nil
 	}

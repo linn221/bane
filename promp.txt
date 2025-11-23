@@ -1,2 +1,1 @@
-fix the errors currently occurring by modifications i have made. I have updated dependencies to App struct, refactor the calling code. Instead of creating new code or updating the code I have added, try to use the appropriate function/code in places of error. (for example, AliasService has its methods renamed/modified, therefore, use the existing methods). the service methods will always take context.
-remove AliasReferenceType, and only use string
+remove GeneralCrud struct.

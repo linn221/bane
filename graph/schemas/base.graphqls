@@ -1,4 +1,5 @@
 scalar MyTime
+scalar MyDate
 scalar VarString
 scalar MyString
 scalar KVString
@@ -11,20 +12,6 @@ type SearchResult {
     count: Int
 }
 
-type Tag {
-    id: Int!
-    alias: String! @goField(forceResolver: true)
-    name: String!
-    description: String
-}
-
-input TagInput {
-    name: String!
-    alias: String
-    description: String
-    priority: Int
-}
-
 input PatchInput {
     values: [KVString!]
     valuesInt: [KVInt!]
@@ -32,15 +19,7 @@ input PatchInput {
 
 
 extend type Mutation {
-    newTag(input: TagInput!): Tag!
-    newAlias(refType: String!, refId: Int!, alias: String!): Boolean!
     renameAlias(old: String!, new: String!): Boolean!
-    removeAlias(alias: String!): Boolean!
     patch(a: String!, patch: PatchInput!): Boolean!
     destroy(a: String!): Boolean!
-}
-
-extend type Query {
-    tag(a: String!): Tag!
-    tags(search: String): [Tag]
 }

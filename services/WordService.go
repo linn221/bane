@@ -13,33 +13,22 @@ type wordService struct {
 }
 
 func (ws *wordService) CreateWord(input *models.WordInput) (*models.Word, error) {
-	wordCrud := GeneralCrud[models.WordInput, models.Word]{
-		transform: func(input *models.WordInput) models.Word {
-			result := models.Word{
-				Word:        input.Word,
-				WordType:    input.WordType,
-				Description: input.Description,
-			}
-			return result
-		},
-		updates: func(existing models.Word, input *models.WordInput) map[string]any {
-			return map[string]any{
-				"Word":        input.Word,
-				"WordType":    input.WordType,
-				"Description": input.Description,
-			}
-		},
-		validateWrite: func(db *gorm.DB, input *models.WordInput, id int) error {
-			return input.Validate(db, id)
-		},
+	word := models.Word{
+		Word:        input.Word,
+		WordType:    input.WordType,
+		Description: input.Description,
 	}
+	
 	var result *models.Word
 	err := ws.db.Transaction(func(tx *gorm.DB) error {
-		var err error
-		result, err = wordCrud.Create(tx, input)
+		if err := input.Validate(tx, 0); err != nil {
+			return err
+		}
+		err := tx.Create(&word).Error
 		if err != nil {
 			return err
 		}
+		result = &word
 		// Create alias (will be auto-generated if not provided)
 		if err := ws.aliasService.CreateAlias(tx, "words", result.Id, input.Alias); err != nil {
 			return err
@@ -53,31 +42,21 @@ func (ws *wordService) CreateWord(input *models.WordInput) (*models.Word, error)
 }
 
 func (ws *wordService) CreateWordList(input *models.WordListInput) (*models.WordList, error) {
-	wordListCrud := GeneralCrud[models.WordListInput, models.WordList]{
-		transform: func(input *models.WordListInput) models.WordList {
-			result := models.WordList{
-				Name:        input.Name,
-				Description: input.Description,
-			}
-			return result
-		},
-		updates: func(existing models.WordList, input *models.WordListInput) map[string]any {
-			return map[string]any{
-				"Name":        input.Name,
-				"Description": input.Description,
-			}
-		},
-		validateWrite: func(db *gorm.DB, input *models.WordListInput, id int) error {
-			return input.Validate(db, id)
-		},
+	wordList := models.WordList{
+		Name:        input.Name,
+		Description: input.Description,
 	}
+	
 	var result *models.WordList
 	err := ws.db.Transaction(func(tx *gorm.DB) error {
-		var err error
-		result, err = wordListCrud.Create(tx, input)
+		if err := input.Validate(tx, 0); err != nil {
+			return err
+		}
+		err := tx.Create(&wordList).Error
 		if err != nil {
 			return err
 		}
+		result = &wordList
 		// Create alias (will be auto-generated if not provided)
 		if err := ws.aliasService.CreateAlias(tx, "wordlists", result.Id, input.Alias); err != nil {
 			return err
@@ -91,59 +70,37 @@ func (ws *wordService) CreateWordList(input *models.WordListInput) (*models.Word
 }
 
 func (ws *wordService) GetWord(id *int, alias *string) (*models.Word, error) {
-	wordCrud := GeneralCrud[models.WordInput, models.Word]{
-		transform: func(input *models.WordInput) models.Word {
-			result := models.Word{
-				Word:        input.Word,
-				WordType:    input.WordType,
-				Description: input.Description,
-			}
-			return result
-		},
-		updates: func(existing models.Word, input *models.WordInput) map[string]any {
-			return map[string]any{
-				"Word":        input.Word,
-				"WordType":    input.WordType,
-				"Description": input.Description,
-			}
-		},
-		validateWrite: func(db *gorm.DB, input *models.WordInput, id int) error {
-			return input.Validate(db, id)
-		},
-	}
 	if id != nil {
-		return wordCrud.Get(ws.db, id)
+		var word models.Word
+		err := ws.db.First(&word, *id).Error
+		return &word, err
 	}
 	if alias != nil {
-		return wordCrud.GetByAlias(context.Background(), ws.db, ws.aliasService, *alias)
+		wordId, err := ws.aliasService.GetReferenceId(context.Background(), *alias)
+		if err != nil {
+			return nil, err
+		}
+		var word models.Word
+		err = ws.db.First(&word, wordId).Error
+		return &word, err
 	}
 	return nil, gorm.ErrRecordNotFound
 }
 
 func (ws *wordService) GetWordList(id *int, alias *string) (*models.WordList, error) {
-	wordListCrud := GeneralCrud[models.WordListInput, models.WordList]{
-		transform: func(input *models.WordListInput) models.WordList {
-			result := models.WordList{
-				Name:        input.Name,
-				Description: input.Description,
-			}
-			return result
-		},
-		updates: func(existing models.WordList, input *models.WordListInput) map[string]any {
-			return map[string]any{
-				"Name":        input.Name,
-				"Description": input.Description,
-			}
-		},
-		validateWrite: func(db *gorm.DB, input *models.WordListInput, id int) error {
-			return input.Validate(db, id)
-		},
-	}
 	if id != nil {
-		return wordListCrud.Get(ws.db, id)
+		var wordList models.WordList
+		err := ws.db.First(&wordList, *id).Error
+		return &wordList, err
 	}
 	if alias != nil {
-		return wordListCrud.GetByAlias(context.Background(), ws.db, ws.aliasService, *alias)
+		wordListId, err := ws.aliasService.GetReferenceId(context.Background(), *alias)
+		if err != nil {
+			return nil, err
+		}
+		var wordList models.WordList
+		err = ws.db.First(&wordList, wordListId).Error
+		return &wordList, err
 	}
 	return nil, gorm.ErrRecordNotFound
 }

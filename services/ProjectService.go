@@ -8,21 +8,26 @@ import (
 )
 
 type projectService struct {
-	GeneralCrud[models.ProjectInput, models.Project]
 	db           *gorm.DB
 	aliasService *aliasService
 }
 
 func (s *projectService) Create(ctx context.Context, input *models.ProjectInput) (*models.Project, error) {
-	var result *models.Project
+	project := models.Project{
+		Name:        input.Name,
+		Description: input.Description,
+	}
+	
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var err error
-		result, err = s.GeneralCrud.Create(tx, input)
+		if err := input.Validate(tx, 0); err != nil {
+			return err
+		}
+		err := tx.Create(&project).Error
 		if err != nil {
 			return err
 		}
 		// Create alias (will be auto-generated if not provided)
-		if err := s.aliasService.CreateAlias(tx, "projects", result.Id, input.Alias); err != nil {
+		if err := s.aliasService.CreateAlias(tx, "projects", project.Id, input.Alias); err != nil {
 			return err
 		}
 		return nil
@@ -30,7 +35,7 @@ func (s *projectService) Create(ctx context.Context, input *models.ProjectInput)
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	return &project, nil
 }
 
 func (s *projectService) Get(ctx context.Context, id *int, alias *string) (*models.Project, error) {
@@ -40,40 +45,65 @@ func (s *projectService) Get(ctx context.Context, id *int, alias *string) (*mode
 		return &result, err
 	}
 	if alias != nil {
-		return s.GeneralCrud.GetByAlias(ctx, s.db.WithContext(ctx), s.aliasService, *alias)
+		projectId, err := s.aliasService.GetReferenceId(ctx, *alias)
+		if err != nil {
+			return nil, err
+		}
+		var result models.Project
+		err = s.db.WithContext(ctx).First(&result, projectId).Error
+		return &result, err
 	}
 	return nil, gorm.ErrRecordNotFound
 }
 
 func (s *projectService) Update(ctx context.Context, id *int, alias *string, input *models.ProjectInput) (*models.Project, error) {
+	var projectId int
 	if id != nil {
-		return s.GeneralCrud.Update(s.db.WithContext(ctx), input, id)
-	}
-	if alias != nil {
-		projectId, err := s.aliasService.GetReferenceId(ctx, *alias)
+		projectId = *id
+	} else if alias != nil {
+		var err error
+		projectId, err = s.aliasService.GetReferenceId(ctx, *alias)
 		if err != nil {
 			return nil, err
 		}
-		var result *models.Project
-		err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-			result, err = s.GeneralCrud.Update(tx, input, &projectId)
+	} else {
+		return nil, gorm.ErrRecordNotFound
+	}
+
+	var project models.Project
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		err := tx.First(&project, projectId).Error
+		if err != nil {
+			return err
+		}
+		if err := input.Validate(tx, projectId); err != nil {
+			return err
+		}
+		updates := map[string]any{}
+		if input.Name != "" {
+			updates["Name"] = input.Name
+		}
+		if input.Description != "" {
+			updates["Description"] = input.Description
+		}
+		if len(updates) > 0 {
+			err = tx.Model(&project).Updates(updates).Error
 			if err != nil {
 				return err
 			}
-			// Create alias if provided
-			if input.Alias != "" {
-				if err := s.aliasService.CreateAlias(tx, "projects", projectId, input.Alias); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
 		}
-		return result, nil
+		// Create alias if provided
+		if input.Alias != "" {
+			if err := s.aliasService.CreateAlias(tx, "projects", projectId, input.Alias); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
-	return nil, gorm.ErrRecordNotFound
+	return &project, nil
 }
 
 func (s *projectService) List(ctx context.Context, filter *models.ProjectFilter) ([]*models.Project, error) {

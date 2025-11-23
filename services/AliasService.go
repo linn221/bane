@@ -29,6 +29,19 @@ func (s *aliasService) getAliasByName(ctx context.Context, aliasStr string) (*mo
 	return &alias, nil
 }
 
+func (s *aliasService) RenameAlias(ctx context.Context, old string, new string) (bool, error) {
+	a, err := s.getAliasByName(ctx, old)
+	if err != nil {
+		return false, err
+	}
+	if err := s.db.WithContext(ctx).Model(&a).Updates(map[string]any{
+		"Name": new,
+	}).Error; err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *aliasService) CreateAlias(tx *gorm.DB, referenceType string, referenceId int, aliasStr string) error {
 	// If alias is empty, generate it automatically using referenceTypePrefix + referenceId
 	if aliasStr == "" {

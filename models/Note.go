@@ -9,9 +9,6 @@ type Note struct {
 	ReferenceID   int    `gorm:"not null;index"`         // Changed from ReferenceId to ReferenceID for GORM polymorphic
 	Value         string `gorm:"type:text;not null"`
 	NoteDate      MyDate `gorm:"index; not null"`
-
-	// Polymorphic relationships
-	Taggables []Taggable `gorm:"polymorphic:Taggable;polymorphicValue:notes"`
 }
 
 type NoteInput struct {

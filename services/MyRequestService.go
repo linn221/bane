@@ -31,19 +31,16 @@ func (s *myRequestService) Get(ctx context.Context, id *int) (*models.MyRequest,
 	if id == nil {
 		return nil, gorm.ErrRecordNotFound
 	}
-	err := s.db.WithContext(ctx).Preload("Program").Preload("Endpoint").First(&request, *id).Error
+	err := s.db.WithContext(ctx).Preload("Endpoint").First(&request, *id).Error
 	return &request, err
 }
 
 // List retrieves MyRequests with optional filtering
 func (s *myRequestService) List(ctx context.Context, filter *models.MyRequestFilter) ([]*models.MyRequest, error) {
 	var requests []*models.MyRequest
-	query := s.db.WithContext(ctx).Preload("Program").Preload("Endpoint")
+	query := s.db.WithContext(ctx).Preload("Endpoint")
 
 	if filter != nil {
-		if filter.ProgramId != 0 {
-			query = query.Where("program_id = ?", filter.ProgramId)
-		}
 		if filter.EndpointId != 0 {
 			query = query.Where("endpoint_id = ?", filter.EndpointId)
 		}
@@ -72,7 +69,7 @@ func (s *myRequestService) List(ctx context.Context, filter *models.MyRequestFil
 func (s *myRequestService) ExecuteCurl(ctx context.Context, endpointAlias string, variables mystructs.VarKVGroup) (*models.MyRequest, error) {
 	// Find endpoint by alias
 	var endpoint models.Endpoint
-	err := s.db.WithContext(ctx).Preload("Program").Where("alias = ?", endpointAlias).First(&endpoint).Error
+	err := s.db.WithContext(ctx).Where("alias = ?", endpointAlias).First(&endpoint).Error
 	if err != nil {
 		return nil, fmt.Errorf("endpoint with alias '%s' not found: %v", endpointAlias, err)
 	}
@@ -91,7 +88,6 @@ func (s *myRequestService) ExecuteCurl(ctx context.Context, endpointAlias string
 
 	// Create MyRequest record
 	request := &models.MyRequest{
-		ProgramId:      endpoint.ProgramId,
 		EndpointId:     endpoint.Id,
 		RequestMethod:  string(endpoint.HttpMethod),
 		RequestUrl:     s.buildUrl(&endpoint),

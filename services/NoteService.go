@@ -4,16 +4,27 @@ import (
 	"context"
 
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/utils"
 	"gorm.io/gorm"
 )
 
 type noteService struct {
-	GeneralCrud[models.NoteInput, models.Note]
 	db *gorm.DB
 }
 
 func (s *noteService) Create(ctx context.Context, input *models.NoteInput) (*models.Note, error) {
-	return s.GeneralCrud.Create(s.db.WithContext(ctx), input)
+	today := utils.Today()
+	note := models.Note{
+		ReferenceType: input.ReferenceType,
+		ReferenceID:   input.ReferenceId,
+		Value:         input.Value,
+		NoteDate:      models.MyDate{Time: today},
+	}
+	err := s.db.WithContext(ctx).Create(&note).Error
+	if err != nil {
+		return nil, err
+	}
+	return &note, nil
 }
 
 func (s *noteService) List(ctx context.Context, filter *models.NoteFilter) ([]*models.Note, error) {
@@ -46,5 +57,14 @@ func (s *noteService) Delete(ctx context.Context, id *int) (*models.Note, error)
 	if id == nil {
 		return nil, gorm.ErrRecordNotFound
 	}
-	return s.GeneralCrud.Delete(s.db.WithContext(ctx), id)
+	var note models.Note
+	err := s.db.WithContext(ctx).First(&note, *id).Error
+	if err != nil {
+		return nil, err
+	}
+	err = s.db.WithContext(ctx).Delete(&note).Error
+	if err != nil {
+		return nil, err
+	}
+	return &note, nil
 }

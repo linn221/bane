@@ -8,24 +8,27 @@ import (
 )
 
 type endpointService struct {
-	GeneralCrud[models.EndpointInput, models.Endpoint]
 	db           *gorm.DB
 	aliasService *aliasService
 }
 
 func (s *endpointService) Create(ctx context.Context, input *models.EndpointInput) (*models.Endpoint, error) {
-	// Find the program by alias using AliasService
-	programId, err := s.aliasService.GetReferenceId(ctx, input.ProgramAlias)
-	if err != nil {
-		return nil, err
+	// Transform input to endpoint
+	endpoint := models.Endpoint{
+		Name:        input.Name,
+		Description: input.Description,
+		HttpSchema:  input.HttpSchema,
+		HttpMethod:  input.HttpMethod,
+		HttpDomain:  input.HttpDomain,
+		HttpPath:    input.HttpPath,
+		HttpQueries: input.HttpQueries,
+		HttpHeaders: input.HttpHeaders,
+		HttpCookies: input.HttpCookies,
+		HttpBody:    input.HttpBody,
 	}
 
-	// Set the program ID
-	endpoint := s.transform(input)
-	endpoint.ProgramId = programId
-
 	// Create the endpoint directly
-	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Create(&endpoint).Error
 		if err != nil {
 			return err
@@ -47,12 +50,6 @@ func (s *endpointService) List(ctx context.Context, filter *models.EndpointFilte
 	query := s.db.WithContext(ctx).Model(&models.Endpoint{})
 
 	if filter != nil {
-		if filter.ProgramAlias != "" {
-			// Join with programs table to filter by program alias
-			query = query.Joins("JOIN programs ON endpoints.program_id = programs.id").
-				Where("programs.alias = ?", filter.ProgramAlias)
-		}
-
 		if filter.HttpSchema != "" {
 			query = query.Where("http_schema = ?", filter.HttpSchema)
 		}
@@ -79,7 +76,7 @@ func (s *endpointService) List(ctx context.Context, filter *models.EndpointFilte
 func (s *endpointService) Get(ctx context.Context, id *int, alias *string) (*models.Endpoint, error) {
 	if id != nil {
 		var endpoint models.Endpoint
-		err := s.db.WithContext(ctx).Preload("Program").First(&endpoint, *id).Error
+		err := s.db.WithContext(ctx).First(&endpoint, *id).Error
 		return &endpoint, err
 	}
 	if alias != nil {
@@ -88,7 +85,7 @@ func (s *endpointService) Get(ctx context.Context, id *int, alias *string) (*mod
 			return nil, err
 		}
 		var endpoint models.Endpoint
-		err = s.db.WithContext(ctx).Preload("Program").First(&endpoint, endpointId).Error
+		err = s.db.WithContext(ctx).First(&endpoint, endpointId).Error
 		return &endpoint, err
 	}
 	return nil, gorm.ErrRecordNotFound

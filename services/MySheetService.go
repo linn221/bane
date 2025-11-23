@@ -14,6 +14,12 @@ type mySheetService struct {
 	aliasService *aliasService
 }
 
+func GetNextDate(currentDate time.Time, index int) time.Time {
+	var intervals = [...]int{1, 1, 5, 7, 14, 19, 30, 50, 60, 80, 100, 120}
+	i := min(index, len(intervals)-1)
+	return currentDate.AddDate(0, 0, intervals[i])
+}
+
 func (s *mySheetService) Create(ctx context.Context, input *models.MySheetInput) (*models.MySheet, error) {
 	created := utils.Today()
 	if input.Date != nil {

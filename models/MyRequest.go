@@ -8,8 +8,6 @@ import (
 // This model stores all information about HTTP request execution for ethical hacking
 type MyRequest struct {
 	Id         int      `gorm:"primaryKey"`
-	ProgramId  int      `gorm:"not null;index"`
-	Program    Program  `gorm:"foreignKey:ProgramId"`
 	EndpointId int      `gorm:"not null;index"`
 	Endpoint   Endpoint `gorm:"foreignKey:EndpointId"`
 
@@ -42,7 +40,6 @@ type MyRequest struct {
 
 // MyRequestFilter for filtering requests
 type MyRequestFilter struct {
-	ProgramId  int    `json:"programId,omitempty"`
 	EndpointId int    `json:"endpointId,omitempty"`
 	Success    *bool  `json:"success,omitempty"`
 	StatusMin  int    `json:"statusMin,omitempty"`

@@ -409,39 +409,12 @@ func (v *VulnReferenceType) UnmarshalGQL(i interface{}) error {
 	return nil
 }
 
-// TaggableType GraphQL methods
-func (t TaggableType) MarshalGQL(w io.Writer) {
-	w.Write([]byte(strconv.Quote(string(t))))
-}
-
-func (t *TaggableType) UnmarshalGQL(i interface{}) error {
-	str, ok := i.(string)
-	if !ok {
-		return errors.New("taggable type must be string")
-	}
-	switch str {
-	case "programs":
-		*t = TaggableTypePrograms
-	case "endpoints":
-		*t = TaggableTypeEndpoints
-	case "requests":
-		*t = TaggableTypeRequests
-	case "vulns":
-		*t = TaggableTypeVulns
-	case "notes":
-		*t = TaggableTypeNotes
-	default:
-		return errors.New("invalid taggable type")
-	}
-	return nil
-}
-
 type KVString struct {
 	Key   string
 	Value string
 }
 
-// TaggableType GraphQL methods
+// KVString GraphQL methods
 func (t KVString) MarshalGQL(w io.Writer) {
 	w.Write([]byte(strconv.Quote(fmt.Sprintf("%s:%v", t.Key, t.Value))))
 }
@@ -456,7 +429,7 @@ func (t *KVString) UnmarshalGQL(i interface{}) error {
 		return errors.New("invalid string")
 	}
 	key := str[:sepIndex]
-	value := str[sepIndex:]
+	value := str[sepIndex+1:]
 	t.Key = key
 	t.Value = value
 	return nil
@@ -467,7 +440,7 @@ type KVInt struct {
 	Value int
 }
 
-// TaggableType GraphQL methods
+// KVInt GraphQL methods
 func (t KVInt) MarshalGQL(w io.Writer) {
 	w.Write([]byte(strconv.Quote(fmt.Sprintf("%s:%v", t.Key, t.Value))))
 }
@@ -482,7 +455,7 @@ func (t *KVInt) UnmarshalGQL(i interface{}) error {
 		return errors.New("invalid string")
 	}
 	key := str[:sepIndex]
-	value := str[sepIndex:]
+	value := str[sepIndex+1:]
 	valueInt, err := strconv.Atoi(value)
 	if err != nil {
 		return errors.New("error converting the int")

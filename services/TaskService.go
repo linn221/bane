@@ -60,9 +60,25 @@ func (s *taskService) Create(ctx context.Context, input *models.TaskInput) (*mod
 	return &task, nil
 }
 
-func (s *taskService) List(ctx context.Context) ([]*models.Task, error) {
+func (s *taskService) List(ctx context.Context, filter *models.TaskFilter) ([]*models.Task, error) {
 	var results []*models.Task
-	err := s.db.WithContext(ctx).Model(&models.Task{}).Find(&results).Error
+	dbctx := s.db.WithContext(ctx).Model(&models.Task{})
+	if filter != nil {
+		today := utils.Today()
+		if filter.Today {
+			dbctx.Where("remind_date = ?", today)
+		}
+		if filter.Search != "" {
+			dbctx.Where("title LIKE ? OR description LIKE ?",
+				"%"+filter.Search+"%",
+				"%"+filter.Search+"%",
+			)
+		}
+		if filter.Status != nil {
+			dbctx.Where("status = ?", filter.Status)
+		}
+	}
+	err := dbctx.Find(&results).Error
 	return results, err
 }
 

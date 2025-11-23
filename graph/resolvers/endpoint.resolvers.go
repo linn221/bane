@@ -16,16 +16,6 @@ import (
 	"github.com/linn221/bane/services"
 )
 
-// Program is the resolver for the program field.
-func (r *endpointResolver) Program(ctx context.Context, obj *models.Endpoint) (*models.Program, error) {
-	var program models.Program
-	err := r.app.DB.WithContext(ctx).First(&program, obj.ProgramId).Error
-	if err != nil {
-		return nil, err
-	}
-	return &program, nil
-}
-
 // Alias is the resolver for the alias field.
 func (r *endpointResolver) Alias(ctx context.Context, obj *models.Endpoint) (*string, error) {
 	alias, err := loaders.GetEndpointAlias(ctx, obj.Id)

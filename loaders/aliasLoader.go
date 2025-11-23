@@ -51,18 +51,6 @@ func (r *AliasReader) GetAliases(ctx context.Context, referenceIds []int) []*dat
 	return loaderResults
 }
 
-// GetTagAlias returns a single alias for a Tag by ID efficiently using dataloader
-func GetTagAlias(ctx context.Context, id int) (string, error) {
-	loaders := For(ctx)
-	return loaders.TagAliasLoader.Load(ctx, id)()
-}
-
-// GetProgramAlias returns a single alias for a Program by ID efficiently using dataloader
-func GetProgramAlias(ctx context.Context, id int) (string, error) {
-	loaders := For(ctx)
-	return loaders.ProgramAliasLoader.Load(ctx, id)()
-}
-
 // GetWordAlias returns a single alias for a Word by ID efficiently using dataloader
 func GetWordAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
@@ -79,12 +67,6 @@ func GetWordListAlias(ctx context.Context, id int) (string, error) {
 func GetEndpointAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
 	return loaders.EndpointAliasLoader.Load(ctx, id)()
-}
-
-// GetMemorySheetAlias returns a single alias for a MemorySheet by ID efficiently using dataloader
-func GetMemorySheetAlias(ctx context.Context, id int) (string, error) {
-	loaders := For(ctx)
-	return loaders.MemorySheetAliasLoader.Load(ctx, id)()
 }
 
 // GetMySheetAlias returns a single alias for a MySheet by ID efficiently using dataloader

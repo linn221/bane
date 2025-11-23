@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/resolvers"
-	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/utils"
-	"github.com/linn221/bane/views"
 )
 
 func SetupRoutes(app *app.App) *http.ServeMux {
@@ -105,79 +102,6 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 
 	mux.HandleFunc("GET /hello", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("<h2>hello world!</h2>"))
-	})
-
-	// Memory Sheet routes
-	mux.HandleFunc("GET /memory-sheets", func(w http.ResponseWriter, r *http.Request) {
-		// Get all memory sheets for today
-		today := utils.Today()
-		memorySheets, err := app.Services.MemorySheetService.GetTodayNotes(r.Context(), today)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to get memory sheets: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		// Render the memory sheet list page
-		component := views.MemorySheetList(memorySheets)
-		err = component.Render(r.Context(), w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to render template: %v", err), http.StatusInternalServerError)
-			return
-		}
-	})
-
-	mux.HandleFunc("GET /memory-sheets/create", func(w http.ResponseWriter, r *http.Request) {
-		// Render the memory sheet creation form
-		component := views.MemorySheetForm()
-		err := component.Render(r.Context(), w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to render template: %v", err), http.StatusInternalServerError)
-			return
-		}
-	})
-
-	mux.HandleFunc("POST /memory-sheets", func(w http.ResponseWriter, r *http.Request) {
-		// Parse form data
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, "Failed to parse form", http.StatusBadRequest)
-			return
-		}
-
-		value := r.FormValue("value")
-		if value == "" {
-			http.Error(w, "Value is required", http.StatusBadRequest)
-			return
-		}
-
-		alias := r.FormValue("alias")
-		dateStr := r.FormValue("date")
-
-		// Create new memory sheet
-		newMemorySheet := &models.MemorySheetInput{
-			Value: value,
-			Alias: alias,
-		}
-
-		// Handle custom date if provided
-		if dateStr != "" {
-			customDate, err := time.Parse("2006-01-02", dateStr)
-			if err != nil {
-				http.Error(w, "Invalid date format", http.StatusBadRequest)
-				return
-			}
-			newMemorySheet.Date = &models.MyDate{Time: customDate}
-		}
-
-		// Save to database
-		_, err = app.Services.MemorySheetService.Create(r.Context(), newMemorySheet)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to create memory sheet: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		// Redirect to memory sheets list
-		http.Redirect(w, r, "/memory-sheets", http.StatusSeeOther)
 	})
 
 	return mux

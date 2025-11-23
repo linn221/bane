@@ -1,7 +1,5 @@
 type Endpoint {
     id: Int!
-    programId: Int!
-    program: Program! @goField(forceResolver: true)
     name: String!
     alias: String @goField(forceResolver: true)
     description: String
@@ -30,7 +28,6 @@ type Endpoint {
 input EndpointInput {
     name: String!
     alias: String
-    programAlias: String!
     description: String
     httpSchema: HttpSchema!
     httpMethod: HttpMethod!
@@ -46,7 +43,6 @@ input EndpointInput {
 }
 
 input EndpointFilter {
-    programAlias: String
     httpSchema: HttpSchema
     httpMethod: HttpMethod
     httpDomain: String
@@ -73,7 +69,6 @@ input EndpointFilter {
 input PatchEndpoint {
     name: String
     alias: String
-    programAlias: String
     description: String
     httpSchema: HttpSchema
     httpMethod: HttpMethod

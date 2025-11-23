@@ -6,7 +6,6 @@ toolchain go1.24.8
 
 require (
 	github.com/99designs/gqlgen v0.17.81
-	github.com/a-h/templ v0.3.960
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/vektah/gqlparser/v2 v2.5.30
 )

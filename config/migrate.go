@@ -7,9 +7,6 @@ import (
 
 func migrate(db *gorm.DB) {
 	err := db.AutoMigrate(
-		&models.Tag{},
-		&models.Program{},
-		&models.MemorySheet{},
 		&models.Note{},
 		&models.Endpoint{},
 		&models.Vuln{},
