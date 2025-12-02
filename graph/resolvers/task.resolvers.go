@@ -13,18 +13,18 @@ import (
 	"github.com/linn221/bane/services"
 )
 
-// CreateTask is the resolver for the createTask field.
-func (r *mutationResolver) CreateTask(ctx context.Context, input models.TaskInput) (*models.Task, error) {
+// NewTask is the resolver for the newTask field.
+func (r *mutationResolver) NewTask(ctx context.Context, input models.TaskInput) (*models.Task, error) {
 	return r.app.Services.TaskService.Create(ctx, &input)
 }
 
 // CancelTask is the resolver for the cancelTask field.
-func (r *mutationResolver) CancelTask(ctx context.Context, id *int, a *string) (*models.Task, error) {
+func (r *mutationResolver) CancelTask(ctx context.Context, id *int, a *string) (bool, error) {
 	return r.app.Services.TaskService.ChangeStatus(ctx, a, id, models.TaskStatusCancelled)
 }
 
 // FinishTask is the resolver for the finishTask field.
-func (r *mutationResolver) FinishTask(ctx context.Context, id *int, a *string) (*models.Task, error) {
+func (r *mutationResolver) FinishTask(ctx context.Context, id *int, a *string) (bool, error) {
 	return r.app.Services.TaskService.ChangeStatus(ctx, a, id, models.TaskStatusFinished)
 }
 
@@ -38,16 +38,14 @@ func (r *queryResolver) Tasks(ctx context.Context, f *models.TaskFilter) ([]*mod
 	return r.app.Services.TaskService.List(ctx, f)
 }
 
+// Project is the resolver for the project field.
+func (r *taskResolver) Project(ctx context.Context, obj *models.Task) (*models.Project, error) {
+	return loaders.GetProject(ctx, obj.ProjectId)
+}
+
 // Alias is the resolver for the alias field.
-func (r *taskResolver) Alias(ctx context.Context, obj *models.Task) (*string, error) {
-	alias, err := loaders.GetTaskAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
+func (r *taskResolver) Alias(ctx context.Context, obj *models.Task) (string, error) {
+	return loaders.GetTaskAlias(ctx, obj.Id)
 }
 
 // Task returns graph.TaskResolver implementation.

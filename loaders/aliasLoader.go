@@ -2,6 +2,7 @@ package loaders
 
 import (
 	"context"
+	"time"
 
 	"github.com/graph-gophers/dataloader/v7"
 	"github.com/linn221/bane/models"
@@ -51,38 +52,42 @@ func (r *AliasReader) GetAliases(ctx context.Context, referenceIds []int) []*dat
 	return loaderResults
 }
 
+func (reader *AliasReader) Loader() *dataloader.Loader[int, string] {
+	return dataloader.NewBatchedLoader(reader.GetAliases, dataloader.WithWait[int, string](time.Millisecond))
+}
+
 // GetWordAlias returns a single alias for a Word by ID efficiently using dataloader
 func GetWordAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
-	return loaders.WordAliasLoader.Load(ctx, id)()
+	return loaders.wordAliasLoader.Load(ctx, id)()
 }
 
 // GetWordListAlias returns a single alias for a WordList by ID efficiently using dataloader
 func GetWordListAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
-	return loaders.WordListAliasLoader.Load(ctx, id)()
+	return loaders.wordListAliasLoader.Load(ctx, id)()
 }
 
 // GetEndpointAlias returns a single alias for an Endpoint by ID efficiently using dataloader
 func GetEndpointAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
-	return loaders.EndpointAliasLoader.Load(ctx, id)()
+	return loaders.endpointAliasLoader.Load(ctx, id)()
 }
 
 // GetMySheetAlias returns a single alias for a MySheet by ID efficiently using dataloader
 func GetMySheetAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
-	return loaders.MySheetAliasLoader.Load(ctx, id)()
+	return loaders.mySheetAliasLoader.Load(ctx, id)()
 }
 
 // GetProjectAlias returns a single alias for a Project by ID efficiently using dataloader
 func GetProjectAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
-	return loaders.ProjectAliasLoader.Load(ctx, id)()
+	return loaders.projectAliasLoader.Load(ctx, id)()
 }
 
 // GetTaskAlias returns a single alias for a Task by ID efficiently using dataloader
 func GetTaskAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
-	return loaders.TaskAliasLoader.Load(ctx, id)()
+	return loaders.taskAliasLoader.Load(ctx, id)()
 }

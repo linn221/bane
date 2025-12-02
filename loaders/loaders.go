@@ -2,10 +2,9 @@ package loaders
 
 import (
 	"context"
-	"time"
 
 	"github.com/graph-gophers/dataloader/v7"
-	"github.com/linn221/bane/app"
+	"github.com/linn221/bane/models"
 	"gorm.io/gorm"
 )
 
@@ -22,18 +21,18 @@ func LoadersKey() ctxKey {
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	RIdLoader              *dataloader.Loader[app.Reference, int]
-	WordAliasLoader        *dataloader.Loader[int, string]
-	WordListAliasLoader    *dataloader.Loader[int, string]
-	EndpointAliasLoader    *dataloader.Loader[int, string]
-	MySheetAliasLoader     *dataloader.Loader[int, string]
-	ProjectAliasLoader     *dataloader.Loader[int, string]
-	TaskAliasLoader        *dataloader.Loader[int, string]
+	wordAliasLoader        *dataloader.Loader[int, string]
+	wordListAliasLoader    *dataloader.Loader[int, string]
+	endpointAliasLoader    *dataloader.Loader[int, string]
+	mySheetAliasLoader     *dataloader.Loader[int, string]
+	projectAliasLoader     *dataloader.Loader[int, string]
+	taskAliasLoader        *dataloader.Loader[int, string]
+	projectLoader          *dataloader.Loader[int, *models.Project]
+	tasksByProjectIdLoader *dataloader.Loader[int, []*models.Task]
 }
 
 // NewLoaders instantiates data loaders for the middleware
 func NewLoaders(conn *gorm.DB) *Loaders {
-	ridReader := &RIdReader{}
 
 	// Create Alias readers for each reference type
 	wordAliasReader := &AliasReader{db: conn, referenceType: "words"}
@@ -42,15 +41,32 @@ func NewLoaders(conn *gorm.DB) *Loaders {
 	mySheetAliasReader := &AliasReader{db: conn, referenceType: "my_sheets"}
 	projectAliasReader := &AliasReader{db: conn, referenceType: "projects"}
 	taskAliasReader := &AliasReader{db: conn, referenceType: "tasks"}
-
+	projectReader := newGenericReader[*models.Project, int](conn,
+		func(p *models.Project) int {
+			return p.Id
+		},
+		func(i int) *models.Project {
+			return &models.Project{Id: i}
+		},
+	)
+	tasksByProjectIdReader := newGenericReaderSlice[*models.Task, int](conn,
+		func(t *models.Task) int {
+			return t.ProjectId
+		},
+		func(i int) *models.Task {
+			return &models.Task{ProjectId: i}
+		},
+		"project_id",
+	)
 	return &Loaders{
-		RIdLoader:          dataloader.NewBatchedLoader(ridReader.GetRIds, dataloader.WithWait[app.Reference, int](time.Millisecond)),
-		WordAliasLoader:    dataloader.NewBatchedLoader(wordAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
-		WordListAliasLoader: dataloader.NewBatchedLoader(wordListAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
-		EndpointAliasLoader: dataloader.NewBatchedLoader(endpointAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
-		MySheetAliasLoader: dataloader.NewBatchedLoader(mySheetAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
-		ProjectAliasLoader: dataloader.NewBatchedLoader(projectAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
-		TaskAliasLoader:    dataloader.NewBatchedLoader(taskAliasReader.GetAliases, dataloader.WithWait[int, string](time.Millisecond)),
+		wordAliasLoader:        wordAliasReader.Loader(),
+		wordListAliasLoader:    wordListAliasReader.Loader(),
+		endpointAliasLoader:    endpointAliasReader.Loader(),
+		mySheetAliasLoader:     mySheetAliasReader.Loader(),
+		projectAliasLoader:     projectAliasReader.Loader(),
+		taskAliasLoader:        taskAliasReader.Loader(),
+		projectLoader:          projectReader.Loader(),
+		tasksByProjectIdLoader: tasksByProjectIdReader.Loader(),
 	}
 }
 

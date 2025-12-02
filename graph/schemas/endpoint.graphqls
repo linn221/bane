@@ -1,7 +1,7 @@
 type Endpoint {
     id: Int!
     name: String!
-    alias: String @goField(forceResolver: true)
+    alias: String! @goField(forceResolver: true)
     description: String
     httpSchema: HttpSchema!
     httpMethod: HttpMethod!
@@ -21,7 +21,6 @@ type Endpoint {
     httpBodyMy: MyString! @goField(forceResolver: true)
     match(regex: String!): SearchResult! @goField(forceResolver: true)
     # curl(variables: String): String! @goField(forceResolver: true)
-    rid: Int! @goField(forceResolver: true)
     notes: [Note] @goField(forceResolver: true)
 }
 

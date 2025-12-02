@@ -1,219 +1,263 @@
-package middlewares
+package loaders
 
 import (
 	"context"
+	"time"
 
 	"github.com/graph-gophers/dataloader/v7"
 	"gorm.io/gorm"
 )
 
-type Identifier interface {
-	GetId() int
+func newGenericReader[T any, K comparable](db *gorm.DB, getKey func(T) K, getDefault func(K) T, preloads ...string) *genericReader[T, K] {
+
+	return &genericReader[T, K]{
+		db:         db,
+		getKey:     getKey,
+		getDefault: getDefault,
+		preloads:   []string(preloads),
+	}
 }
 
-type genericReader[T models.Identifier] struct {
+type genericReader[T any, K comparable] struct {
 	db         *gorm.DB
 	preloads   []string
-	getDefault func(id int) T
+	fetch      func([]K) ([]T, error)
+	getDefault func(key K) T
+	getKey     func(T) K
 }
 
-func (r genericReader[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[*T] {
+func (r genericReader[T, K]) Loader() *dataloader.Loader[K, T] {
+	return dataloader.NewBatchedLoader(r.BatchFunc, dataloader.WithWait[K, T](time.Millisecond))
+
+}
+
+func (r genericReader[T, K]) BatchFunc(ctx context.Context, ids []K) []*dataloader.Result[T] {
 
 	var results []T
-	dbCtx := r.db.WithContext(ctx).Where("id IN ?", ids)
-	if len(r.preloads) > 0 {
-		dbCtx = dbCtx.Preload(r.preloads[0])
-		if len(r.preloads) > 1 {
-			for _, p := range r.preloads[1:] {
-				dbCtx.Preload(p)
+	var err error
+	if r.fetch == nil {
+
+		dbCtx := r.db.WithContext(ctx).Where("id IN ?", ids)
+		if len(r.preloads) > 0 {
+			dbCtx = dbCtx.Preload(r.preloads[0])
+			if len(r.preloads) > 1 {
+				for _, p := range r.preloads[1:] {
+					dbCtx.Preload(p)
+				}
 			}
 		}
-	}
 
-	err := dbCtx.Find(&results).Error
+		err = dbCtx.Find(&results).Error
+	} else {
+		results, err = r.fetch(ids)
+	}
 	if err != nil {
-		return handleError[*T](len(ids), err)
+		return handleError[T](len(ids), err)
 	}
 
 	// generate resultMap from results
-	resultMap := make(map[int]T, len(results)+1)
-	resultMap[0] = r.getDefault(0)
+	resultMap := make(map[K]T, len(results)+1)
 	for _, result := range results {
-		resultMap[result.GetId()] = result
+		resultMap[r.getKey(result)] = result
 	}
 
-	loaderResults := make([]*dataloader.Result[*T], 0, len(ids))
+	loaderResults := make([]*dataloader.Result[T], 0, len(ids))
 	for _, id := range ids {
 		data, ok := resultMap[id]
 		if !ok {
 			data = r.getDefault(id)
 		}
-		loaderResults = append(loaderResults, &dataloader.Result[*T]{Data: &data})
+		loaderResults = append(loaderResults, &dataloader.Result[T]{Data: data})
 	}
 	return loaderResults
 }
 
-func genericReorderDataloaderResults[T any, K comparable](results []T, keys []K, getKey func(T) K, getDefault func(K) T) []*dataloader.Result[T] {
-	m := make(map[K]T, len(results))
-	for _, r := range results {
-		key := getKey(r)
-		m[key] = r
+func newGenericReaderSlice[T any, K comparable](db *gorm.DB, getKey func(T) K, getDefault func(K) T, foreignIdColumn string, preloads ...string) *genericReaderSlice[T, K] {
+	return &genericReaderSlice[T, K]{
+		db:              db,
+		getKey:          getKey,
+		getDefault:      getDefault,
+		preloads:        []string(preloads),
+		foreignIdColumn: foreignIdColumn,
 	}
-
-	dataloaderResult := make([]*dataloader.Result[T], 0, len(keys))
-	for _, k := range keys {
-		result, ok := m[k]
-		if !ok {
-			result = getDefault(k)
-		}
-		dataloaderResult = append(dataloaderResult, &dataloader.Result[T]{Data: result})
-	}
-
-	return dataloaderResult
 }
 
-func GetLeaveType(ctx context.Context, id int) (*models.LeaveType, error) {
-	loaders := For(ctx)
-	return loaders.leaveTypeLoader.Load(ctx, id)()
-}
-func GetEmployee(ctx context.Context, id int) (*models.Employee, error) {
-	loaders := For(ctx)
-	return loaders.employeeLoader.Load(ctx, id)()
-}
+// func genericReorderDataloaderResults[T any, K comparable](results []T, keys []K, getKey func(T) K, getDefault func(K) T) []*dataloader.Result[T] {
+// 	m := make(map[K]T, len(results))
+// 	for _, r := range results {
+// 		key := getKey(r)
+// 		m[key] = r
+// 	}
 
-type HasLoaderKey interface {
-	GetLoaderKey() int
-}
-type genericManyResultLoader[T HasLoaderKey] struct {
+// 	dataloaderResult := make([]*dataloader.Result[T], 0, len(keys))
+// 	for _, k := range keys {
+// 		result, ok := m[k]
+// 		if !ok {
+// 			result = getDefault(k)
+// 		}
+// 		dataloaderResult = append(dataloaderResult, &dataloader.Result[T]{Data: result})
+// 	}
+
+// 	return dataloaderResult
+// }
+
+type genericReaderSlice[T any, K comparable] struct {
 	db              *gorm.DB
+	preloads        []string
+	fetch           func([]K) ([]T, error)
 	foreignIdColumn string
+	getDefault      func(key K) T
+	getKey          func(T) K
 }
 
-func (r *genericManyResultLoader[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[[]*T] {
+func (r genericReaderSlice[T, K]) Loader() *dataloader.Loader[K, []T] {
+	return dataloader.NewBatchedLoader(r.BatchFunc, dataloader.WithWait[K, []T](time.Millisecond))
+}
 
-	var results []*T
-	err := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids).Find(&results).Error
-	if err != nil {
-		return handleError[[]*T](len(ids), err)
-	}
-
-	resultMap := make(map[int][]*T)
-	for _, result := range results {
-		resultMap[(*result).GetLoaderKey()] = append(resultMap[(*result).GetLoaderKey()], result)
-	}
-	var loaderResults []*dataloader.Result[[]*T]
-	// reordering the results according to ids
-	for _, id := range ids {
-		results, ok := resultMap[id]
-		if !ok {
-			var v []*T
-			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: v})
-		} else {
-			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: results})
+func (r genericReaderSlice[T, K]) BatchFunc(ctx context.Context, ids []K) []*dataloader.Result[[]T] {
+	var results []T
+	var err error
+	if r.fetch == nil {
+		if r.foreignIdColumn == "" {
+			r.foreignIdColumn = "id"
 		}
+		dbCtx := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids)
+		if len(r.preloads) > 0 {
+			dbCtx = dbCtx.Preload(r.preloads[0])
+			if len(r.preloads) > 1 {
+				for _, p := range r.preloads[1:] {
+					dbCtx.Preload(p)
+				}
+			}
+		}
+
+		err = dbCtx.Find(&results).Error
+	} else {
+		results, err = r.fetch(ids)
+	}
+	if err != nil {
+		return handleError[[]T](len(ids), err)
+	}
+
+	// generate resultMap from results - grouping by key into slices
+	resultMap := make(map[K][]T, len(results)+1)
+	for _, result := range results {
+		key := r.getKey(result)
+		resultMap[key] = append(resultMap[key], result)
+	}
+
+	loaderResults := make([]*dataloader.Result[[]T], 0, len(ids))
+	for _, id := range ids {
+		data, ok := resultMap[id]
+		if !ok {
+			// Return empty slice if not found
+			data = []T{}
+		}
+		loaderResults = append(loaderResults, &dataloader.Result[[]T]{Data: data})
 	}
 	return loaderResults
 }
 
-type genericArrayResultReader[T any] struct {
-	db              *gorm.DB
-	foreignIdColumn string
-	getLoaderKey    func(*T) int
-}
+// type HasLoaderKey interface {
+// 	GetLoaderKey() int
+// }
+// type genericManyResultLoader[T HasLoaderKey] struct {
+// 	db              *gorm.DB
+// 	foreignIdColumn string
+// }
 
-func (r *genericArrayResultReader[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[[]*T] {
-	var results []*T
-	err := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids).Find(&results).Error
-	if err != nil {
-		return handleError[[]*T](len(ids), err)
-	}
+// func (r *genericManyResultLoader[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[[]*T] {
 
-	resultMap := make(map[int][]*T)
-	for _, result := range results {
-		resultMap[r.getLoaderKey(result)] = append(resultMap[r.getLoaderKey(result)], result)
-	}
-	var loaderResults []*dataloader.Result[[]*T]
-	// reordering the results according to ids
-	for _, id := range ids {
-		results, ok := resultMap[id]
-		if !ok {
-			var v []*T
-			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: v})
-		} else {
-			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: results})
-		}
-	}
-	return loaderResults
+// 	var results []*T
+// 	err := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids).Find(&results).Error
+// 	if err != nil {
+// 		return handleError[[]*T](len(ids), err)
+// 	}
 
-}
+// 	resultMap := make(map[int][]*T)
+// 	for _, result := range results {
+// 		resultMap[(*result).GetLoaderKey()] = append(resultMap[(*result).GetLoaderKey()], result)
+// 	}
+// 	var loaderResults []*dataloader.Result[[]*T]
+// 	// reordering the results according to ids
+// 	for _, id := range ids {
+// 		results, ok := resultMap[id]
+// 		if !ok {
+// 			var v []*T
+// 			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: v})
+// 		} else {
+// 			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: results})
+// 		}
+// 	}
+// 	return loaderResults
+// }
 
-type genericArrayResultReader2[T any] struct {
-	db           *gorm.DB
-	fetch        func(db *gorm.DB, ids []int) ([]*T, error)
-	getLoaderKey func(*T) int
-}
+// type genericArrayResultReader[T any] struct {
+// 	db              *gorm.DB
+// 	foreignIdColumn string
+// 	getLoaderKey    func(*T) int
+// }
 
-func (r *genericArrayResultReader2[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[[]*T] {
-	// var results []*T
-	// err := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids).Find(&results).Error
-	// if err != nil {
-	// 	return handleError[[]*T](len(ids), err)
-	// }
+// func (r *genericArrayResultReader[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[[]*T] {
+// 	var results []*T
+// 	err := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids).Find(&results).Error
+// 	if err != nil {
+// 		return handleError[[]*T](len(ids), err)
+// 	}
 
-	results, err := r.fetch(r.db.WithContext(ctx), ids)
-	if err != nil {
-		return handleError[[]*T](len(ids), err)
+// 	resultMap := make(map[int][]*T)
+// 	for _, result := range results {
+// 		resultMap[r.getLoaderKey(result)] = append(resultMap[r.getLoaderKey(result)], result)
+// 	}
+// 	var loaderResults []*dataloader.Result[[]*T]
+// 	// reordering the results according to ids
+// 	for _, id := range ids {
+// 		results, ok := resultMap[id]
+// 		if !ok {
+// 			var v []*T
+// 			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: v})
+// 		} else {
+// 			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: results})
+// 		}
+// 	}
+// 	return loaderResults
 
-	}
+// }
 
-	resultMap := make(map[int][]*T)
-	for _, result := range results {
-		resultMap[r.getLoaderKey(result)] = append(resultMap[r.getLoaderKey(result)], result)
-	}
-	var loaderResults []*dataloader.Result[[]*T]
-	// reordering the results according to ids
-	for _, id := range ids {
-		results, ok := resultMap[id]
-		if !ok {
-			var v []*T
-			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: v})
-		} else {
-			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: results})
-		}
-	}
-	return loaderResults
+// type genericArrayResultReader2[T any] struct {
+// 	db           *gorm.DB
+// 	fetch        func(db *gorm.DB, ids []int) ([]*T, error)
+// 	getLoaderKey func(*T) int
+// }
 
-}
+// func (r *genericArrayResultReader2[T]) BatchFunc(ctx context.Context, ids []int) []*dataloader.Result[[]*T] {
+// 	// var results []*T
+// 	// err := r.db.WithContext(ctx).Where(r.foreignIdColumn+" IN ?", ids).Find(&results).Error
+// 	// if err != nil {
+// 	// 	return handleError[[]*T](len(ids), err)
+// 	// }
 
-func fetchExemptWorkingShedules(db *gorm.DB, holidayIds []int) ([]*models.WorkingSchedule, error) {
-	raw := `SELECT schedules.id FROM working_schedule_holiday_exemptions exemptions
-	INNER JOIN working_schedules schedules ON exemptions.working_schedule_id = schedules.id
-	WHERE exemptions.holiday_id IN ?
-	`
-	var scheduleIds []int
-	if err := db.Raw(raw, holidayIds).Scan(&scheduleIds).Error; err != nil {
-		return nil, err
-	}
+// 	results, err := r.fetch(r.db.WithContext(ctx), ids)
+// 	if err != nil {
+// 		return handleError[[]*T](len(ids), err)
 
-	schedules := make([]*models.WorkingSchedule, 0, len(scheduleIds))
-	err := db.Where("id IN ?", scheduleIds).Preload("Details").Find(&schedules).Error
-	if err != nil {
-		return nil, err
-	}
-	return schedules, nil
-}
+// 	}
 
-func GetCustomersForGroup(ctx context.Context, groupId int) ([]*models.Customer, error) {
-	loaders := For(ctx)
-	return loaders.customerLoaderForGroup.Load(ctx, groupId)()
-}
+// 	resultMap := make(map[int][]*T)
+// 	for _, result := range results {
+// 		resultMap[r.getLoaderKey(result)] = append(resultMap[r.getLoaderKey(result)], result)
+// 	}
+// 	var loaderResults []*dataloader.Result[[]*T]
+// 	// reordering the results according to ids
+// 	for _, id := range ids {
+// 		results, ok := resultMap[id]
+// 		if !ok {
+// 			var v []*T
+// 			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: v})
+// 		} else {
+// 			loaderResults = append(loaderResults, &dataloader.Result[[]*T]{Data: results})
+// 		}
+// 	}
+// 	return loaderResults
 
-func GetSuppliersForGroup(ctx context.Context, groupId int) ([]*models.Supplier, error) {
-	loaders := For(ctx)
-	return loaders.supplierLoaderForGroup.Load(ctx, groupId)()
-}
-
-func GetLeaveBalancesForEmployee(ctx context.Context, employeeId int) ([]*models.LeaveBalance, error) {
-	loaders := For(ctx)
-	return loaders.leaveBalancesLoaderForEmployee.Load(ctx, employeeId)()
-}
+// }

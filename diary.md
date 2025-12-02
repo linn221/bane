@@ -9,3 +9,6 @@ make AI refactor methods of service structs. consistently take context as first 
 
 Nov 20
 make sure Task CRUD works
+
+Dec 2
+created reusable generic structs for dataloader loading. getting tasks/projects ready

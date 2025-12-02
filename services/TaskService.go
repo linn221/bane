@@ -74,6 +74,13 @@ func (s *taskService) List(ctx context.Context, filter *models.TaskFilter) ([]*m
 				"%"+filter.Search+"%",
 			)
 		}
+		if filter.Project != nil {
+			projectId, err := s.aliasService.GetReferenceId(ctx, *filter.Project)
+			if err != nil {
+				return nil, err
+			}
+			dbctx.Where("project_id = ?", projectId)
+		}
 		if filter.Status != nil {
 			dbctx.Where("status = ?", filter.Status)
 		}
@@ -82,11 +89,11 @@ func (s *taskService) List(ctx context.Context, filter *models.TaskFilter) ([]*m
 	return results, err
 }
 
-func (s *taskService) ChangeStatus(ctx context.Context, alias *string, id *int, status models.TaskStatus) (*models.Task, error) {
+func (s *taskService) ChangeStatus(ctx context.Context, alias *string, id *int, status models.TaskStatus) (bool, error) {
 
 	task, err := GetRecordByAliasOrId[models.Task](s.db.WithContext(ctx), "tasks", alias, id)
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	updates := map[string]any{
 		"status": status,
@@ -99,8 +106,8 @@ func (s *taskService) ChangeStatus(ctx context.Context, alias *string, id *int, 
 	}
 	err = s.db.WithContext(ctx).Model(&task).Updates(updates).Error
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return GetRecordByAliasOrId[models.Task](s.db.WithContext(ctx), "tasks", alias, id)
+	return true, nil
 }

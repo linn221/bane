@@ -1,0 +1,69 @@
+
+query tasks {
+  tasks {
+    id
+    title
+    status
+    priority
+    remindDate
+    description
+    alias
+    project {
+      id
+      name
+      alias
+    }
+  }
+  projects {
+    id
+    name
+    
+    alias
+  }
+}
+
+
+mutation newpj {
+  newProject(input: {
+    name: "Work",
+    alias: "mtech"
+  }) {
+    id
+  }
+}
+
+mutation newtask {
+  newTask(input: {
+    title: "fix soem bug",
+    remindDate: "dec 3",
+    projectAlias: "mtech"
+  }) {
+    id
+  }
+}
+
+mutation patch {
+  patch(a: "tasks1", patch: {
+    valuesInt: [
+      "priority:10"
+    ],
+    values: [
+      "title:test x endpoint"
+    ]
+  })
+}
+
+mutation com {
+  finishTask(a: "tasks1")
+}
+
+mutation destroy {
+  destroy(a: "tasks1")
+}
+
+mutation renameAlias {
+  renameAlias(old:"tasks2", new: "mytask")
+}
+
+
+

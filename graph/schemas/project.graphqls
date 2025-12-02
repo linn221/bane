@@ -2,7 +2,7 @@ type Project {
     id: Int!
     name: String!
     description: String
-    alias: String @goField(forceResolver: true)
+    alias: String! @goField(forceResolver: true)
     tasks: [Task] @goField(forceResolver: true)
 }
 

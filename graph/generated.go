@@ -85,12 +85,10 @@ type ComplexityRoot struct {
 		Match               func(childComplexity int, regex string) int
 		Name                func(childComplexity int) int
 		Notes               func(childComplexity int) int
-		Rid                 func(childComplexity int) int
 	}
 
 	Mutation struct {
 		CancelTask  func(childComplexity int, id *int, a *string) int
-		CreateTask  func(childComplexity int, input models.TaskInput) int
 		DelNote     func(childComplexity int, id int) int
 		Destroy     func(childComplexity int, a string) int
 		FinishTask  func(childComplexity int, id *int, a *string) int
@@ -99,6 +97,7 @@ type ComplexityRoot struct {
 		NewMySheet  func(childComplexity int, input models.MySheetInput) int
 		NewNote     func(childComplexity int, input *models.NoteInput) int
 		NewProject  func(childComplexity int, input models.ProjectInput) int
+		NewTask     func(childComplexity int, input models.TaskInput) int
 		NewWord     func(childComplexity int, input models.WordInput) int
 		NewWordList func(childComplexity int, input models.WordListInput) int
 		Patch       func(childComplexity int, a string, patch models.PatchInput) int
@@ -152,6 +151,7 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		Id          func(childComplexity int) int
 		Name        func(childComplexity int) int
+		Tasks       func(childComplexity int) int
 	}
 
 	Query struct {
@@ -205,6 +205,7 @@ type ComplexityRoot struct {
 		FinishedDate  func(childComplexity int) int
 		Id            func(childComplexity int) int
 		Priority      func(childComplexity int) int
+		Project       func(childComplexity int) int
 		ProjectId     func(childComplexity int) int
 		RemindDate    func(childComplexity int) int
 		Status        func(childComplexity int) int
@@ -230,7 +231,7 @@ type ComplexityRoot struct {
 }
 
 type EndpointResolver interface {
-	Alias(ctx context.Context, obj *models.Endpoint) (*string, error)
+	Alias(ctx context.Context, obj *models.Endpoint) (string, error)
 
 	HTTPPathMy(ctx context.Context, obj *models.Endpoint, sep *string) (string, error)
 	HTTPQueriesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error)
@@ -238,7 +239,6 @@ type EndpointResolver interface {
 	HTTPCookiesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error)
 	HTTPBodyMy(ctx context.Context, obj *models.Endpoint) (string, error)
 	Match(ctx context.Context, obj *models.Endpoint, regex string) (*model.SearchResult, error)
-	Rid(ctx context.Context, obj *models.Endpoint) (int, error)
 	Notes(ctx context.Context, obj *models.Endpoint) ([]*models.Note, error)
 }
 type MutationResolver interface {
@@ -253,9 +253,9 @@ type MutationResolver interface {
 	DelNote(ctx context.Context, id int) (*models.Note, error)
 	NewProject(ctx context.Context, input models.ProjectInput) (*models.Project, error)
 	Raw(ctx context.Context, sql string) (int, error)
-	CreateTask(ctx context.Context, input models.TaskInput) (*models.Task, error)
-	CancelTask(ctx context.Context, id *int, a *string) (*models.Task, error)
-	FinishTask(ctx context.Context, id *int, a *string) (*models.Task, error)
+	NewTask(ctx context.Context, input models.TaskInput) (*models.Task, error)
+	CancelTask(ctx context.Context, id *int, a *string) (bool, error)
+	FinishTask(ctx context.Context, id *int, a *string) (bool, error)
 	NewWord(ctx context.Context, input models.WordInput) (*models.Word, error)
 	NewWordList(ctx context.Context, input models.WordListInput) (*models.WordList, error)
 }
@@ -271,7 +271,8 @@ type NoteResolver interface {
 	Match(ctx context.Context, obj *models.Note, regex string) (*model.SearchResult, error)
 }
 type ProjectResolver interface {
-	Alias(ctx context.Context, obj *models.Project) (*string, error)
+	Alias(ctx context.Context, obj *models.Project) (string, error)
+	Tasks(ctx context.Context, obj *models.Project) ([]*models.Task, error)
 }
 type QueryResolver interface {
 	Helloworld(ctx context.Context) (string, error)
@@ -302,13 +303,14 @@ type SQLResolver interface {
 	Count(ctx context.Context, obj *model.SQL, table string, where string) (*model.SQLResult, error)
 }
 type TaskResolver interface {
-	Alias(ctx context.Context, obj *models.Task) (*string, error)
+	Project(ctx context.Context, obj *models.Task) (*models.Project, error)
+	Alias(ctx context.Context, obj *models.Task) (string, error)
 }
 type WordResolver interface {
-	Alias(ctx context.Context, obj *models.Word) (*string, error)
+	Alias(ctx context.Context, obj *models.Word) (string, error)
 }
 type WordListResolver interface {
-	Alias(ctx context.Context, obj *models.WordList) (*string, error)
+	Alias(ctx context.Context, obj *models.WordList) (string, error)
 
 	ImportURL(ctx context.Context, obj *models.WordList) (*string, error)
 }
@@ -490,12 +492,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Endpoint.Notes(childComplexity), true
-	case "Endpoint.rid":
-		if e.complexity.Endpoint.Rid == nil {
-			break
-		}
-
-		return e.complexity.Endpoint.Rid(childComplexity), true
 
 	case "Mutation.cancelTask":
 		if e.complexity.Mutation.CancelTask == nil {
@@ -508,17 +504,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CancelTask(childComplexity, args["id"].(*int), args["a"].(*string)), true
-	case "Mutation.createTask":
-		if e.complexity.Mutation.CreateTask == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_createTask_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateTask(childComplexity, args["input"].(models.TaskInput)), true
 	case "Mutation.delNote":
 		if e.complexity.Mutation.DelNote == nil {
 			break
@@ -602,6 +587,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.NewProject(childComplexity, args["input"].(models.ProjectInput)), true
+	case "Mutation.newTask":
+		if e.complexity.Mutation.NewTask == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_newTask_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.NewTask(childComplexity, args["input"].(models.TaskInput)), true
 	case "Mutation.newWord":
 		if e.complexity.Mutation.NewWord == nil {
 			break
@@ -887,6 +883,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Project.Name(childComplexity), true
+	case "Project.tasks":
+		if e.complexity.Project.Tasks == nil {
+			break
+		}
+
+		return e.complexity.Project.Tasks(childComplexity), true
 
 	case "Query.endpoint":
 		if e.complexity.Query.Endpoint == nil {
@@ -1208,6 +1210,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Task.Priority(childComplexity), true
+	case "Task.project":
+		if e.complexity.Task.Project == nil {
+			break
+		}
+
+		return e.complexity.Task.Project(childComplexity), true
 	case "Task.projectId":
 		if e.complexity.Task.ProjectId == nil {
 			break
@@ -1538,17 +1546,6 @@ func (ec *executionContext) field_Mutation_cancelTask_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createTask_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTaskInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskInput)
-	if err != nil {
-		return nil, err
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_delNote_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1624,6 +1621,17 @@ func (ec *executionContext) field_Mutation_newProject_args(ctx context.Context, 
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNProjectInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProjectInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_newTask_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNTaskInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2217,9 +2225,9 @@ func (ec *executionContext) _Endpoint_alias(ctx context.Context, field graphql.C
 			return ec.resolvers.Endpoint().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -2737,35 +2745,6 @@ func (ec *executionContext) fieldContext_Endpoint_match(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Endpoint_rid(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Endpoint_rid,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Endpoint().Rid(ctx, obj)
-		},
-		nil,
-		ec.marshalNInt2int,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Endpoint_rid(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Endpoint",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Endpoint_notes(ctx context.Context, field graphql.CollectedField, obj *models.Endpoint) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3018,8 +2997,6 @@ func (ec *executionContext) fieldContext_Mutation_newEndpoint(ctx context.Contex
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
 				return ec.fieldContext_Endpoint_notes(ctx, field)
 			}
@@ -3315,6 +3292,8 @@ func (ec *executionContext) fieldContext_Mutation_newProject(ctx context.Context
 				return ec.fieldContext_Project_description(ctx, field)
 			case "alias":
 				return ec.fieldContext_Project_alias(ctx, field)
+			case "tasks":
+				return ec.fieldContext_Project_tasks(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -3374,15 +3353,15 @@ func (ec *executionContext) fieldContext_Mutation_raw(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_newTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_createTask,
+		ec.fieldContext_Mutation_newTask,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateTask(ctx, fc.Args["input"].(models.TaskInput))
+			return ec.resolvers.Mutation().NewTask(ctx, fc.Args["input"].(models.TaskInput))
 		},
 		nil,
 		ec.marshalNTask2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask,
@@ -3391,7 +3370,7 @@ func (ec *executionContext) _Mutation_createTask(ctx context.Context, field grap
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createTask(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_newTask(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3421,6 +3400,8 @@ func (ec *executionContext) fieldContext_Mutation_createTask(ctx context.Context
 				return ec.fieldContext_Task_created(ctx, field)
 			case "projectId":
 				return ec.fieldContext_Task_projectId(ctx, field)
+			case "project":
+				return ec.fieldContext_Task_project(ctx, field)
 			case "alias":
 				return ec.fieldContext_Task_alias(ctx, field)
 			}
@@ -3434,7 +3415,7 @@ func (ec *executionContext) fieldContext_Mutation_createTask(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createTask_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_newTask_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3452,7 +3433,7 @@ func (ec *executionContext) _Mutation_cancelTask(ctx context.Context, field grap
 			return ec.resolvers.Mutation().CancelTask(ctx, fc.Args["id"].(*int), fc.Args["a"].(*string))
 		},
 		nil,
-		ec.marshalNTask2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask,
+		ec.marshalNBoolean2bool,
 		true,
 		true,
 	)
@@ -3465,33 +3446,7 @@ func (ec *executionContext) fieldContext_Mutation_cancelTask(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Task_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Task_title(ctx, field)
-			case "description":
-				return ec.fieldContext_Task_description(ctx, field)
-			case "status":
-				return ec.fieldContext_Task_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Task_priority(ctx, field)
-			case "deadline":
-				return ec.fieldContext_Task_deadline(ctx, field)
-			case "remindDate":
-				return ec.fieldContext_Task_remindDate(ctx, field)
-			case "finishedDate":
-				return ec.fieldContext_Task_finishedDate(ctx, field)
-			case "cancelledDate":
-				return ec.fieldContext_Task_cancelledDate(ctx, field)
-			case "created":
-				return ec.fieldContext_Task_created(ctx, field)
-			case "projectId":
-				return ec.fieldContext_Task_projectId(ctx, field)
-			case "alias":
-				return ec.fieldContext_Task_alias(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Task", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -3519,7 +3474,7 @@ func (ec *executionContext) _Mutation_finishTask(ctx context.Context, field grap
 			return ec.resolvers.Mutation().FinishTask(ctx, fc.Args["id"].(*int), fc.Args["a"].(*string))
 		},
 		nil,
-		ec.marshalNTask2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask,
+		ec.marshalNBoolean2bool,
 		true,
 		true,
 	)
@@ -3532,33 +3487,7 @@ func (ec *executionContext) fieldContext_Mutation_finishTask(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Task_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Task_title(ctx, field)
-			case "description":
-				return ec.fieldContext_Task_description(ctx, field)
-			case "status":
-				return ec.fieldContext_Task_status(ctx, field)
-			case "priority":
-				return ec.fieldContext_Task_priority(ctx, field)
-			case "deadline":
-				return ec.fieldContext_Task_deadline(ctx, field)
-			case "remindDate":
-				return ec.fieldContext_Task_remindDate(ctx, field)
-			case "finishedDate":
-				return ec.fieldContext_Task_finishedDate(ctx, field)
-			case "cancelledDate":
-				return ec.fieldContext_Task_cancelledDate(ctx, field)
-			case "created":
-				return ec.fieldContext_Task_created(ctx, field)
-			case "projectId":
-				return ec.fieldContext_Task_projectId(ctx, field)
-			case "alias":
-				return ec.fieldContext_Task_alias(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Task", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -3801,8 +3730,6 @@ func (ec *executionContext) fieldContext_MyRequest_endpoint(_ context.Context, f
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
 				return ec.fieldContext_Endpoint_notes(ctx, field)
 			}
@@ -4739,9 +4666,9 @@ func (ec *executionContext) _Project_alias(ctx context.Context, field graphql.Co
 			return ec.resolvers.Project().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -4753,6 +4680,63 @@ func (ec *executionContext) fieldContext_Project_alias(_ context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Project_tasks(ctx context.Context, field graphql.CollectedField, obj *models.Project) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Project_tasks,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Project().Tasks(ctx, obj)
+		},
+		nil,
+		ec.marshalOTask2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Project_tasks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Project",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Task_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Task_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Task_description(ctx, field)
+			case "status":
+				return ec.fieldContext_Task_status(ctx, field)
+			case "priority":
+				return ec.fieldContext_Task_priority(ctx, field)
+			case "deadline":
+				return ec.fieldContext_Task_deadline(ctx, field)
+			case "remindDate":
+				return ec.fieldContext_Task_remindDate(ctx, field)
+			case "finishedDate":
+				return ec.fieldContext_Task_finishedDate(ctx, field)
+			case "cancelledDate":
+				return ec.fieldContext_Task_cancelledDate(ctx, field)
+			case "created":
+				return ec.fieldContext_Task_created(ctx, field)
+			case "projectId":
+				return ec.fieldContext_Task_projectId(ctx, field)
+			case "project":
+				return ec.fieldContext_Task_project(ctx, field)
+			case "alias":
+				return ec.fieldContext_Task_alias(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Task", field.Name)
 		},
 	}
 	return fc, nil
@@ -4848,8 +4832,6 @@ func (ec *executionContext) fieldContext_Query_endpoint(ctx context.Context, fie
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
 				return ec.fieldContext_Endpoint_notes(ctx, field)
 			}
@@ -4931,8 +4913,6 @@ func (ec *executionContext) fieldContext_Query_endpoints(ctx context.Context, fi
 				return ec.fieldContext_Endpoint_httpBodyMy(ctx, field)
 			case "match":
 				return ec.fieldContext_Endpoint_match(ctx, field)
-			case "rid":
-				return ec.fieldContext_Endpoint_rid(ctx, field)
 			case "notes":
 				return ec.fieldContext_Endpoint_notes(ctx, field)
 			}
@@ -5317,6 +5297,8 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 				return ec.fieldContext_Project_description(ctx, field)
 			case "alias":
 				return ec.fieldContext_Project_alias(ctx, field)
+			case "tasks":
+				return ec.fieldContext_Project_tasks(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -5368,6 +5350,8 @@ func (ec *executionContext) fieldContext_Query_projects(ctx context.Context, fie
 				return ec.fieldContext_Project_description(ctx, field)
 			case "alias":
 				return ec.fieldContext_Project_alias(ctx, field)
+			case "tasks":
+				return ec.fieldContext_Project_tasks(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
@@ -5480,6 +5464,8 @@ func (ec *executionContext) fieldContext_Query_task(ctx context.Context, field g
 				return ec.fieldContext_Task_created(ctx, field)
 			case "projectId":
 				return ec.fieldContext_Task_projectId(ctx, field)
+			case "project":
+				return ec.fieldContext_Task_project(ctx, field)
 			case "alias":
 				return ec.fieldContext_Task_alias(ctx, field)
 			}
@@ -5547,6 +5533,8 @@ func (ec *executionContext) fieldContext_Query_tasks(ctx context.Context, field 
 				return ec.fieldContext_Task_created(ctx, field)
 			case "projectId":
 				return ec.fieldContext_Task_projectId(ctx, field)
+			case "project":
+				return ec.fieldContext_Task_project(ctx, field)
 			case "alias":
 				return ec.fieldContext_Task_alias(ctx, field)
 			}
@@ -6578,6 +6566,47 @@ func (ec *executionContext) fieldContext_Task_projectId(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Task_project(ctx context.Context, field graphql.CollectedField, obj *models.Task) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Task_project,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Task().Project(ctx, obj)
+		},
+		nil,
+		ec.marshalOProject2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProject,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Task_project(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Task",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Project_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Project_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Project_description(ctx, field)
+			case "alias":
+				return ec.fieldContext_Project_alias(ctx, field)
+			case "tasks":
+				return ec.fieldContext_Project_tasks(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Task_alias(ctx context.Context, field graphql.CollectedField, obj *models.Task) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -6588,9 +6617,9 @@ func (ec *executionContext) _Task_alias(ctx context.Context, field graphql.Colle
 			return ec.resolvers.Task().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -6675,9 +6704,9 @@ func (ec *executionContext) _Word_alias(ctx context.Context, field graphql.Colle
 			return ec.resolvers.Word().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -6820,9 +6849,9 @@ func (ec *executionContext) _WordList_alias(ctx context.Context, field graphql.C
 			return ec.resolvers.WordList().Alias(ctx, obj)
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -9078,7 +9107,7 @@ func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj an
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"today", "status", "search"}
+	fieldsInOrder := [...]string{"today", "status", "search", "project"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9106,6 +9135,13 @@ func (ec *executionContext) unmarshalInputTaskFilter(ctx context.Context, obj an
 				return it, err
 			}
 			it.Search = data
+		case "project":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Project = data
 		}
 	}
 
@@ -9348,13 +9384,16 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Endpoint_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -9636,42 +9675,6 @@ func (ec *executionContext) _Endpoint(ctx context.Context, sel ast.SelectionSet,
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "rid":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Endpoint_rid(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "notes":
 			field := field
 
@@ -9824,9 +9827,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "createTask":
+		case "newTask":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createTask(ctx, field)
+				return ec._Mutation_newTask(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -10256,13 +10259,49 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Project_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "tasks":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_tasks(ctx, field, obj)
 				return res
 			}
 
@@ -11092,7 +11131,7 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "projectId":
 			out.Values[i] = ec._Task_projectId(ctx, field, obj)
-		case "alias":
+		case "project":
 			field := field
 
 			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
@@ -11101,7 +11140,43 @@ func (ec *executionContext) _Task(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
+				res = ec._Task_project(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "alias":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
 				res = ec._Task_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -11172,13 +11247,16 @@ func (ec *executionContext) _Word(ctx context.Context, sel ast.SelectionSet, obj
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._Word_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -11256,13 +11334,16 @@ func (ec *executionContext) _WordList(ctx context.Context, sel ast.SelectionSet,
 		case "alias":
 			field := field
 
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
 				defer func() {
 					if r := recover(); r != nil {
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
 				res = ec._WordList_alias(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
 				return res
 			}
 
@@ -12898,6 +12979,13 @@ func (ec *executionContext) unmarshalONoteInput2ᚖgithubᚗcomᚋlinn221ᚋbane
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOProject2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProject(ctx context.Context, sel ast.SelectionSet, v *models.Project) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Project(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOProjectFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐProjectFilter(ctx context.Context, v any) (*models.ProjectFilter, error) {
 	if v == nil {
 		return nil, nil
@@ -12977,6 +13065,54 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = ctx
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTask2ᚕᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask(ctx context.Context, sel ast.SelectionSet, v []*models.Task) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOTask2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOTask2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTask(ctx context.Context, sel ast.SelectionSet, v *models.Task) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Task(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTaskFilter2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐTaskFilter(ctx context.Context, v any) (*models.TaskFilter, error) {

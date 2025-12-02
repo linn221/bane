@@ -7,7 +7,6 @@ package resolvers
 import (
 	"context"
 
-	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/loaders"
@@ -17,15 +16,8 @@ import (
 )
 
 // Alias is the resolver for the alias field.
-func (r *endpointResolver) Alias(ctx context.Context, obj *models.Endpoint) (*string, error) {
-	alias, err := loaders.GetEndpointAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
+func (r *endpointResolver) Alias(ctx context.Context, obj *models.Endpoint) (string, error) {
+	return loaders.GetEndpointAlias(ctx, obj.Id)
 }
 
 // HTTPPathMy is the resolver for the httpPathMy field.
@@ -64,11 +56,6 @@ func (r *endpointResolver) HTTPBodyMy(ctx context.Context, obj *models.Endpoint)
 // Match is the resolver for the match field.
 func (r *endpointResolver) Match(ctx context.Context, obj *models.Endpoint, regex string) (*model.SearchResult, error) {
 	return services.MatchRegex(obj, regex)
-}
-
-// Rid is the resolver for the rid field.
-func (r *endpointResolver) Rid(ctx context.Context, obj *models.Endpoint) (int, error) {
-	return loaders.GetRId(ctx, app.Reference{ReferenceId: obj.Id, ReferenceType: "endpoints"})
 }
 
 // Notes is the resolver for the notes field.

@@ -6,7 +6,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/loaders"
@@ -19,22 +18,17 @@ func (r *mutationResolver) NewProject(ctx context.Context, input models.ProjectI
 }
 
 // Alias is the resolver for the alias field.
-func (r *projectResolver) Alias(ctx context.Context, obj *models.Project) (*string, error) {
-	alias, err := loaders.GetProjectAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
+func (r *projectResolver) Alias(ctx context.Context, obj *models.Project) (string, error) {
+	return loaders.GetProjectAlias(ctx, obj.Id)
+}
+
+// Tasks is the resolver for the tasks field.
+func (r *projectResolver) Tasks(ctx context.Context, obj *models.Project) ([]*models.Task, error) {
+	return loaders.GetTasksByProjectId(ctx, obj.Id)
 }
 
 // Project is the resolver for the project field.
 func (r *queryResolver) Project(ctx context.Context, id *int, alias *string) (*models.Project, error) {
-	if id == nil && alias == nil {
-		return nil, fmt.Errorf("either id or alias must be provided")
-	}
 	return r.app.Services.ProjectService.Get(ctx, id, alias)
 }
 

@@ -73,7 +73,8 @@ func (input *TaskInput) Validate(db *gorm.DB, id int) error {
 }
 
 type TaskFilter struct {
-	Today  bool        `json:"today,omitempty"`
-	Search string      `json:"search,omitempty"`
-	Status *TaskStatus `json:"status,omitempty"`
+	Today   bool   `json:"today,omitempty"`
+	Search  string `json:"search,omitempty"`
+	Project *string
+	Status  *TaskStatus `json:"status,omitempty"`
 }

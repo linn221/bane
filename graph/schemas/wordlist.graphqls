@@ -3,7 +3,7 @@ scalar WordType
 type Word {
   id: Int!
   word: String!
-  alias: String @goField(forceResolver: true)
+  alias: String! @goField(forceResolver: true)
   wordType: WordType! # fuzz | attack
   description: String
   # tags: [Tag]
@@ -20,7 +20,7 @@ input WordInput {
 type WordList {
     id: Int!
     name: String!
-    alias: String @goField(forceResolver: true)
+    alias: String! @goField(forceResolver: true)
     description: String
     words: [Word!]
     importUrl: String @goField(forceResolver: true)

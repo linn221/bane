@@ -54,27 +54,13 @@ func (r *queryResolver) WordLists(ctx context.Context, regex *string) ([]*models
 }
 
 // Alias is the resolver for the alias field.
-func (r *wordResolver) Alias(ctx context.Context, obj *models.Word) (*string, error) {
-	alias, err := loaders.GetWordAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
+func (r *wordResolver) Alias(ctx context.Context, obj *models.Word) (string, error) {
+	return loaders.GetWordAlias(ctx, obj.Id)
 }
 
 // Alias is the resolver for the alias field.
-func (r *wordListResolver) Alias(ctx context.Context, obj *models.WordList) (*string, error) {
-	alias, err := loaders.GetWordListAlias(ctx, obj.Id)
-	if err != nil {
-		return nil, err
-	}
-	if alias == "" {
-		return nil, nil
-	}
-	return &alias, nil
+func (r *wordListResolver) Alias(ctx context.Context, obj *models.WordList) (string, error) {
+	return loaders.GetWordListAlias(ctx, obj.Id)
 }
 
 // ImportURL is the resolver for the importUrl field.
