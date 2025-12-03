@@ -6,6 +6,7 @@ type MySheet {
     created: MyDate!
     nextDate: MyDate
     previousDate: MyDate
+    label: MySheetLabel! @goField(forceResolver: true)
     index: Int
 }
 
@@ -14,6 +15,7 @@ input MySheetInput {
     body: String!
     alias: String
     date: MyDate
+    label: String
 }
 
 input MySheetFilter {
@@ -21,14 +23,28 @@ input MySheetFilter {
     search: String
     nextDate: MyDate
     previousDate: MyDate
+    label: String
+}
+
+type MySheetLabel {
+    id: Int!
+    name: String!
+    alias: String! @goField(forceResolver: true)
+}
+
+input MySheetLabelInput {
+    name: String!
+    alias: String
 }
 
 extend type Mutation {
     newMySheet(input: MySheetInput!): MySheet!
+    newMySheetLabel(input: MySheetLabelInput!): MySheetLabel!
 }
 
 extend type Query {
     mySheet(id: Int, alias: String): MySheet!
     mySheets(filter: MySheetFilter): [MySheet!]!
+    mySheetLabels(name: String): [MySheetLabel!]!
 }
 

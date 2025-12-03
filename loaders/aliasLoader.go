@@ -80,6 +80,11 @@ func GetMySheetAlias(ctx context.Context, id int) (string, error) {
 	return loaders.mySheetAliasLoader.Load(ctx, id)()
 }
 
+func GetMySheetLabelAlias(ctx context.Context, id int) (string, error) {
+	loaders := For(ctx)
+	return loaders.mySheetLabelAliasLoader.Load(ctx, id)()
+}
+
 // GetProjectAlias returns a single alias for a Project by ID efficiently using dataloader
 func GetProjectAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)

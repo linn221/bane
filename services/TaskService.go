@@ -43,6 +43,13 @@ func (s *taskService) Create(ctx context.Context, input *models.TaskInput) (*mod
 		}
 		task.ProjectId = projectId
 	}
+	if input.Parent != "" {
+		parentId, err := s.aliasService.GetReferenceId(ctx, input.Parent)
+		if err != nil {
+			return nil, err
+		}
+		task.ParentId = parentId
+	}
 
 	tx := s.db.WithContext(ctx).Begin()
 	defer tx.Rollback()
@@ -80,6 +87,13 @@ func (s *taskService) List(ctx context.Context, filter *models.TaskFilter) ([]*m
 				return nil, err
 			}
 			dbctx.Where("project_id = ?", projectId)
+		}
+		if filter.Parent != nil {
+			parentId, err := s.aliasService.GetReferenceId(ctx, *filter.Parent)
+			if err != nil {
+				return nil, err
+			}
+			dbctx.Where("parent_id = ?", parentId)
 		}
 		if filter.Status != nil {
 			dbctx.Where("status = ?", filter.Status)

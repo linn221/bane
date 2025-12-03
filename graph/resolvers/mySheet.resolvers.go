@@ -11,6 +11,7 @@ import (
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
 	"github.com/linn221/bane/services"
+	"github.com/linn221/bane/utils"
 )
 
 // NewMySheet is the resolver for the newMySheet field.
@@ -18,9 +19,24 @@ func (r *mutationResolver) NewMySheet(ctx context.Context, input models.MySheetI
 	return r.app.Services.MySheetService.Create(ctx, &input)
 }
 
+// NewMySheetLabel is the resolver for the newMySheetLabel field.
+func (r *mutationResolver) NewMySheetLabel(ctx context.Context, input models.MySheetLabelInput) (*models.MySheetLabel, error) {
+	return r.app.Services.MySheetService.CreateLabel(ctx, &input)
+}
+
 // Alias is the resolver for the alias field.
 func (r *mySheetResolver) Alias(ctx context.Context, obj *models.MySheet) (string, error) {
 	return loaders.GetMySheetAlias(ctx, obj.Id)
+}
+
+// Label is the resolver for the label field.
+func (r *mySheetResolver) Label(ctx context.Context, obj *models.MySheet) (*models.MySheetLabel, error) {
+	return loaders.GetMySheetLabelById(ctx, obj.LabelId)
+}
+
+// Alias is the resolver for the alias field.
+func (r *mySheetLabelResolver) Alias(ctx context.Context, obj *models.MySheetLabel) (string, error) {
+	return loaders.GetMySheetLabelAlias(ctx, obj.Id)
 }
 
 // MySheet is the resolver for the mySheet field.
@@ -30,14 +46,23 @@ func (r *queryResolver) MySheet(ctx context.Context, id *int, alias *string) (*m
 
 // MySheets is the resolver for the mySheets field.
 func (r *queryResolver) MySheets(ctx context.Context, filter *models.MySheetFilter) ([]*models.MySheet, error) {
-	if filter != nil && filter.NextDate != nil && !filter.NextDate.Time.IsZero() {
-		// If NextDate is provided, use GetTodaySheets logic
-		return r.app.Services.MySheetService.GetTodaySheets(ctx, filter.NextDate.Time)
+	if filter == nil {
+		today := utils.Today()
+		return r.app.Services.MySheetService.GetTodaySheets(ctx, today)
 	}
 	return r.app.Services.MySheetService.List(ctx, filter)
+}
+
+// MySheetLabels is the resolver for the mySheetLabels field.
+func (r *queryResolver) MySheetLabels(ctx context.Context, name *string) ([]*models.MySheetLabel, error) {
+	return r.app.Services.MySheetService.ListMySheetLabels(ctx, name)
 }
 
 // MySheet returns graph.MySheetResolver implementation.
 func (r *Resolver) MySheet() graph.MySheetResolver { return &mySheetResolver{r} }
 
+// MySheetLabel returns graph.MySheetLabelResolver implementation.
+func (r *Resolver) MySheetLabel() graph.MySheetLabelResolver { return &mySheetLabelResolver{r} }
+
 type mySheetResolver struct{ *Resolver }
+type mySheetLabelResolver struct{ *Resolver }

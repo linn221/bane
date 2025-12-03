@@ -4,8 +4,6 @@ import (
 	"errors"
 	"io"
 	"strconv"
-
-	"gorm.io/gorm"
 )
 
 type TaskStatus string
@@ -55,6 +53,7 @@ type Task struct {
 	CancelledDate MyDate
 	Created       MyDate `gorm:"not null"`
 	ProjectId     int    `gorm:"index"`
+	ParentId      int    `gorm:"index;default:null"`
 }
 
 type TaskInput struct {
@@ -64,12 +63,8 @@ type TaskInput struct {
 	Deadline     *MyDate `json:"deadline,omitempty"`
 	RemindDate   *MyDate `json:"remindDate,omitempty"`
 	Alias        string  `json:"alias,omitempty"`
-	ProjectAlias string  `json:"projectAlias,omitempty"`
-}
-
-func (input *TaskInput) Validate(db *gorm.DB, id int) error {
-	// Add validation logic here if needed
-	return nil
+	Parent       string
+	ProjectAlias string `json:"projectAlias,omitempty"`
 }
 
 type TaskFilter struct {
@@ -77,4 +72,5 @@ type TaskFilter struct {
 	Search  string `json:"search,omitempty"`
 	Project *string
 	Status  *TaskStatus `json:"status,omitempty"`
+	Parent  *string
 }

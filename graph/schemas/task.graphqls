@@ -12,6 +12,8 @@ type Task {
     cancelledDate: MyDate
     created: MyDate!
     projectId: Int
+    children: [Task] @goField(forceResolver: true)
+    parent: Task @goField(forceResolver: true)
     project: Project @goField(forceResolver: true)
     alias: String! @goField(forceResolver: true)
 }
@@ -23,6 +25,7 @@ input TaskInput {
     deadline: MyDate
     remindDate: MyDate
     alias: String
+    parent: String
     projectAlias: String
 }
 
@@ -31,6 +34,7 @@ input TaskFilter {
     status: TaskStatus
     search: String
     project: String
+    parent: String
 }
 
 extend type Mutation {

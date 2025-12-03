@@ -1,9 +1,5 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 type MySheet struct {
 	Id           int    `gorm:"primaryKey"`
 	Title        string `gorm:"not null"`
@@ -11,6 +7,7 @@ type MySheet struct {
 	Created      MyDate `gorm:"not null"`
 	NextDate     MyDate `gorm:"index;not null"`
 	PreviousDate MyDate `gorm:"index;not null"`
+	LabelId      int    `gorm:"index;default:null"`
 	Index        int    `gorm:"not null;default:0"`
 	// Age is calculated, not stored
 }
@@ -20,11 +17,7 @@ type MySheetInput struct {
 	Body  string  `json:"body"`
 	Alias string  `json:"alias,omitempty"`
 	Date  *MyDate `json:"date,omitempty"`
-}
-
-func (input *MySheetInput) Validate(db *gorm.DB, id int) error {
-	// Add validation logic here if needed
-	return nil
+	Label *string
 }
 
 type MySheetFilter struct {
@@ -32,4 +25,15 @@ type MySheetFilter struct {
 	Search       string  `json:"search,omitempty"`
 	NextDate     *MyDate `json:"nextDate,omitempty"`
 	PreviousDate *MyDate `json:"previousDate,omitempty"`
+	Label        *string
+}
+
+type MySheetLabel struct {
+	Id   int    `gorm:"primaryKey" json:"id"`
+	Name string `gorm:"index;not null" json:"name"`
+}
+
+type MySheetLabelInput struct {
+	Name  string `json:"name"`
+	Alias string `json:"alias,omitempty"`
 }

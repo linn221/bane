@@ -38,6 +38,16 @@ func (r *queryResolver) Tasks(ctx context.Context, f *models.TaskFilter) ([]*mod
 	return r.app.Services.TaskService.List(ctx, f)
 }
 
+// Children is the resolver for the children field.
+func (r *taskResolver) Children(ctx context.Context, obj *models.Task) ([]*models.Task, error) {
+	return loaders.GetChildrenTasks(ctx, obj.Id)
+}
+
+// Parent is the resolver for the parent field.
+func (r *taskResolver) Parent(ctx context.Context, obj *models.Task) (*models.Task, error) {
+	return loaders.GetTaskById(ctx, obj.ParentId)
+}
+
 // Project is the resolver for the project field.
 func (r *taskResolver) Project(ctx context.Context, obj *models.Task) (*models.Project, error) {
 	return loaders.GetProject(ctx, obj.ProjectId)

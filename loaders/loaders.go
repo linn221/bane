@@ -21,14 +21,18 @@ func LoadersKey() ctxKey {
 
 // Loaders wrap your data loaders to inject via middleware
 type Loaders struct {
-	wordAliasLoader        *dataloader.Loader[int, string]
-	wordListAliasLoader    *dataloader.Loader[int, string]
-	endpointAliasLoader    *dataloader.Loader[int, string]
-	mySheetAliasLoader     *dataloader.Loader[int, string]
-	projectAliasLoader     *dataloader.Loader[int, string]
-	taskAliasLoader        *dataloader.Loader[int, string]
-	projectLoader          *dataloader.Loader[int, *models.Project]
-	tasksByProjectIdLoader *dataloader.Loader[int, []*models.Task]
+	wordAliasLoader         *dataloader.Loader[int, string]
+	wordListAliasLoader     *dataloader.Loader[int, string]
+	endpointAliasLoader     *dataloader.Loader[int, string]
+	mySheetAliasLoader      *dataloader.Loader[int, string]
+	mySheetLabelAliasLoader *dataloader.Loader[int, string]
+	projectAliasLoader      *dataloader.Loader[int, string]
+	taskAliasLoader         *dataloader.Loader[int, string]
+	projectLoader           *dataloader.Loader[int, *models.Project]
+	tasksByProjectIdLoader  *dataloader.Loader[int, []*models.Task]
+	taskByIdLoader          *dataloader.Loader[int, *models.Task]
+	childrenTasksLoader     *dataloader.Loader[int, []*models.Task]
+	mySheetLabelByIdLoader  *dataloader.Loader[int, *models.MySheetLabel]
 }
 
 // NewLoaders instantiates data loaders for the middleware
@@ -39,6 +43,7 @@ func NewLoaders(conn *gorm.DB) *Loaders {
 	wordListAliasReader := &AliasReader{db: conn, referenceType: "wordlists"}
 	endpointAliasReader := &AliasReader{db: conn, referenceType: "endpoints"}
 	mySheetAliasReader := &AliasReader{db: conn, referenceType: "my_sheets"}
+	mySheetLabelAliasReader := &AliasReader{db: conn, referenceType: "my_sheet_labels"}
 	projectAliasReader := &AliasReader{db: conn, referenceType: "projects"}
 	taskAliasReader := &AliasReader{db: conn, referenceType: "tasks"}
 	projectReader := newGenericReader[*models.Project, int](conn,
@@ -49,6 +54,31 @@ func NewLoaders(conn *gorm.DB) *Loaders {
 			return &models.Project{Id: i}
 		},
 	)
+	taskByIdReader := newGenericReader[*models.Task, int](conn,
+		func(p *models.Task) int {
+			return p.Id
+		},
+		func(i int) *models.Task {
+			return &models.Task{Id: i}
+		},
+	)
+	mySheetLabelByIdReader := newGenericReader[*models.MySheetLabel, int](conn,
+		func(p *models.MySheetLabel) int {
+			return p.Id
+		},
+		func(i int) *models.MySheetLabel {
+			return &models.MySheetLabel{Id: i}
+		},
+	)
+	childrenTasksReader := newGenericReaderSlice[*models.Task, int](conn,
+		func(t *models.Task) int {
+			return t.ParentId
+		},
+		func(i int) *models.Task {
+			return &models.Task{ParentId: i}
+		},
+		"parent_id",
+	)
 	tasksByProjectIdReader := newGenericReaderSlice[*models.Task, int](conn,
 		func(t *models.Task) int {
 			return t.ProjectId
@@ -58,15 +88,20 @@ func NewLoaders(conn *gorm.DB) *Loaders {
 		},
 		"project_id",
 	)
+
 	return &Loaders{
-		wordAliasLoader:        wordAliasReader.Loader(),
-		wordListAliasLoader:    wordListAliasReader.Loader(),
-		endpointAliasLoader:    endpointAliasReader.Loader(),
-		mySheetAliasLoader:     mySheetAliasReader.Loader(),
-		projectAliasLoader:     projectAliasReader.Loader(),
-		taskAliasLoader:        taskAliasReader.Loader(),
-		projectLoader:          projectReader.Loader(),
-		tasksByProjectIdLoader: tasksByProjectIdReader.Loader(),
+		wordAliasLoader:         wordAliasReader.Loader(),
+		wordListAliasLoader:     wordListAliasReader.Loader(),
+		endpointAliasLoader:     endpointAliasReader.Loader(),
+		mySheetAliasLoader:      mySheetAliasReader.Loader(),
+		mySheetLabelAliasLoader: mySheetLabelAliasReader.Loader(),
+		projectAliasLoader:      projectAliasReader.Loader(),
+		taskAliasLoader:         taskAliasReader.Loader(),
+		projectLoader:           projectReader.Loader(),
+		tasksByProjectIdLoader:  tasksByProjectIdReader.Loader(),
+		taskByIdLoader:          taskByIdReader.Loader(),
+		mySheetLabelByIdLoader:  mySheetLabelByIdReader.Loader(),
+		childrenTasksLoader:     childrenTasksReader.Loader(),
 	}
 }
 
