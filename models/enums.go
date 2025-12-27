@@ -380,35 +380,6 @@ func (h *HttpMethod) UnmarshalGQL(i interface{}) error {
 	return nil
 }
 
-// VulnReferenceType GraphQL methods
-func (v VulnReferenceType) MarshalGQL(w io.Writer) {
-	w.Write([]byte(strconv.Quote(string(v))))
-}
-
-func (v *VulnReferenceType) UnmarshalGQL(i interface{}) error {
-	str, ok := i.(string)
-	if !ok {
-		return errors.New("vuln reference type must be string")
-	}
-	switch str {
-	case "programs":
-		*v = VulnReferenceTypeProgram
-	case "endpoints":
-		*v = VulnReferenceTypeEndpoint
-	case "requests":
-		*v = VulnReferenceTypeRequest
-	case "notes":
-		*v = VulnReferenceTypeNote
-	case "attachments":
-		*v = VulnReferenceTypeAttachment
-	case "vulns":
-		*v = VulnReferenceTypeVuln
-	default:
-		return errors.New("invalid vuln reference type")
-	}
-	return nil
-}
-
 type KVString struct {
 	Key   string
 	Value string

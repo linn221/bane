@@ -1,50 +1,36 @@
 type Endpoint {
     id: Int!
-    name: String!
+    name: String
     alias: String! @goField(forceResolver: true)
     description: String
-    httpSchema: HttpSchema!
-    httpMethod: HttpMethod!
-    httpDomain: String!
-    httpPort: Int!
-    httpPath: VarString!
-    # httpQueries: VarKVGroup!
-    # httpHeaders: VarKVGroup!
-    # httpCookies: VarKVGroup!
-    httpBody: VarString!
-    httpTimeout: Int!
-    httpFollowRedirects: Boolean!
-    httpPathMy(sep: String): MyString! @goField(forceResolver: true)
-    httpQueriesMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
-    httpHeadersMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
-    httpCookiesMy(sep: String, limit: Int): MyString! @goField(forceResolver: true)
-    httpBodyMy: MyString! @goField(forceResolver: true)
+    projectId: Int
+    https: Boolean!
+    method: HttpMethod!
+    domain: String!
+    path: VarString!
+    queries: VarKVGroup!
+    headers: VarKVGroup!
+    body: VarString!
+    input: String
     match(regex: String!): SearchResult! @goField(forceResolver: true)
     # curl(variables: String): String! @goField(forceResolver: true)
     notes: [Note] @goField(forceResolver: true)
 }
 
 input EndpointInput {
-    name: String!
-    alias: String
+    name: String
     description: String
-    httpSchema: HttpSchema!
-    httpMethod: HttpMethod!
-    httpDomain: String!
-    httpPort: Int
-    httpPath: VarString!
-    # httpQueries: VarKVGroup!
-    # httpHeaders: VarKVGroup!
-    # httpCookies: VarKVGroup!
-    httpBody: VarString!
-    httpTimeout: Int
-    httpFollowRedirects: Boolean
+    projectId: Int
+    method: HttpMethod!
+    url: VarString!
+    headers: VarKVGroup!
+    body: VarString
 }
 
 input EndpointFilter {
-    httpSchema: HttpSchema
-    httpMethod: HttpMethod
-    httpDomain: String
+    https: Boolean
+    method: HttpMethod
+    domain: String
     search: String
 }
 
@@ -69,17 +55,13 @@ input PatchEndpoint {
     name: String
     alias: String
     description: String
-    httpSchema: HttpSchema
-    httpMethod: HttpMethod
-    httpDomain: String
-    httpPort: Int
-    httpPath: VarString
-    # httpQueries: VarKVGroup
-    # httpHeaders: VarKVGroup
-    # httpCookies: VarKVGroup
-    httpBody: VarString
-    httpTimeout: Int
-    httpFollowRedirects: Boolean
+    https: Boolean
+    method: HttpMethod
+    domain: String
+    path: VarString
+    queries: VarKVGroup
+    headers: VarKVGroup
+    body: VarString
 }
 
 extend type Mutation {

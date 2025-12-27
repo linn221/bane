@@ -11,46 +11,12 @@ import (
 	"github.com/linn221/bane/graph/model"
 	"github.com/linn221/bane/loaders"
 	"github.com/linn221/bane/models"
-	"github.com/linn221/bane/mystructs"
 	"github.com/linn221/bane/services"
 )
 
 // Alias is the resolver for the alias field.
 func (r *endpointResolver) Alias(ctx context.Context, obj *models.Endpoint) (string, error) {
 	return loaders.GetEndpointAlias(ctx, obj.Id)
-}
-
-// HTTPPathMy is the resolver for the httpPathMy field.
-func (r *endpointResolver) HTTPPathMy(ctx context.Context, obj *models.Endpoint, sep *string) (string, error) {
-	myString := mystructs.NewMyStringFromVarString(obj.HttpPath)
-	if sep != nil {
-		myString.Separator = *sep
-	}
-	return myString.String(), nil
-}
-
-// HTTPQueriesMy is the resolver for the httpQueriesMy field.
-func (r *endpointResolver) HTTPQueriesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error) {
-	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpQueries, sep, limit)
-	return myString.String(), nil
-}
-
-// HTTPHeadersMy is the resolver for the httpHeadersMy field.
-func (r *endpointResolver) HTTPHeadersMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error) {
-	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpHeaders, sep, limit)
-	return myString.String(), nil
-}
-
-// HTTPCookiesMy is the resolver for the httpCookiesMy field.
-func (r *endpointResolver) HTTPCookiesMy(ctx context.Context, obj *models.Endpoint, sep *string, limit *int) (string, error) {
-	myString := mystructs.NewMyStringFromVarKVGroup(obj.HttpCookies, sep, limit)
-	return myString.String(), nil
-}
-
-// HTTPBodyMy is the resolver for the httpBodyMy field.
-func (r *endpointResolver) HTTPBodyMy(ctx context.Context, obj *models.Endpoint) (string, error) {
-	myString := mystructs.NewMyStringFromVarString(obj.HttpBody)
-	return myString.String(), nil
 }
 
 // Match is the resolver for the match field.

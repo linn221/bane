@@ -2,13 +2,14 @@ type Project {
     id: Int!
     name: String!
     description: String
+    url: String
     alias: String! @goField(forceResolver: true)
-    tasks: [Task] @goField(forceResolver: true)
 }
 
 input ProjectInput {
     name: String!
     description: String
+    url: String
     alias: String
 }
 

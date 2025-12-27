@@ -7,15 +7,12 @@ import (
 
 // MyServices contains all service instances
 type MyServices struct {
-	EndpointService       *endpointService
-	NoteService           *noteService
-	MyRequestService      *myRequestService
-	WordService           *wordService
-	VulnConnectionService *vulnConnectionService
-	MySheetService        *mySheetService
-	ProjectService        *projectService
-	TaskService           *taskService
-	AliasService          *aliasService
+	EndpointService *endpointService
+	NoteService     *noteService
+	MyRequestService *myRequestService
+	WordService     *wordService
+	ProjectService  *projectService
+	AliasService    *aliasService
 }
 
 // NewMyServices creates a new MyServices instance with all services initialized
@@ -40,33 +37,17 @@ func NewMyServices(db *gorm.DB, cache config.CacheService) *MyServices {
 		aliasService: aliasService,
 	}
 
-	vulnConnectionService := &vulnConnectionService{
-		db: db,
-	}
-
-	mySheetService := &mySheetService{
-		db:           db,
-		aliasService: aliasService,
-	}
-
 	projectService := &projectService{
-		db:           db,
-		aliasService: aliasService,
-	}
-	taskService := &taskService{
 		db:           db,
 		aliasService: aliasService,
 	}
 
 	return &MyServices{
-		AliasService:          aliasService,
-		EndpointService:       endpointService,
-		NoteService:           noteService,
-		MyRequestService:      myRequestService,
-		WordService:           wordService,
-		VulnConnectionService: vulnConnectionService,
-		MySheetService:        mySheetService,
-		ProjectService:        projectService,
-		TaskService:           taskService,
+		AliasService:     aliasService,
+		EndpointService:  endpointService,
+		NoteService:      noteService,
+		MyRequestService: myRequestService,
+		WordService:      wordService,
+		ProjectService:   projectService,
 	}
 }

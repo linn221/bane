@@ -89,10 +89,10 @@ func (s *myRequestService) ExecuteCurl(ctx context.Context, endpointAlias string
 	// Create MyRequest record
 	request := &models.MyRequest{
 		EndpointId:     endpoint.Id,
-		RequestMethod:  string(endpoint.HttpMethod),
+		RequestMethod:  string(endpoint.Method),
 		RequestUrl:     s.buildUrl(&endpoint),
-		RequestHeaders: s.serializeHeaders(endpoint.HttpHeaders),
-		RequestBody:    endpoint.HttpBody.Exec(),
+		RequestHeaders: s.serializeHeaders(endpoint.Headers),
+		RequestBody:    endpoint.Body.Exec(),
 		Latency:        latency,
 		ExecutedAt:     time.Now(),
 		Variables:      s.serializeVariables(variables),
@@ -122,9 +122,9 @@ func (s *myRequestService) ExecuteCurl(ctx context.Context, endpointAlias string
 // generateCurlCommand creates a curl command from endpoint and variables
 func (s *myRequestService) generateCurlCommand(endpoint *models.Endpoint, variables mystructs.VarKVGroup) (string, error) {
 	// Inject variables into endpoint fields
-	path := endpoint.HttpPath.Exec()
-	headers := endpoint.HttpHeaders
-	body := endpoint.HttpBody.Exec()
+	path := endpoint.Path.Exec()
+	headers := endpoint.Headers
+	body := endpoint.Body.Exec()
 
 	// Apply variable injection to path, headers, and body
 	for _, kv := range variables.VarKVs {
@@ -147,11 +147,11 @@ func (s *myRequestService) generateCurlCommand(endpoint *models.Endpoint, variab
 	// Build curl command
 	var curlParts []string
 	curlParts = append(curlParts, "curl")
-	curlParts = append(curlParts, "-X", string(endpoint.HttpMethod))
+	curlParts = append(curlParts, "-X", string(endpoint.Method))
 
 	// Add URL
 	url := s.buildUrl(endpoint)
-	url = strings.ReplaceAll(url, endpoint.HttpPath.Exec(), path)
+	url = strings.ReplaceAll(url, endpoint.Path.Exec(), path)
 	curlParts = append(curlParts, fmt.Sprintf("'%s'", url))
 
 	// Add headers
@@ -164,16 +164,6 @@ func (s *myRequestService) generateCurlCommand(endpoint *models.Endpoint, variab
 		curlParts = append(curlParts, "-d", fmt.Sprintf("'%s'", body))
 	}
 
-	// Add timeout
-	if endpoint.HttpTimeout > 0 {
-		curlParts = append(curlParts, "--connect-timeout", fmt.Sprintf("%d", endpoint.HttpTimeout))
-	}
-
-	// Add follow redirects
-	if endpoint.HttpFollowRedirects {
-		curlParts = append(curlParts, "-L")
-	}
-
 	// Add verbose output for parsing
 	curlParts = append(curlParts, "-v", "-s")
 
@@ -182,15 +172,14 @@ func (s *myRequestService) generateCurlCommand(endpoint *models.Endpoint, variab
 
 // buildUrl constructs the full URL from endpoint
 func (s *myRequestService) buildUrl(endpoint *models.Endpoint) string {
-	schema := string(endpoint.HttpSchema)
-	domain := endpoint.HttpDomain
-	port := ""
-	if endpoint.HttpPort != 0 {
-		port = fmt.Sprintf(":%d", endpoint.HttpPort)
+	schema := "http"
+	if endpoint.Https {
+		schema = "https"
 	}
-	path := endpoint.HttpPath.Exec()
+	domain := endpoint.Domain
+	path := endpoint.Path.Exec()
 
-	return fmt.Sprintf("%s://%s%s%s", schema, domain, port, path)
+	return fmt.Sprintf("%s://%s%s", schema, domain, path)
 }
 
 // serializeHeaders converts VarKVGroup to JSON string

@@ -74,25 +74,8 @@ func GetEndpointAlias(ctx context.Context, id int) (string, error) {
 	return loaders.endpointAliasLoader.Load(ctx, id)()
 }
 
-// GetMySheetAlias returns a single alias for a MySheet by ID efficiently using dataloader
-func GetMySheetAlias(ctx context.Context, id int) (string, error) {
-	loaders := For(ctx)
-	return loaders.mySheetAliasLoader.Load(ctx, id)()
-}
-
-func GetMySheetLabelAlias(ctx context.Context, id int) (string, error) {
-	loaders := For(ctx)
-	return loaders.mySheetLabelAliasLoader.Load(ctx, id)()
-}
-
 // GetProjectAlias returns a single alias for a Project by ID efficiently using dataloader
 func GetProjectAlias(ctx context.Context, id int) (string, error) {
 	loaders := For(ctx)
 	return loaders.projectAliasLoader.Load(ctx, id)()
-}
-
-// GetTaskAlias returns a single alias for a Task by ID efficiently using dataloader
-func GetTaskAlias(ctx context.Context, id int) (string, error) {
-	loaders := For(ctx)
-	return loaders.taskAliasLoader.Load(ctx, id)()
 }

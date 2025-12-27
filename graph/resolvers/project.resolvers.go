@@ -22,11 +22,6 @@ func (r *projectResolver) Alias(ctx context.Context, obj *models.Project) (strin
 	return loaders.GetProjectAlias(ctx, obj.Id)
 }
 
-// Tasks is the resolver for the tasks field.
-func (r *projectResolver) Tasks(ctx context.Context, obj *models.Project) ([]*models.Task, error) {
-	return loaders.GetTasksByProjectId(ctx, obj.Id)
-}
-
 // Project is the resolver for the project field.
 func (r *queryResolver) Project(ctx context.Context, id *int, alias *string) (*models.Project, error) {
 	return r.app.Services.ProjectService.Get(ctx, id, alias)

@@ -16,6 +16,7 @@ func (s *projectService) Create(ctx context.Context, input *models.ProjectInput)
 	project := models.Project{
 		Name:        input.Name,
 		Description: input.Description,
+		Url:         input.Url,
 	}
 
 	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {

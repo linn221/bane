@@ -1,6 +1,7 @@
 scalar MyTime
 scalar MyDate
 scalar VarString
+scalar VarKVGroup
 scalar MyString
 scalar KVString
 scalar KVInt

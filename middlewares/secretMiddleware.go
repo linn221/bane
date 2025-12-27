@@ -40,6 +40,13 @@ func (cfg *SecretConfig) Middleware() func(h http.Handler) http.Handler {
 			cookies, err := r.Cookie("secret")
 			if err != nil {
 				if err == http.ErrNoCookie {
+					if r.Header.Get("secret") != "" {
+						pretendSecret := r.Header.Get("secret")
+						if pretendSecret == theSecret {
+							h.ServeHTTP(w, r)
+							return
+						}
+					}
 					http.Error(w, "please visit the magic link for auth", http.StatusUnauthorized)
 					return
 				}

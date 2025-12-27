@@ -21,7 +21,15 @@ func init() {
 	environmentPath := filepath.Join(dir, ".env")
 	err = godotenv.Load(environmentPath)
 	if err != nil {
-		log.Fatal(err)
+		// Don't fatal on missing .env file (useful for tests)
+		// Try loading from current working directory as fallback
+		if cwd, err := os.Getwd(); err == nil {
+			envPath := filepath.Join(cwd, ".env")
+			if err := godotenv.Load(envPath); err != nil {
+				// .env file is optional, just log a warning
+				log.Printf("Warning: Could not load .env file from %s or %s: %v", environmentPath, envPath, err)
+			}
+		}
 	}
 }
 func GetBaseDir() string {

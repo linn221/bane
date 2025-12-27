@@ -2,8 +2,12 @@ package services
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/linn221/bane/models"
+	"github.com/linn221/bane/mystructs"
+	"github.com/linn221/bane/utils"
 	"gorm.io/gorm"
 )
 
@@ -13,27 +17,47 @@ type endpointService struct {
 }
 
 func (s *endpointService) Create(ctx context.Context, input *models.EndpointInput) (*models.Endpoint, error) {
+	// Parse the URL to extract all components
+	parsedUrl, err := utils.ParseHttpUrl(input.Url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse url: %w", err)
+	}
+
+	// Set default for body if not provided
+	body := mystructs.VarString{OriginalString: ""}
+	if input.Body != nil {
+		body = *input.Body
+	}
+
+	// Serialize input to JSON for storage
+	inputJSON, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal input to JSON: %w", err)
+	}
+
 	// Transform input to endpoint
 	endpoint := models.Endpoint{
 		Name:        input.Name,
 		Description: input.Description,
-		HttpSchema:  input.HttpSchema,
-		HttpMethod:  input.HttpMethod,
-		HttpDomain:  input.HttpDomain,
-		HttpPath:    input.HttpPath,
-		HttpQueries: input.HttpQueries,
-		HttpHeaders: input.HttpHeaders,
-		HttpCookies: input.HttpCookies,
-		HttpBody:    input.HttpBody,
+		ProjectId:   input.ProjectId,
+		Https:       parsedUrl.Https,
+		Method:      input.Method,
+		Domain:      parsedUrl.HttpDomain,
+		Path:        parsedUrl.HttpPath,
+		Queries:     parsedUrl.HttpQueries,
+		Headers:     input.Headers,
+		Body:        body,
+		Input:       string(inputJSON),
 	}
 
 	// Create the endpoint directly
-	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		err := tx.Create(&endpoint).Error
 		if err != nil {
 			return err
 		}
-		err = s.aliasService.CreateAlias(tx, "endpoints", endpoint.Id, input.Alias)
+		// Alias is auto-generated if not provided (handled by CreateAlias)
+		err = s.aliasService.CreateAlias(tx, "endpoints", endpoint.Id, "")
 		if err != nil {
 			return err
 		}
@@ -50,16 +74,16 @@ func (s *endpointService) List(ctx context.Context, filter *models.EndpointFilte
 	query := s.db.WithContext(ctx).Model(&models.Endpoint{})
 
 	if filter != nil {
-		if filter.HttpSchema != "" {
-			query = query.Where("http_schema = ?", filter.HttpSchema)
+		if filter.Https != nil {
+			query = query.Where("http_schema = ?", *filter.Https)
 		}
 
-		if filter.HttpMethod != "" {
-			query = query.Where("http_method = ?", filter.HttpMethod)
+		if filter.Method != "" {
+			query = query.Where("http_method = ?", filter.Method)
 		}
 
-		if filter.HttpDomain != "" {
-			query = query.Where("http_domain = ?", filter.HttpDomain)
+		if filter.Domain != "" {
+			query = query.Where("http_domain = ?", filter.Domain)
 		}
 
 		if filter.Search != "" {
