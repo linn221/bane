@@ -7,9 +7,6 @@ type Note {
 
 input NoteInput {
     value: String!
-    rId: Int
-    referenceId: Int
-    referenceType: String
 }
 
 input NoteFilter {
@@ -21,7 +18,7 @@ input NoteFilter {
 }
 
 extend type Mutation {
-    newNote(input: NoteInput): Note!
+    newNote(input: NoteInput!, a: String!): Note!
     delNote(id: Int!): Note!
 }
 

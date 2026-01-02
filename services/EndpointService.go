@@ -41,7 +41,7 @@ func (s *endpointService) Create(ctx context.Context, input *models.EndpointInpu
 		Description: input.Description,
 		ProjectId:   input.ProjectId,
 		Https:       parsedUrl.Https,
-		Method:      input.Method,
+		Method:      utils.SafeDeref(input.Method, models.HttpMethodGet),
 		Domain:      parsedUrl.HttpDomain,
 		Path:        parsedUrl.HttpPath,
 		Queries:     parsedUrl.HttpQueries,

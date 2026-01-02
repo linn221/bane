@@ -46,7 +46,7 @@ type EndpointInput struct {
 	Name        string               `json:"name,omitempty"` // Optional
 	Description string               `json:"description"`
 	ProjectId   *int                 `json:"projectId,omitempty"` // Optional project reference
-	Method      HttpMethod           `json:"method"`              // Required HTTP method
+	Method      *HttpMethod          `json:"method"`              // Required HTTP method
 	Url         mystructs.VarString  `json:"url"`                 // Full URL with optional VarString placeholders
 	Headers     mystructs.VarKVGroup `json:"headers"`             // HTTP headers
 	Body        *mystructs.VarString `json:"body,omitempty"`      // Optional HTTP body

@@ -86,7 +86,7 @@ type ComplexityRoot struct {
 		Destroy     func(childComplexity int, a string) int
 		Helloworld  func(childComplexity int) int
 		NewEndpoint func(childComplexity int, input models.EndpointInput) int
-		NewNote     func(childComplexity int, input *models.NoteInput) int
+		NewNote     func(childComplexity int, input models.NoteInput, a string) int
 		NewProject  func(childComplexity int, input models.ProjectInput) int
 		NewWord     func(childComplexity int, input models.WordInput) int
 		NewWordList func(childComplexity int, input models.WordListInput) int
@@ -202,7 +202,7 @@ type MutationResolver interface {
 	Destroy(ctx context.Context, a string) (bool, error)
 	NewEndpoint(ctx context.Context, input models.EndpointInput) (*models.Endpoint, error)
 	RunCurl(ctx context.Context, endpointAlias string, variables string) (*models.MyRequest, error)
-	NewNote(ctx context.Context, input *models.NoteInput) (*models.Note, error)
+	NewNote(ctx context.Context, input models.NoteInput, a string) (*models.Note, error)
 	DelNote(ctx context.Context, id int) (*models.Note, error)
 	NewProject(ctx context.Context, input models.ProjectInput) (*models.Project, error)
 	Raw(ctx context.Context, sql string) (int, error)
@@ -436,7 +436,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.NewNote(childComplexity, args["input"].(*models.NoteInput)), true
+		return e.complexity.Mutation.NewNote(childComplexity, args["input"].(models.NoteInput), args["a"].(string)), true
 	case "Mutation.newProject":
 		if e.complexity.Mutation.NewProject == nil {
 			break
@@ -1179,11 +1179,16 @@ func (ec *executionContext) field_Mutation_newEndpoint_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_newNote_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalONoteInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNNoteInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteInput)
 	if err != nil {
 		return nil, err
 	}
 	args["input"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "a", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["a"] = arg1
 	return args, nil
 }
 
@@ -2444,7 +2449,7 @@ func (ec *executionContext) _Mutation_newNote(ctx context.Context, field graphql
 		ec.fieldContext_Mutation_newNote,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().NewNote(ctx, fc.Args["input"].(*models.NoteInput))
+			return ec.resolvers.Mutation().NewNote(ctx, fc.Args["input"].(models.NoteInput), fc.Args["a"].(string))
 		},
 		nil,
 		ec.marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNote,
@@ -6697,7 +6702,7 @@ func (ec *executionContext) unmarshalInputEndpointInput(ctx context.Context, obj
 			it.ProjectId = data
 		case "method":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("method"))
-			data, err := ec.unmarshalNHttpMethod2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐHttpMethod(ctx, v)
+			data, err := ec.unmarshalOHttpMethod2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐHttpMethod(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6853,7 +6858,7 @@ func (ec *executionContext) unmarshalInputNoteInput(ctx context.Context, obj any
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"value", "rId", "referenceId", "referenceType"}
+	fieldsInOrder := [...]string{"value"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6867,27 +6872,6 @@ func (ec *executionContext) unmarshalInputNoteInput(ctx context.Context, obj any
 				return it, err
 			}
 			it.Value = data
-		case "rId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rId"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.RId = data
-		case "referenceId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceId"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ReferenceId = data
-		case "referenceType":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referenceType"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ReferenceType = data
 		}
 	}
 
@@ -9366,6 +9350,11 @@ func (ec *executionContext) marshalNNote2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmode
 	return ec._Note(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNNoteInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteInput(ctx context.Context, v any) (models.NoteInput, error) {
+	res, err := ec.unmarshalInputNoteInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNPatchInput2githubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐPatchInput(ctx context.Context, v any) (models.PatchInput, error) {
 	res, err := ec.unmarshalInputPatchInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -10157,14 +10146,6 @@ func (ec *executionContext) unmarshalONoteFilter2ᚖgithubᚗcomᚋlinn221ᚋban
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputNoteFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalONoteInput2ᚖgithubᚗcomᚋlinn221ᚋbaneᚋmodelsᚐNoteInput(ctx context.Context, v any) (*models.NoteInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputNoteInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

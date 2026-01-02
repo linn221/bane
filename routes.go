@@ -8,7 +8,6 @@ import (
 	"github.com/linn221/bane/app"
 	"github.com/linn221/bane/graph"
 	"github.com/linn221/bane/graph/resolvers"
-	memorysheets "github.com/linn221/memory-sheets/app"
 )
 
 func SetupRoutes(app *app.App) *http.ServeMux {
@@ -20,7 +19,6 @@ func SetupRoutes(app *app.App) *http.ServeMux {
 	// Create a new mux
 	mux := http.NewServeMux()
 
-	memorysheets.Handler(mux, "storage/sheets", "storage/pattern.json")
 	// Serve static files
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static/"))))
 

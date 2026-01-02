@@ -21,7 +21,7 @@ input EndpointInput {
     name: String
     description: String
     projectId: Int
-    method: HttpMethod!
+    method: HttpMethod
     url: VarString!
     headers: VarKVGroup!
     body: VarString

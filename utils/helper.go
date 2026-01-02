@@ -160,8 +160,11 @@ func SurroundPercentages(s string) string {
 	return "%" + s + "%"
 }
 
-func SafeDeref[T any](ptr *T) T {
+func SafeDeref[T any](ptr *T, opt ...T) T {
 	var zero T
+	if len(opt) > 0 {
+		zero = opt[0]
+	}
 	if ptr == nil {
 		return zero
 	}

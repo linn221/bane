@@ -9,18 +9,24 @@ import (
 )
 
 type noteService struct {
-	db *gorm.DB
+	db           *gorm.DB
+	aliasService *aliasService
 }
 
-func (s *noteService) Create(ctx context.Context, input *models.NoteInput) (*models.Note, error) {
+func (s *noteService) Create(ctx context.Context, input *models.NoteInput, alias string) (*models.Note, error) {
+
+	rId, rType, err := s.aliasService.GetIdAndType(ctx, alias)
+	if err != nil {
+		return nil, err
+	}
 	today := utils.Today()
 	note := models.Note{
-		ReferenceType: input.ReferenceType,
-		ReferenceID:   input.ReferenceId,
+		ReferenceType: rType,
+		ReferenceID:   rId,
 		Value:         input.Value,
 		NoteDate:      models.MyDate{Time: today},
 	}
-	err := s.db.WithContext(ctx).Create(&note).Error
+	err = s.db.WithContext(ctx).Create(&note).Error
 	if err != nil {
 		return nil, err
 	}
